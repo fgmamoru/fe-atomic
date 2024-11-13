@@ -1,0 +1,9 @@
+.TVLChart {
+  height: 730px;
+}
+
+@media (max-width: 599px) {
+  .TVLChart {
+    height: 288px;
+  }
+}

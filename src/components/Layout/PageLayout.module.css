@@ -1,0 +1,35 @@
+.PageLayout {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    max-width: 95%;
+    margin: auto;
+    margin-top: 64px;
+}
+
+@media (max-width: 768px) {
+    .PageLayout {
+        margin-top: 32px;
+    }
+}
+
+.PageLayoutContainer {
+    max-width: 800px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.PageLayoutNarrow {
+    max-width: 400px;
+    width: 400px;
+}
+
+.PageWrapper {
+    display: flex;
+    justify-content: center;
+    width: 100%;
+    max-width: 95%;
+    margin: auto;
+    margin-top: 64px;
+}

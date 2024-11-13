@@ -1,0 +1,13 @@
+.Footer {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  margin-top: 45px;
+  margin-bottom: 20px;
+}
+
+.FooterLogo {
+  margin-bottom: 6px;
+}

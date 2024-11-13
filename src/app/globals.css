@@ -1,0 +1,378 @@
+:root {
+  --color-bg: #000000;
+  --color-card-border: #2A2A2A;
+  --color-bg-graph: #181818;
+  --color-primary-bg: white;
+  --color-text-primary: #fff;
+  --font: "Poppins", sans-serif;
+  --color-primary-bg-hover: #f7f7f8;
+  --color-secondary-text: #8E8E8E;
+  --color-text-error: #D14E4E;
+  --color-bg-error: #351C1C;
+  --font-size-h3: 20px;
+  --text-weight-h3: 500;
+  --color-secondary-bg: #363636;
+  --color-secondary-btn-text: #F7F7F8;
+  --color-text-secondary: #898989;
+  --color-bg-disabled: #f7f7f840;
+  --color-text-disabled: #000000;
+
+  --button-default-height: 40px;
+  --button-default-color: #000;
+  --button-default-bg: #fff;
+  --button-default-bg-hover: #a4ffc5;
+
+  --color-link: var(--color-text-primary);
+  --color-link-hover: #ffeda4;
+  --color-link-visited: #dea4ff;
+}
+
+#ton-connect-button button {
+  background-color: #181818;
+  height: 42px;
+  border-radius: 8px;
+  padding-left: 12px;
+  padding-right: 22px;
+  border-radius: 0px 8px 8px 0px;
+  border-left: 1px solid var(--color-card-border);
+  color: white !important;
+}
+
+#ton-connect-button button * {
+  color: white !important;
+}
+
+
+.isConnected #ton-connect-button button {
+  background-color: #181818;
+  height: 42px;
+  border-radius: 8px;
+  padding-left: 42px;
+  padding-right: 22px;
+  border-radius: 0px 8px 8px 0px;
+  border-left: 1px solid var(--color-card-border);
+}
+
+@media screen and (max-width: 425px) {
+  #ton-connect-button button * {
+    font-size: 0.8em;
+  }
+
+  #ton-connect-button button {
+    padding-left: 8px;
+    padding-right: 8px;
+    padding: 0px;
+  }
+
+
+  .isConnected #ton-connect-button button {
+    padding: 0px;
+    padding-left: 0px;
+    padding-right: 0px;
+  }
+}
+
+/* make scroll bar dark */
+
+::-webkit-scrollbar {
+  width: 12px;
+}
+
+::-webkit-scrollbar-track {
+  background: #222222;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #4E4E4E;
+  border-radius: 6px;
+  width: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #4E4E4E;
+}
+
+/* Chrome, Safari, Edge, Opera */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Firefox */
+input[type=number] {
+  -moz-appearance: textfield;
+}
+
+/* #tc-widget-root{
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  
+} */
+
+/* overlay */
+#tc-widget-root>tc-root>div {
+  background-color: #4e4e4e7e;
+  /* top: 0;
+  position: fixed;
+  width: 100%;
+  height: 100%; */
+
+  /* background-color: #000;
+  padding: 16px;
+  max-width: 350px;
+
+  padding-top: 24px;
+  padding-bottom: 24px; */
+}
+
+#tc-widget-root>tc-root>div>div>div {
+  background-color: #000000 !important;
+  color: white;
+  font-family: var(--font);
+  text-align: center;
+  --panel-header-height: 64px;
+  --panel-footer-height: 82px;
+  --color-modal-backdrop: #4E4E4E;
+  --color-modal-bg: #000000;
+  --modal-max-width: 800px;
+  --modal-min-width: 300px;
+  --border-radius: 24px;
+  z-index: 101;
+  width: 100%;
+  min-width: var(--modal-min-width);
+  position: static;
+  background-color: var(--color-modal-bg);
+  border-radius: var(--border-radius);
+  max-height: 95vh;
+  padding: 16px;
+  max-width: 350px;
+  padding-top: 24px;
+  padding-bottom: 24px;
+}
+
+
+/* #tc-widget-root div div div {
+  padding: 0px;
+}
+
+
+
+#tc-widget-root h1 {
+  background-color: #000;
+}
+*/
+#tc-widget-root [data-tc-icon-button="true"] {
+  display: none;
+}
+
+#tc-widget-root [data-tc-h1="true"] {
+  color: white;
+  font-family: var(--font);
+  --panel-header-height: 64px;
+  --panel-footer-height: 82px;
+  --color-modal-backdrop: #4E4E4E;
+  --color-modal-bg: #000000;
+  --modal-max-width: 800px;
+  --modal-min-width: 300px;
+  --border-radius: 8px;
+  font-weight: 400;
+  align-self: center;
+  text-align: center;
+  font-size: 24px;
+}
+
+#tc-widget-root [data-tc-text="true"] {
+  font-family: var(--font);
+  text-align: center;
+  --panel-header-height: 64px;
+  --panel-footer-height: 82px;
+  --color-modal-backdrop: #4E4E4E;
+  --color-modal-bg: #000000;
+  --modal-max-width: 800px;
+  --modal-min-width: 300px;
+  --border-radius: 8px;
+  color: var(--color-secondary-text);
+  font-size: var(--font-size-body);
+  font-weight: 400;
+  margin-bottom: var(--spacing);
+}
+
+tc-root [data-tc-modal="true"]>div {
+  background-color: #000000;
+}
+
+#tc-widget-root>tc-root>div>div>div.go2218940523>svg>path:nth-child(3) {
+  fill: #fff;
+}
+
+
+/* Duplicate class selectors for specificity */
+.rdt_Table.rdt_Table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--font);
+  background-color: var(--color-bg);
+  color: var(--color-text-primary);
+}
+
+.rdt_Table.rdt_Table * {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--font);
+  /* background-color: var(--color-bg);*/
+  color: var(--color-text-primary);
+}
+
+.rdt_Table.rdt_Table * {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: var(--font);
+  background-color: transparent;
+  color: var(--color-text-primary);
+}
+
+
+.rdt_TableRow.rdt_TableRow {
+  border-bottom: 1px solid var(--color-card-border);
+  cursor: pointer;
+}
+
+.rdt_TableRow.rdt_TableRow {
+  border-bottom: 1px solid var(--color-bg-graph) !important;
+  background-color: var(--color-bg) !important;
+  transition: background-color 0.5s;
+}
+
+.rdt_TableRow.rdt_TableRow:hover {
+  /* background-color: var(--color-secondary-bg) !important; */
+  border-bottom: 1px solid var(--color-primary-bg-hover) !important;
+}
+
+.rdt_TableCol.rdt_TableCol {
+  padding: 8px;
+  text-align: left;
+}
+
+.rdt_TableCol_Sortable.rdt_TableCol_Sortable {
+  cursor: pointer;
+}
+
+.rdt_TableCell.rdt_TableCell {
+  padding: 8px;
+  /* border-bottom: 1px solid var(--color-card-border); */
+}
+
+.rdt_TableHeader.rdt_TableHeader {
+  /* background-color: var(--color-secondary-bg); */
+
+}
+
+.rdt_TableFooter.rdt_TableFooter {
+  background-color: var(--color-secondary-bg);
+  font-weight: bold;
+  color: var(--color-secondary-btn-text);
+}
+
+.rdt_TableHead.rdt_TableHead {
+  background-color: var(--color-secondary-bg);
+}
+
+.rdt_TableHeadRow.rdt_TableHeadRow {
+  background-color: var(--color-bg);
+  font-weight: bold;
+  color: var(--color-secondary-btn-text);
+  font-size: 14px;
+  border-bottom: 1px solid var(--color-card-border);
+
+}
+
+.rdt_TableBody.rdt_TableBody {
+  background-color: var(--color-bg);
+}
+
+.rdt_ExpanderRow.rdt_ExpanderRow {
+  background-color: var(--color-secondary-bg);
+}
+
+.rdt_TableRow.rdt_TableRow:nth-child(even) {
+  background-color: var(--color-secondary-bg);
+}
+
+.rdt_TableRow.rdt_TableRow:nth-child(odd) {
+  background-color: var(--color-bg);
+}
+
+.rdt_Pagination.rdt_Pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: var(--color-bg);
+  color: var(--color-secondary-btn-text);
+
+}
+
+.rdt_Pagination.rdt_Pagination button {
+  border: 1px solid var(--color-card-border);
+  border-radius: 4px;
+  cursor: pointer;
+  height: var(--button-default-height);
+  background-color: var(--button-default-bg);
+  color: var(--button-default-color);
+  padding: 0px;
+  margin-left: 4px;
+}
+
+.rdt_Pagination.rdt_Pagination button:hover {
+  background-color: var(--button-default-bg-hover);
+}
+
+.rdt_Pagination.rdt_Pagination button:disabled {
+  background-color: var(--color-bg-disabled);
+  color: var(--color-text-disabled) !important;
+  fill: var(--color-text-disabled) !important;
+  cursor: not-allowed;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+}
+
+.rdt_Pagination.rdt_Pagination .rdt_PaginationPage {
+  font-weight: bold;
+  margin: 0 4px;
+}
+
+
+body {
+  background-color: var(--color-bg);
+  color: white;
+  font-family: var(--font);
+  margin: 0;
+  padding: 0;
+}
+
+h1 {
+  font-size: 32px;
+  font-weight: 400;
+  align-self: center;
+  text-align: center;
+  margin-top: 0px;
+}
+
+h2 {
+  margin: 0px;
+}
+
+a {
+  color: var(--color-link);
+}
+
+a:hover {
+  color: rgb(178, 164, 255);
+}
+
+a:visited {
+  color: var(--color-link-visited);
+}

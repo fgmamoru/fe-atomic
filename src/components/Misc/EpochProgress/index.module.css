@@ -1,0 +1,16 @@
+.EpochProgressStats {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 10px;
+}
+
+.EpochProgressStatsLabel,
+.EpochProgressStatsValue {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+
+.EpochProgressStatsValue {
+  color: var(--color-text-primary);
+}

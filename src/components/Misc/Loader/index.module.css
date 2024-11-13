@@ -1,0 +1,32 @@
+.MainButtonLoader {
+    height: 100%;
+    color: white;
+    text-align: center;
+    --panel-header-height: 64px;
+    --panel-footer-height: 82px;
+    --color-modal-backdrop: #4E4E4E;
+    --color-modal-bg: #000000;
+    --modal-max-width: 800px;
+    --modal-min-width: 300px;
+    --border-radius: 24px;
+    width: 72;
+    height: 72;
+    fill: none;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: -apple-system, BlinkMacSystemFont, 'Roboto', 'Helvetica Neue', Arial, Tahoma, Verdana, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -webkit-tap-highlight-color: transparent;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}

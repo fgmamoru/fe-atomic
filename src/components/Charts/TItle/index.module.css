@@ -1,0 +1,10 @@
+.ChartTitle {
+  font-weight: 400;
+  color: var(--color-text-secondary);
+  width: 100%;
+  text-align: center;
+}
+
+.ChartTitleValue {
+  color: var(--color-text-primary);
+}

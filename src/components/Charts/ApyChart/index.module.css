@@ -1,0 +1,9 @@
+.ApyChart {
+  height: 730px;
+}
+
+@media (max-width: 599px) {
+  .ApyChart {
+    height: 288px;
+  }
+}

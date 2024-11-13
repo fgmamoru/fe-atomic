@@ -1,0 +1,11 @@
+.TotalBundlesChart {
+  height: 280px;
+  width: 100%;
+  margin-bottom: 30px;
+}
+
+.TotalBundlesChart .Switch {
+  display: flex;
+  justify-content: end;
+  align-items: center;
+}

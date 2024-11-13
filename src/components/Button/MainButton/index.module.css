@@ -1,0 +1,60 @@
+.MainButton {
+  border: none;
+  padding: 8px 22px;
+  color: hsla(240, 7%, 97%, 0.502);
+  min-width: 42px;
+  height: var(--button-default-height);
+  background: var(--color-primary-bg);
+  border-radius: 8px;
+  color: var(--button-default-color);
+  cursor: pointer;
+  transition: background 0.3s;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.MainButton:hover {
+  background: var(--button-default-bg-hover);
+}
+
+
+.MainButton:disabled,
+.MainButtonDisabled {
+  background-color: var(--color-bg-disabled);
+  color: var(--color-text-disabled);
+  cursor: default
+}
+
+.MainButtonFullWidth {
+  width: 100%;
+}
+
+.MainButtonSecondary {
+  background: var(--color-secondary-bg);
+  color: var(--color-secondary-btn-text);
+}
+
+.MainButtonSecondary:hover {
+  background: var(--color-secondary-bg-hover);
+}
+
+.MainButtonLoader {
+  height: 100%;
+}
+
+
+.MainButtonDebug {
+  background: blue;
+  color: white;
+}
+
+.MainButtonSquare {
+  padding: 0;
+  height: var(--button-default-height);
+  width: var(--button-default-height);
+}
+
+.MainButtonDebug:disabled {
+  background: rgba(135, 135, 201, 0.25);
+  color: rgba(135, 135, 201, 0.25);
+}

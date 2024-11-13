@@ -1,0 +1,35 @@
+.ProgressPage {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  max-width: 400px;
+  margin: 0 auto;
+  margin-top: 64px;
+  position: relative;
+}
+
+.ProgressPage ol li {
+  counter-increment: steps;
+  list-style: none;
+}
+
+.ProgressPage ol li::before {
+  content: counter(steps);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: var(--color-secondary-bg);
+  color: var(--color-secondary-text);
+  border-radius: calc(var(--border-radius) - 12px);
+  position: absolute;
+  left: -10px;
+  height: 32px;
+  width: 32px;
+  border: 1px solid #fff;
+  border-radius: 8px;
+}
+
+.ProgressPage p {
+  font-size: 0.75rem;
+}
+

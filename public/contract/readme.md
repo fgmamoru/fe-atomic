@@ -1,0 +1,1 @@
+# this folder contains files that are also used to display icons in the contract

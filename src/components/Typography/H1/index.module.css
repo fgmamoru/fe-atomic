@@ -1,0 +1,21 @@
+.H1 {
+ display: flex;
+ justify-content: space-between;
+ align-items: center;
+ width: 100%;
+}
+
+.H1 h1 {
+  width: 100%;
+  margin-bottom: 16px;
+  margin-top: 0px;
+  font-size: 32px;
+}
+
+@media screen and (max-width: 425px) {
+  .H1 h1 {
+    font-size: 26px;
+    font-weight: 400;
+  }
+  
+}

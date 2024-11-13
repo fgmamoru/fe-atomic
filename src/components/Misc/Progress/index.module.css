@@ -1,0 +1,30 @@
+.Progress {
+  width: 100%;
+  height: 12px;
+  background-color: var(--color-card-bg);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+
+@keyframes wave {
+  0% {
+    opacity: 0.6;
+  }
+
+  50% {
+    opacity: 0.9;
+  }
+
+  100% {
+    opacity: 0.6;
+  }
+}
+
+.ProgressBar {
+  height: 100%;
+  background-color: #F7F7F870;
+  border-radius: 0px;
+  transition: width 0.3s ease-in-out;
+  animation: wave 2s infinite;
+}

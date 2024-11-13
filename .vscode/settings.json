@@ -1,0 +1,95 @@
+{
+  "explorer.autoRevealExclude": {
+    "**/node_modules": true,
+    "**/bower_components": true
+  },
+  "cSpell.words": [
+    "autorun",
+    "catchain",
+    "chartjs",
+    "clsx",
+    "comms",
+    "headlessui",
+    "hton",
+    "inited",
+    "mevton",
+    "mton",
+    "participations",
+    "seqno",
+    "ston",
+    "STONFI",
+    "testid",
+    "tonconnect",
+    "unstake",
+    "Unstaking",
+    "zustand"
+  ],
+  "cSpell.ignorePaths": [
+    "package-lock.json",
+    "node_modules",
+    "vscode-extension",
+    ".git/objects",
+    ".vscode",
+    ".vscode-insiders",
+    "package.json"
+  ],
+  "workbench.colorCustomizations": {
+    "statusBar.background": "#02aabd",
+    "statusBar.foreground": "#E1F5FE",
+    "titleBar.activeBackground": "#02aabd",
+    "titleBar.activeForeground": "#E1F5FE",
+    "titleBar.inactiveBackground": "#4fd8f7",
+    "titleBar.inactiveForeground": "#E1F5FE",
+    "cSpell.enabled": false
+  },
+  "colorful-comments.tags": [
+    {
+      "tag": "!",
+      "color": "#FF2D00",
+      "strikethrough": false,
+      "backgroundColor": "transparent"
+    },
+    {
+      "tag": "?",
+      "color": "#0076FF",
+      "strikethrough": false,
+      "backgroundColor": "transparent"
+    },
+    {
+      "tag": "//",
+      "color": "#474747",
+      "strikethrough": true,
+      "backgroundColor": "transparent"
+    },
+    {
+      "tag": "^",
+      "color": "#EAF622",
+      "strikethrough": false,
+      "backgroundColor": "transparent"
+    },
+    {
+      "tag": "*",
+      "color": "#4FC3F7",
+      "strikethrough": false,
+      "backgroundColor": "black"
+    },
+    {
+      "tag": "&",
+      "color": "#FF06A0",
+      "strikethrough": false,
+      "backgroundColor": "transparent"
+    },
+    {
+      "tag": "~",
+      "color": "#BE00FF",
+      "strikethrough": false,
+      "backgroundColor": "transparent"
+    },
+    {
+      "tag": "todo",
+      "color": "#FF8C00",
+      "strikethrough": false,
+      "backgroundColor": "transparent"
+    }
+  ]
+}

@@ -1,0 +1,161 @@
+.grid2,
+.grid1 {
+  display: grid;
+  grid-template-columns: repeat(1, minmax(100px, 1fr));
+  row-gap: var(--spacing);
+  column-gap: var(--spacing);
+  align-self: stretch;
+  gap: 24px !important;
+}
+
+@media screen and (min-width: 768px) {
+  .grid2 {
+    grid-template-columns: repeat(2, minmax(100px, 1fr));
+  }
+}
+
+.grid3 {
+  display: grid;
+  gap: 24px !important;
+  /* grid-template-columns: minmax(0, 300px) minmax(0, 300px) minmax(0, 300px); */
+  grid-template-columns: repeat(1, minmax(100px, 1fr));
+  overflow: hidden;
+  /* padding: 10px; */
+  row-gap: var(--spacing);
+  column-gap: var(--spacing);
+  align-self: stretch;
+}
+
+@media screen and (min-width: 480px) {
+  .grid3 {
+    grid-template-columns: repeat(2, minmax(100px, 1fr));
+  }
+}
+
+@media screen and (min-width: 768px) {
+  .grid3 {
+    grid-template-columns: repeat(3, minmax(100px, 1fr));
+  }
+}
+
+/* GRID 3 */
+.grid4 {
+  display: grid;
+  /* grid-template-columns: minmax(0, 300px) minmax(0, 300px) minmax(0, 300px); */
+  grid-template-columns: repeat(1, minmax(100px, 1fr));
+
+  /* padding: 10px; */
+  row-gap: var(--spacing);
+  column-gap: var(--spacing);
+  align-self: stretch;
+}
+
+@media screen and (min-width: 480px) {
+  .grid4 {
+    grid-template-columns: repeat(2, minmax(100px, 1fr));
+  }
+}
+
+@media screen and (min-width: 768px) {
+  .grid4 {
+    grid-template-columns: repeat(3, minmax(100px, 1fr));
+  }
+}
+
+@media screen and (min-width: 1024px) {
+  .grid4 {
+    grid-template-columns: repeat(4, minmax(100px, 1fr));
+  }
+}
+
+
+/*  FLEX GRID */
+
+.grid12 {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0px, 1fr));
+  row-gap: var(--spacing);
+  column-gap: var(--spacing);
+  align-self: stretch;
+}
+
+@media screen and (min-width: 480px) {
+  .grid12 {
+    grid-template-columns: repeat(12, minmax(0px, 1fr));
+  }
+}
+
+@media screen and (min-width: 768px) {
+  .grid12 {
+    grid-template-columns: repeat(12, minmax(0px, 1fr));
+  }
+}
+
+@media screen and (min-width: 1024px) {
+  .grid12 {
+    grid-template-columns: repeat(12, minmax(0px, 1fr));
+  }
+}
+
+
+.sidebarGrid {
+  display: grid;
+  grid-template-columns: repeat(1, minmax(100px, 1fr));
+  row-gap: var(--spacing);
+  column-gap: var(--spacing);
+  align-self: stretch;
+}
+
+@media screen and (min-width: 850px) {
+  .sidebarGrid {
+    display: grid;
+    grid-template-columns: 1fr 3fr;
+    grid-gap: 1rem;
+    row-gap: var(--spacing);
+    column-gap: var(--spacing);
+  }
+
+  .sideBar {
+    grid-column: 1 / 2;
+  }
+
+  .sideBarContent {
+    grid-column: 2 / 3;
+  }
+}
+
+.formActionGrid {
+  display: grid;
+  grid-template-columns: repeat(1, minmax(100px, 1fr));
+  row-gap: var(--spacing);
+  column-gap: var(--spacing);
+  align-self: stretch;
+  margin-top: var(--spacing);
+}
+
+.formActionGridLeft {
+  grid-column: 1 / 2;
+  max-width: 100px;
+}
+
+.formActionGridRight {
+  grid-column: 2 / 3;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(100px, 1fr));
+  row-gap: var(--spacing);
+  column-gap: var(--spacing);
+}
+
+@media screen and (max-width: 480px) {
+
+  /* put left in full width */
+  .formActionGridLeft {
+    grid-column: 1 / 3;
+    max-width: 100%;
+  }
+
+  /* put right in full width */
+  .formActionGridRight {
+    grid-column: 1 / 3;
+  }
+}

@@ -1,0 +1,35 @@
+.StakeStats {
+  background-color: #F7F7F80D;
+  padding: 18px;
+  border-radius: 8px;
+}
+
+.StakeStat {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  font-weight: 400;
+}
+
+.StakeStat:last-child {
+  margin-bottom: 0;
+}
+
+.StakeStatLabel {
+  font-size: 16px;
+  color: #F7F7F880;
+}
+
+.StakeStatValue {
+  font-size: 16px;
+  color: #F7F7F8;
+  text-align: right;
+}
+
+.StakeStatSubValue {
+  font-size: 10px;
+  color: #F7F7F880;
+  font-weight: 600;
+  width: 100%;
+  text-align: right;
+}

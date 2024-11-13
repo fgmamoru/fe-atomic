@@ -1,0 +1,21 @@
+.SwapButtonContainer {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 1px;
+    margin-bottom: -24px;
+    z-index: 10;
+}
+
+.SwapButtonWrapper {
+    border: 5px solid #111;
+    border-radius: 15px;
+}
+
+.SwapButton {
+    background-color: #181818;
+}
+
+.SwapButton:hover {
+    background-color: #1f1f1f;
+}
