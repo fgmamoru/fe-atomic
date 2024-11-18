@@ -237,6 +237,7 @@ export const useModel = create<ModelType>((set, get) => ({
 
         if (get().inited) return;
         const endpoint = await getHttpV4Endpoint({ network: get().network })
+        console.log('!!! EDNPOINT', endpoint)
         set({
             inited: true,
             network: NETWORK,

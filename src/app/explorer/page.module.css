@@ -1,8 +1,0 @@
-.PageContainer {
-    max-width: 1256px;
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    margin: 0 auto;
-    gap: 24px;
-}

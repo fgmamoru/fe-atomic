@@ -14,8 +14,19 @@
 
 .SwapButton {
     background-color: #181818;
+    /* animate transform */
+}
+
+.SwapButton img {
+    transform: rotate(0deg);
+    transition: transform 0.3s;
 }
 
 .SwapButton:hover {
     background-color: #1f1f1f;
+}
+
+/* rotate the button  img 180 degrees on hover */
+.SwapButton:hover img {
+    transform: rotate(180deg);
 }

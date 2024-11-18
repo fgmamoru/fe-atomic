@@ -131,7 +131,12 @@ export interface PaginatedResultWithTotals<OutputDto>
     };
 }
 
-type Currency = {
+export type Currency = {
     symbol: string,
     icon: string,
+}
+
+export type AtomicPoolCurrencyMapItem = {
+    token0: string;
+    token1: string;
 }

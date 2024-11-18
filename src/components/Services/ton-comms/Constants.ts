@@ -12,3 +12,9 @@ export const feeStake = 100000000n
 export const feeUnstake = 100000000n
 
 export const minimumTonBalanceReserve = 200000000n
+
+
+export const poolMaps = {
+    "0": "TON",
+    "1": "WTON",
+}

@@ -1,5 +1,6 @@
 import clsx from 'clsx';
 import styles from './index.module.css';
+import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/react';
 
 type SwapInputProps = {
     value: string | number;
@@ -20,6 +21,40 @@ type SwapInputProps = {
     pattern?: string;
     inputMode?: "text" | "decimal" | "numeric" | "search" | "none" | "tel" | "url" | "email" | undefined;
 };
+
+const SwapInputSelector = (props: SwapInputProps) => {
+    return <Menu>
+        <MenuButton className={styles.SwapInputCryptoLabel}>
+            <img className={styles.SwapInputCryptoLabelImg} src={props.cryptoIcon} alt={`${props.cryptoName} logo`} />
+            <span>{props.cryptoName}</span>
+            <img src="/icons/arrow_down.svg" aria-hidden />
+        </MenuButton>
+        <MenuItems className={styles.SwapInputCryptoMenu}>
+            <MenuItem>
+                {({ active }) => (
+                    <button
+                        className={clsx(styles.SwapInputCryptoMenuItem, active && styles.SwapInputCryptoMenuItemActive)}
+                        onClick={() => console.log('ETH')}
+                    >
+                        {/* <img src="/icons/eth.svg" alt="ETH logo" /> */}
+                        <span>ETH</span>
+                    </button>
+                )}
+            </MenuItem>
+            <MenuItem>
+                {({ active }) => (
+                    <button
+                        className={clsx(styles.SwapInputCryptoMenuItem, active && styles.SwapInputCryptoMenuItemActive)}
+                        onClick={() => console.log('BTC')}
+                    >
+                        {/* <img src="/icons/btc.svg" alt="BTC logo" /> */}
+                        <span>BTC</span>
+                    </button>
+                )}
+            </MenuItem>
+        </MenuItems>
+    </Menu>
+}
 
 export const SwapInput = (props: SwapInputProps) => {
     const inputClass = clsx(
@@ -58,12 +93,7 @@ export const SwapInput = (props: SwapInputProps) => {
                 disabled={props.disabled}
                 value={props.value}
                 className={styles.SwapInputInput} />
-            <div className={styles.SwapInputCryptoLabel}>
-                <img src={props.cryptoIcon} alt={`${props.cryptoName} logo`} />
-                <span>{props.cryptoName}</span>
-            </div>
-            <div>
-            </div>
+            <SwapInputSelector {...props} />
         </div>
 
 

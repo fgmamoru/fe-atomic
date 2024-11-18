@@ -1,3 +1,50 @@
+export const ATOMIC_DEX_CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_ATOMIC_DEX_CONTRACT_ADDRESS!;
+
+if (!ATOMIC_DEX_CONTRACT_ADDRESS) {
+    console.warn("ATOMIC_DEX_CONTRACT_ADDRESS is not set");
+}
+
+export const TON_NETWORK_URL = process.env.NEXT_PUBLIC_TON_NETWORK_URL!;
+
+if (!TON_NETWORK_URL) {
+    console.warn("TON_NETWORK_URL is not set");
+}
+
+export const TON_API_URL = process.env.NEXT_PUBLIC_TON_API_URL!;
+if (!TON_API_URL) {
+    console.warn("TON_API_URL is not set");
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/**
+ * OLD CONFIG SECTION
+ */
+
 export const API_URL = process.env.NEXT_PUBLIC_API_URL;
 if (!API_URL) {
     console.warn("API_URL is not set");
