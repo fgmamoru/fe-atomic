@@ -1,6 +1,7 @@
 import clsx from 'clsx';
 import styles from './index.module.css';
 import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/react';
+import { Currency } from '@/types';
 
 type SwapInputProps = {
     value: string | number;
@@ -20,7 +21,25 @@ type SwapInputProps = {
     min?: number;
     pattern?: string;
     inputMode?: "text" | "decimal" | "numeric" | "search" | "none" | "tel" | "url" | "email" | undefined;
+    currencies: Set<Currency>;
+    onCurrencyChange?: (currency: Currency) => void;
 };
+
+
+const SwapInputSelectorItem = (props: { currency: Currency, onCurrencyChange?: (currency: Currency) => void; }) => {
+    return <MenuItem>
+        {({ active }) => (
+            <button
+                className={clsx(styles.SwapInputCryptoMenuItem, active && styles.SwapInputCryptoMenuItemActive)}
+                onClick={() => props.onCurrencyChange?.(props.currency)}
+
+            >
+                {/* <img src="/icons/eth.svg" alt="ETH logo" /> */}
+                <span>{props.currency.name} ({props.currency.symbol})</span>
+            </button>
+        )}
+    </MenuItem>
+}
 
 const SwapInputSelector = (props: SwapInputProps) => {
     return <Menu>
@@ -30,28 +49,11 @@ const SwapInputSelector = (props: SwapInputProps) => {
             <img src="/icons/arrow_down.svg" aria-hidden />
         </MenuButton>
         <MenuItems className={styles.SwapInputCryptoMenu}>
-            <MenuItem>
-                {({ active }) => (
-                    <button
-                        className={clsx(styles.SwapInputCryptoMenuItem, active && styles.SwapInputCryptoMenuItemActive)}
-                        onClick={() => console.log('ETH')}
-                    >
-                        {/* <img src="/icons/eth.svg" alt="ETH logo" /> */}
-                        <span>ETH</span>
-                    </button>
-                )}
-            </MenuItem>
-            <MenuItem>
-                {({ active }) => (
-                    <button
-                        className={clsx(styles.SwapInputCryptoMenuItem, active && styles.SwapInputCryptoMenuItemActive)}
-                        onClick={() => console.log('BTC')}
-                    >
-                        {/* <img src="/icons/btc.svg" alt="BTC logo" /> */}
-                        <span>BTC</span>
-                    </button>
-                )}
-            </MenuItem>
+            {
+                Array.from(props.currencies)
+                    .map((currency) =>
+                        <SwapInputSelectorItem key={currency.symbol} currency={currency} onCurrencyChange={props.onCurrencyChange} />)
+            }
         </MenuItems>
     </Menu>
 }

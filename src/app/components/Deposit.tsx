@@ -14,6 +14,7 @@ const useSwapModel = create(() => ({
     maxAmountInTon: () => { return "0.0" },
     setAmountToMax: () => { },
     errorMessage: "",
+
 }))
 
 export function DexDepositTab() {

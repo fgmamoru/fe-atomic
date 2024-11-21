@@ -1,3 +1,5 @@
+import { AtomicPool } from "@/services/AtomicDex/AtomicDex.service";
+
 /**
  * Represents a ticket with various properties.
  * 
@@ -134,9 +136,12 @@ export interface PaginatedResultWithTotals<OutputDto>
 export type Currency = {
     symbol: string,
     icon: string,
+    name: string,
 }
 
 export type AtomicPoolCurrencyMapItem = {
     token0: string;
     token1: string;
 }
+
+export type ExpandedAtomicPool = AtomicPool & AtomicPoolCurrencyMapItem;

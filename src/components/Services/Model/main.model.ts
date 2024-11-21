@@ -10,12 +10,10 @@ import { ITicket, UnstakeType } from '@/types'
 import { formatCryptoAmount, formatPercent } from '@/utils'
 import { NETWORK, TREASURY_CONTRACT_ADDR } from '@/services/config.service'
 import { ConnectedWallet } from '@tonconnect/ui-react'
-import { getSwapMTonToTonTxParameters, SwapParams } from '@/services/swap/swap.service'
 
 type ActiveTab = 'stake' | 'unstake';
 
 type ModelType = {
-    mtonBalanceNormal(): string | number
     loadTonBalance(): unknown
     onDisconnectWallet(): unknown
     onConnectWallet(wallet: ConnectedWallet): unknown
@@ -63,9 +61,7 @@ type ModelType = {
     setAmount: (amount: string) => void
     setAmountToMax: () => void
     tonBalanceFormatted: () => string | undefined
-    mtonBalanceFormatted: () => string
-    mtonBalanceInUsd: () => number
-    mtonBalanceInNano: () => bigint
+    tonBalanceInUsd: () => number
     unstakingInProgressFormatted: () => string
     unstakingInProgressDetails: () => any
     stakingInProgressFormatted: () => string
@@ -489,11 +485,7 @@ export const useModel = create<ModelType>((set, get) => ({
 
             if (get().activeTab === 'unstake' && get().unstakeType === 'instant') {
 
-                const message = await getSwapMTonToTonTxParameters({
-                    offerAmount: get().amount,
-                    userWalletAddress: get().address!.toString(),
-                    minAskAmount: "1"//get().amount,
-                })
+
 
                 tx = {
                     validUntil: Math.floor(Date.now() / 1000) + txValidUntil,
@@ -533,27 +525,13 @@ export const useModel = create<ModelType>((set, get) => ({
         }
     },
 
-    mtonBalanceInNano(): bigint {
-        const mtonBalance = get().walletState?.tokens
-        if (mtonBalance != null) {
-            return mtonBalance!;
+    tonBalanceInUsd() {
+        if (!get().tonBalance || !get().TONToUSD) {
+            return 0
         }
-        return 0n
-    },
-    mtonBalanceNormal(): number {
-        return Number(get().walletState?.tokens ?? 0n) / 1000000000
-    },
-
-    mtonBalanceFormatted(): string {
         if (get().tonBalance != null) {
-            return formatNano(get().walletState?.tokens ?? 0n)
-        }
-        return ''
-    },
-    mtonBalanceInUsd() {
-        if (get().tonBalance != null) {
-            const val = tonToUsd(Number((get().walletState?.tokens ?? 0n) / 1000000000n), get().TONToUSD)
-            return val;
+            const val = tonToUsd(Number(get().tonBalance!) / 1000000000, get().TONToUSD)
+            return val
         }
         return 0
     },

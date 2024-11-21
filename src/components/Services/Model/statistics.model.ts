@@ -1,6 +1,6 @@
 import { TimeRange } from "@/types";
 import { create, StateCreator } from "zustand";
-import { queryStatistics } from "../mevton-api";
+import { queryStatistics } from "../atomic-api";
 
 type DateNumberTuple = [Date, number];
 

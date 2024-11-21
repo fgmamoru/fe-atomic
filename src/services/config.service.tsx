@@ -69,9 +69,9 @@ if (ENV === "production" && NETWORK === "testnet") {
     console.warn("ENV is production and NETWORK is testnet");
 }
 
-export const MTON_ADDRESS = process.env.NEXT_PUBLIC_MTON_ADDRESS as string;
-if (!MTON_ADDRESS) {
-    console.warn("MTON_ADDRESS is not set");
+export const TON_ADDRESS = process.env.NEXT_PUBLIC_TON_ADDRESS as string;
+if (!TON_ADDRESS) {
+    console.warn("TON_ADDRESS is not set");
 }
 
 export const STONFI_PROXY_TON_ADDRESS = process.env.NEXT_PUBLIC_STONFI_PROXY_TON_ADDRESS as string || "kQACS30DNoUQ7NfApPvzh7eBmSZ9L4ygJ-lkNWtba8TQT-Px" // pTON v2.1.0;

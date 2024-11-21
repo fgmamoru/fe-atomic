@@ -1,6 +1,6 @@
 import { IBundle, IExplorerStatistics, JsonAPIResponse, PaginatedResult, TimeRange } from "@/types";
 import { create } from "zustand";
-import { queryBundles, queryExplorerStatistics } from "../mevton-api";
+import { queryBundles, queryExplorerStatistics } from "../atomic-api";
 
 
 export const useExplorerModel = create<ExplorerModel>((set, get) => ({

@@ -2,7 +2,7 @@ import { Address, TonClient, toNano } from "@ton/ton";
 import { DEX, pTON } from "@ston-fi/sdk";
 import { ATOMIC_DEX_CONTRACT_ADDRESS } from "../config.service";
 import { AtomicDex, AtomicPool } from "../AtomicDex/AtomicDex.service";
-import { AtomicPoolCurrencyMapItem } from "@/types";
+import { AtomicPoolCurrencyMapItem, Currency, ExpandedAtomicPool } from "@/types";
 
 const atomicDex = AtomicDex.fromAddress(Address.parse(ATOMIC_DEX_CONTRACT_ADDRESS))
 
@@ -15,7 +15,7 @@ const atomicDexContract = client.open(atomicDex);
 const atomicPoolMapping: Record<string, AtomicPoolCurrencyMapItem> = {
     "0": {
         token0: "TON",
-        token1: "MTON",
+        token1: "RED",
     },
     "2": {
         token0: "TON",
@@ -39,7 +39,35 @@ const atomicPoolMapping: Record<string, AtomicPoolCurrencyMapItem> = {
     },
 }
 
-export const getPoolList = async (): Promise<Record<string, AtomicPool & AtomicPoolCurrencyMapItem>> => {
+export const currencyMapping: Record<string, Currency> = {
+    TON: {
+        symbol: "TON",
+        icon: "/icons/ton.svg",
+        name: "TON Crystal",
+    },
+    RED: {
+        symbol: "RED",
+        icon: "/icons/ton.svg",
+        name: "ton",
+    },
+    USDT: {
+        symbol: "USDT",
+        icon: "/icons/ton.svg",
+        name: "Tether USD",
+    },
+    ETH: {
+        symbol: "ETH",
+        icon: "/icons/ton.svg",
+        name: "Ethereum",
+    },
+    BTC: {
+        symbol: "BTC",
+        icon: "/icons/ton.svg",
+        name: "Bitcoin",
+    },
+}
+
+export const getPoolList = async (): Promise<Record<string, ExpandedAtomicPool>> => {
     const rawPools: Record<string, AtomicPool> = {
         "0": {
             $$type: "AtomicPool",
@@ -50,7 +78,7 @@ export const getPoolList = async (): Promise<Record<string, AtomicPool & AtomicP
             feeNominator: 0n,
             lpTokenSupply: 0n,
             reserve0: 1000n,
-            reserve1: 1000n,
+            reserve1: 800n,
         },
         "1": {
             $$type: "AtomicPool",
@@ -125,8 +153,8 @@ export const getPoolList = async (): Promise<Record<string, AtomicPool & AtomicP
             ...acc,
             [key]: {
                 ...value,
-                token0: atomicPoolMapping[key].token0,
-                token1: atomicPoolMapping[key].token1,
+                token0: atomicPoolMapping[key]?.token0,
+                token1: atomicPoolMapping[key]?.token1,
             }
         }
     }, {} as Record<string, AtomicPool & { token0: string, token1: string }>)
@@ -134,17 +162,47 @@ export const getPoolList = async (): Promise<Record<string, AtomicPool & AtomicP
     return pools;
 }
 
+export const getSwapCurrencies = (map: Record<string, ExpandedAtomicPool>): Set<Currency> => {
+    const currencies = new Set<Currency>();
 
-// export const getSwapMTonToTonTxParameters = async (params: SwapParams) => {
-//     const _params = {
-//         userWalletAddress: params.userWalletAddress,
-//         offerJettonAddress: MTON_ADDRESS,
-//         offerAmount: toNano(params.offerAmount),
-//         minAskAmount: toNano(params.minAskAmount),
-//         proxyTon,
-//         queryId: 12345,
-//     }
+    Object.values(map).forEach(pool => {
+        if (currencyMapping[pool.token0]) {
+            currencies.add(currencyMapping[pool.token0]);
+        }
+        if (currencyMapping[pool.token1]) {
+            currencies.add(currencyMapping[pool.token1]);
+        }
+    });
 
+    return currencies;
+}
+
+export const getResultAmount = (from: Currency, to: Currency, pools: Record<string, ExpandedAtomicPool>, value: string): string => {
+    const pool = Object.values(pools).find(pool => {
+        return (pool.token0 === from.symbol && pool.token1 === to.symbol) || (pool.token1 === from.symbol && pool.token0 === to.symbol);
+    });
+    console.log(`pools`, pools);
+
+    console.log(`pool`, pool);
+
+    if (!pool) return "0.0";
+
+    const parsedValue = parseFloat(value);
+    let resultValue = 0;
+
+    if (pool.token0 === from.symbol) {
+        resultValue = (parsedValue * Number(pool.reserve1) / Number(pool.reserve0));
+    }
+
+    if (pool.token1 === from.symbol) {
+        resultValue = (parsedValue * Number(pool.reserve0) / Number(pool.reserve1));
+    }
+
+    if (Number.isNaN(resultValue)) return "0.0";
+
+
+    return resultValue.toFixed(2);
+}
 //     console.log(`params`, _params);
 
 //     const txParams = await router.getSwapJettonToTonTxParams(_params);

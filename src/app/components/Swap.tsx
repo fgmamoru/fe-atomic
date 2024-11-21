@@ -11,11 +11,11 @@ import { AtomicPoolCurrencyMapItem, Currency } from "@/types";
 import { NETWORK } from "@/services/config.service";
 import { getHttpV4Endpoint, Network } from "@orbs-network/ton-access";
 import { address, Address, OpenedContract, TonClient4 } from "@ton/ton";
-import { CHAIN, ConnectedWallet, TonConnectUI, useTonConnectUI } from "@tonconnect/ui-react";
+import { CHAIN, ConnectedWallet, TonConnectUI, useTonConnectUI, useTonWallet } from "@tonconnect/ui-react";
 import { useEffect } from "react";
 import { Wallet, WalletFees, WalletState } from "@/components/Services/ton-comms/Wallet";
 import { AtomicDex, AtomicPool, SwapOrder } from "@/services/AtomicDex/AtomicDex.service";
-import { getPoolList } from "@/services/swap/swap.service";
+import { currencyMapping, getPoolList, getResultAmount, getSwapCurrencies } from "@/services/swap/swap.service";
 import { getLastBlockSeqNo } from "@/services/ton.service";
 
 type ExchangeRateKey = `${string}-${string}`;
@@ -23,6 +23,7 @@ const NETWORK_MISMATCH_ERROR_MESSAGE = 'Your wallet must be on '
 
 type Model = {
     amount: string;
+    resultAmount: string;
     selectedFromCurrency: Currency;
     selectedToCurrency: Currency;
     currentExchangeRate: number;
@@ -30,7 +31,7 @@ type Model = {
     tonBalance: bigint | undefined;
     address?: Address
 
-    currencyList: Currency[];
+    currencies: Set<Currency>;
     exchangeRateList: Record<ExchangeRateKey, number>;
     TONToUSD: number;
 
@@ -55,7 +56,6 @@ type Model = {
     setToCurrency: (currency: Currency) => void;
     maxAmountInTon: () => string;
     setAmountToMax: () => void;
-    getCurrencyList: () => void;
     switchCurrencies: () => void;
     init: (tonConnectUI: any) => void;
     connectWallet: () => void
@@ -74,6 +74,7 @@ const atomicDex = AtomicDex.fromAddress(Address.parse("EQCANtHMd-perMjM3Tk2xKoDk
 
 const useSwapModel = create<Model>((set, get) => ({
     amount: "0.0",
+    resultAmount: "0.0",
     tonClient: undefined,
     tonBalance: 0n,
     network: NETWORK,
@@ -81,16 +82,10 @@ const useSwapModel = create<Model>((set, get) => ({
     pools: {},
 
     errorMessage: "",
-    selectedFromCurrency: {
-        symbol: "TON",
-        icon: "/icons/ton.svg",
-    } as Currency,
-    selectedToCurrency: {
-        symbol: "MevTon",
-        icon: "/icons/mevton.svg",
-    } as Currency,
+    selectedFromCurrency: currencyMapping.TON,
+    selectedToCurrency: currencyMapping.RED,
     currentExchangeRate: 1,
-    currencyList: [] as Currency[],
+    currencies: new Set<Currency>(),
     exchangeRateList: {} as Record<ExchangeRateKey, number>,
     ongoingRequests: 0,
     inited: false,
@@ -102,28 +97,28 @@ const useSwapModel = create<Model>((set, get) => ({
             .replace(',', '.')
             .replace(/(\..*?)([.,])/g, '$1') // keep only the first dot
             .replace(/(\.\d{9}).*/, '$1'); // truncate after 9 decimal places
-        set({ amount: formatted })
-    },
 
-    setFromCurrency: () => {
-    },
-    setToCurrency: () => { },
-    maxAmountInTon: () => { return "0.0" },
-    setAmountToMax: () => { },
-    getCurrencyList: () => {
+        const resultAmount = getResultAmount(
+            get().selectedFromCurrency,
+            get().selectedToCurrency,
+            get().pools,
+            formatted
+        )
+
         set({
-            currencyList: [
-                {
-                    symbol: "TON",
-                    icon: "/icons/ton.svg",
-                },
-                {
-                    symbol: "MevTon",
-                    icon: "/icons/mevton.svg",
-                },
-            ]
+            amount: formatted,
+            resultAmount: resultAmount,
         })
     },
+
+    setFromCurrency: (currency: Currency) => {
+        set({ selectedFromCurrency: currency })
+    },
+    setToCurrency: (currency: Currency) => {
+        set({ selectedToCurrency: currency })
+    },
+    maxAmountInTon: () => { return "0.0" },
+    setAmountToMax: () => { },
 
     switchCurrencies: () => {
         const { selectedFromCurrency, selectedToCurrency } = get();
@@ -144,9 +139,18 @@ const useSwapModel = create<Model>((set, get) => ({
             inited: true,
             atomicDexContract,
         });
-        get().connectWallet();
+        // get().connectWallet();
         getPoolList()
             .then((pools) => set({ pools }))
+            .then(() => {
+                const { pools } = get();
+                const currencies = getSwapCurrencies(pools);
+                set({ currencies: currencies });
+            })
+            .then(() => {
+                console.log('pool', get().pools)
+                console.log('currencies', get().currencies)
+            })
     },
 
     beginRequest: () => {
@@ -282,6 +286,8 @@ const useSwapModel = create<Model>((set, get) => ({
 export function DexSwapTab() {
     const model = useSwapModel();
     const [tonConnectUi] = useTonConnectUI();
+    const wallet = useTonWallet();
+    const buttonTitle = wallet ? 'Swap' : 'Connect Wallet';
 
     useEffect(() => {
         if (!tonConnectUi) return;
@@ -302,6 +308,8 @@ export function DexSwapTab() {
                 cryptoIcon={model.selectedFromCurrency.icon}
                 invalid={!!model.errorMessage}
                 error={model.errorMessage}
+                currencies={model.currencies}
+                onCurrencyChange={model.setFromCurrency}
                 endLabel={<div style={{
                     display: "flex",
                     alignItems: "center",
@@ -335,23 +343,25 @@ export function DexSwapTab() {
             <SwapInput
                 min={0}
                 id="stake-you-receive"
-                value={model.maxAmountInTon()}
+                value={model.resultAmount}
                 label="Buy"
                 cryptoName={model.selectedToCurrency.symbol}
                 cryptoIcon={model.selectedToCurrency.icon}
                 disabled
                 type="text"
+                currencies={model.currencies}
+                onCurrencyChange={model.setToCurrency}
             />
             <pre>
-                {JSON.stringify({
+                {/* {JSON.stringify({
                     inited: model.inited,
                     isConnected: model.isConnected(),
                     address: model.address?.toString(),
                     tonBalance: model.tonBalance?.toString(),
                     pools: model.pools,
-                }, null, 2)}
+                }, null, 2)} */}
             </pre>
-            <MainButton fullWidth>Connect Wallet</MainButton>
+            <MainButton fullWidth>{buttonTitle}</MainButton>
         </>
     )
 }

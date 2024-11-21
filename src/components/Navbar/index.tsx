@@ -70,7 +70,7 @@ export const Navbar = () => {
                 <div className={styles.NavbarStart}>
                     <div className={styles.NavbarLogo}>
                         <Link href="/">
-                            <img src="/logo.svg" alt="MevtonTON Staking" />
+                            <img src="/logo.svg" alt="TON Dex" />
                         </Link>
                     </div>
                     <Link className={styles.NavbarItem} href="/dex">Dex</Link>
