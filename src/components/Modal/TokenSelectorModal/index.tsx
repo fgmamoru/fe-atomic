@@ -5,11 +5,15 @@ import { Currency } from "@/types";
 import { useEffect, useState } from "react";
 import { CloseButton } from "@headlessui/react";
 import { MiniButton } from "@/components/Button/MiniButton";
+import { IconButton } from "@/components/Button/IconButton";
 
 export type TokenSelectorModalProps = {
     isOpen?: boolean;
     onClose?: () => void;
     currencies: Set<Currency>;
+    onCurrencyClick?: (
+        currency: Currency
+    ) => void;
 }
 
 const Subtitle = (props: { children: string, icon: string }) =>
@@ -19,8 +23,14 @@ const Subtitle = (props: { children: string, icon: string }) =>
     </div>
 
 
-const TokenItem = (props: { name: string, symbol: string, icon: string }) => {
-    return <div className={styles.TokenSelectorModalItem}>
+const TokenButton = (props: {
+    name: string, symbol: string, icon: string, onClick:
+    (currency: Currency) => void
+
+}) => {
+    return <div className={styles.TokenSelectorModalItem}
+        onClick={() => props.onClick({ name: props.name, symbol: props.symbol, icon: props.icon })}
+    >
         <img src={props.icon} alt="icon" />
         <div className={styles.TokenSelectorModalItemColumn}>
             <span className={styles.TokenSelectorModalItemName}>{props.name}</span>
@@ -51,9 +61,13 @@ export const TokenSelectorModal = (props: TokenSelectorModalProps) => {
             isOpen={props.isOpen}
             onClose={props.onClose}
         >
-            <div>
+            <div className={styles.TokenSelectorModalHeader}>
                 <div className={styles.TokenSelectorModalItem}>Search a Token</div>
-
+                <IconButton
+                    onClick={props.onClose}
+                    icon="/icons/close.svg"
+                    alt="close"
+                />
             </div>
             <SearchInput placeholder="Search for a token" value={search} onChange={(ev) => {
                 setSearch(ev.target.value);
@@ -63,11 +77,13 @@ export const TokenSelectorModal = (props: TokenSelectorModalProps) => {
                 {
                     Array.from(filteredCurrencies)
                         .map((currency) =>
-                            <TokenItem
+                            <TokenButton
                                 key={currency.symbol}
                                 name={currency.name}
                                 symbol={currency.symbol}
-                                icon={currency.icon} />)
+                                icon={currency.icon}
+                                onClick={() => props.onCurrencyClick?.(currency)}
+                            />)
                 }
                 <Subtitle icon="/icons/star.svg">Tokens</Subtitle>
             </div>

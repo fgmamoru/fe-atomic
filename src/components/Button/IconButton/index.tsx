@@ -3,15 +3,19 @@ import styles from "./index.module.css";
 
 interface MiniButtonProps {
     onClick?: () => void;
-    children: string;
     disabled?: boolean;
+    icon: string;
+    alt: string;
+    ariaHidden?: boolean;
 }
 
 const IconButtonComponent = (props: MiniButtonProps) => {
     return <button
         disabled={props.disabled}
         className={styles.IconButton}
-        onClick={props.onClick}>{props.children}</button>
+        onClick={props.onClick}>
+        <img src={props.icon} alt={props.alt} />
+    </button>
 }
 
-export const MiniButton = memo(IconButtonComponent);
+export const IconButton = memo(IconButtonComponent);

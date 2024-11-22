@@ -21,12 +21,14 @@
     --button-default-color: #000;
     --button-default-bg: #fff;
     --button-default-bg-hover: #a4ffc5;
+    --button-flat-default-bg-hover: #ffffff22;
 
     --color-link: var(--color-text-primary);
     --color-link-hover: #ffeda4;
     --color-link-visited: #dea4ff;
 
     --focus-outline: 1px solid #fff;
+    --border-radius-half: 8px;
 }
 
 #ton-connect-button button {

@@ -5,6 +5,7 @@
     background-color: #181818;
     padding: 12px;
     box-sizing: border-box;
+    border: 1px solid transparent;
 }
 
 .SwapInputLabelContainer {
@@ -56,7 +57,7 @@
     border: 0px solid red;
 }
 
-.SwapInputInputWrapper:focus-within {
+.SwapInput:focus-within {
     border: 1px solid #F7F7F8;
 }
 
@@ -79,7 +80,7 @@
     color: var(--color-text-secondary);
 }
 
-.SwapInputCryptoLabel {
+.SwapInputCurrencyButton {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -94,47 +95,17 @@
     cursor: pointer;
 }
 
+.SwapInputCurrencyButton:hover {
+    background-color: #4e4e4e;
+}
+
 .SwapInputCryptoLabelImg {
     width: 24px;
     height: 24px;
     border-radius: 50%;
 }
 
-.SwapInputCryptoMenu {
-    position: absolute;
-    /* top: 100%; */
-    width: 100%;
-    max-width: 300px;
-    display: flex;
-    flex-direction: column;
-    /* left: 0;
-    right: 0; */
-    background-color: var(--color-bg);
-    border-radius: 8px;
-    padding: 8px;
-    z-index: 100;
-    max-height: 100vh;
-    overflow-y: auto;
-    gap: 8px;
-}
 
-.SwapInputCryptoMenuItem {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 8px;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: all 0.2s;
-    height: var(--button-default-height);
-    background-color: #2A2A2A;
-    color: var(--button-default-bg);
-    border: none;
-}
-
-.SwapInputCryptoMenuItem:hover {
-    background-color: #3A3A3A;
-}
 
 
 .SwapInputError {

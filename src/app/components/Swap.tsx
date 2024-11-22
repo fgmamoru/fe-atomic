@@ -12,7 +12,7 @@ import { NETWORK } from "@/services/config.service";
 import { getHttpV4Endpoint, Network } from "@orbs-network/ton-access";
 import { address, Address, OpenedContract, TonClient4 } from "@ton/ton";
 import { CHAIN, ConnectedWallet, TonConnectUI, useTonConnectUI, useTonWallet } from "@tonconnect/ui-react";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Wallet, WalletFees, WalletState } from "@/components/Services/ton-comms/Wallet";
 import { AtomicDex, AtomicPool, SwapOrder } from "@/services/AtomicDex/AtomicDex.service";
 import { currencyMapping, getPoolList, getResultAmount, getSwapCurrencies } from "@/services/swap/swap.service";
@@ -298,6 +298,8 @@ export function DexSwapTab() {
     const [tonConnectUi] = useTonConnectUI();
     const wallet = useTonWallet();
     const buttonTitle = wallet ? 'Swap' : 'Connect Wallet';
+    const [fromModalOpen, setFromModalOpen] = useState(false);
+    const [toModalOpen, setToModalOpen] = useState(false);
 
     useEffect(() => {
         if (!tonConnectUi) return;
@@ -321,7 +323,9 @@ export function DexSwapTab() {
                     invalid={!!model.errorMessage}
                     error={model.errorMessage}
                     currencies={model.currencies}
-                    onCurrencyChange={model.setFromCurrency}
+                    onCurrencyClick={() => {
+                        setFromModalOpen(true)
+                    }}
                     endLabel={<div style={{
                         display: "flex",
                         alignItems: "center",
@@ -364,7 +368,9 @@ export function DexSwapTab() {
                     disabled
                     type="text"
                     currencies={model.currencies}
-                    onCurrencyChange={model.setToCurrency}
+                    onCurrencyClick={() => {
+                        setToModalOpen(true)
+                    }}
                     variant="bottom"
                 />
             </div>
@@ -386,8 +392,27 @@ export function DexSwapTab() {
 
             <TokenSelectorModal
                 currencies={model.currencies}
-                isOpen={true}
-                onClose={() => { }} />
+                isOpen={fromModalOpen}
+                onClose={() => {
+                    setFromModalOpen(false)
+                }}
+                onCurrencyClick={(currency) => {
+                    console.log('from', currency)
+                    model.setFromCurrency(currency)
+                    setFromModalOpen(false)
+                }}
+            />
+            <TokenSelectorModal
+                currencies={model.currencies}
+                isOpen={toModalOpen}
+                onClose={() => {
+                    setToModalOpen(false)
+                }}
+                onCurrencyClick={(currency) => {
+                    model.setToCurrency(currency)
+                    setToModalOpen(false)
+                }}
+            />
         </>
     )
 }

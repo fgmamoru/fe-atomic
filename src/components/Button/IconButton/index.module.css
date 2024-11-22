@@ -7,9 +7,22 @@
     color: #fff;
     text-decoration: underline;
     cursor: pointer;
+    height: 24px;
+    width: 24px;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 15px;
 }
 
 .IconButton:disabled {
     color: var(--color-text-secondary);
     cursor: default;
+}
+
+.IconButton:hover {
+    color: var(--color-text-primary);
+    background-color: var(--button-flat-default-bg-hover);
 }
