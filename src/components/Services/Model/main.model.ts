@@ -491,8 +491,11 @@ export const useModel = create<ModelType>((set, get) => ({
                     validUntil: Math.floor(Date.now() / 1000) + txValidUntil,
                     network: get().isMainnet() ? CHAIN.MAINNET : CHAIN.TESTNET,
                     messages: [{
+                        // @ts-ignore
                         address: message.to.toString(),
+                        // @ts-ignore
                         amount: message.value.toString(),
+                        // @ts-ignore
                         payload: message.body?.toBoc().toString('base64'),
                     }]
                 }

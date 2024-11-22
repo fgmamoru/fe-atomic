@@ -10,6 +10,7 @@ import { Footer } from "@/components/Footer/Footer";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "@/components/Services/atomic-api";
 import { API_SCHEME, HOST } from "@/services/config.service";
+import { Stars } from "@/components/Misc/Stars";
 
 export default function RootLayout({
     children,
@@ -37,6 +38,8 @@ export default function RootLayout({
             <TonConnectUIProvider manifestUrl="https://atomic-cripto.s3.us-west-2.amazonaws.com/app/testnest-tonconnect-manifest.json">
 
                 <body>
+                    <Stars />
+
                     <Navbar />
                     <WrapperLayout>
                         {children}
@@ -44,7 +47,6 @@ export default function RootLayout({
                     <Footer />
                 </body>
             </TonConnectUIProvider>
-
         </html>
     )
 }

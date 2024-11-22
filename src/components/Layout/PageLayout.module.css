@@ -5,6 +5,7 @@
     max-width: 95%;
     margin: auto;
     margin-top: 64px;
+    z-index: 1;
 }
 
 @media (max-width: 768px) {
@@ -23,6 +24,7 @@
 .PageLayoutNarrow {
     max-width: 400px;
     width: 400px;
+    z-index: 1;
 }
 
 .PageWrapper {

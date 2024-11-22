@@ -8,6 +8,8 @@ import { CustomSelector } from "@/components/Charts/TimeRangeSelector";
 import { DexSwapTab } from "./components/Swap";
 import { DexDepositTab } from "./components/Deposit";
 import { DexWithdrawTab } from "./components/Withdraw";
+import { AtomicSpeedCardWrapper } from "@/components/Misc/StakeStats/AtomicSpeedWrapper";
+import { Stars } from "@/components/Misc/Stars";
 
 type Tab = 'Swap' | 'Deposit' | 'Withdraw';
 
@@ -17,33 +19,35 @@ const DexPage = (() => {
     return (
         <PageWrapper>
             <PageLayoutNarrow>
-                <Card>
-                    <CardSection>
-                        <div>
-                            <CustomSelector
-                                options={[{
-                                    label: 'Swap',
-                                }, {
-                                    label: 'Deposit',
-                                }, {
-                                    label: 'Withdraw',
-                                }]}
-                                onChange={(val) => setTab(val as Tab)}
-                            />
-                        </div>
-                    </CardSection>
-                    <CardSection>
-                        {
-                            tab === 'Swap' ? <DexSwapTab /> : null
-                        }
-                        {
-                            tab === 'Deposit' ? <DexDepositTab /> : null
-                        }
-                        {
-                            tab === 'Withdraw' ? <DexWithdrawTab /> : null
-                        }
-                    </CardSection>
-                </Card>
+                <AtomicSpeedCardWrapper active={true}>
+                    <Card>
+                        <CardSection>
+                            <div>
+                                <CustomSelector
+                                    options={[{
+                                        label: 'Swap',
+                                    }, {
+                                        label: 'Deposit',
+                                    }, {
+                                        label: 'Withdraw',
+                                    }]}
+                                    onChange={(val) => setTab(val as Tab)}
+                                />
+                            </div>
+                        </CardSection>
+                        <CardSection>
+                            {
+                                tab === 'Swap' ? <DexSwapTab /> : null
+                            }
+                            {
+                                tab === 'Deposit' ? <DexDepositTab /> : null
+                            }
+                            {
+                                tab === 'Withdraw' ? <DexWithdrawTab /> : null
+                            }
+                        </CardSection>
+                    </Card>
+                </AtomicSpeedCardWrapper>
             </PageLayoutNarrow>
         </PageWrapper>
     );

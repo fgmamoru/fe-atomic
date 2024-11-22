@@ -1,81 +1,84 @@
 .Navbar {
-  height: var(--navbar-height);
-  background-color: #0D0D0D;
+    height: var(--navbar-height);
+    background-color: #0D0D0D;
 
-  /* border-bottom: 1px solid #F7F7F81A; */
-  display: flex;
-  width: 100%;
-  align-items: center;
-  justify-content: center;
-  padding: 0 24px;
-  box-sizing: border-box;
+    /* border-bottom: 1px solid #F7F7F81A; */
+    display: flex;
+    width: 100%;
+    align-items: center;
+    justify-content: center;
+    padding: 0 24px;
+    box-sizing: border-box;
+    z-index: 1;
+    position: relative;
+    top: -9px;
 }
 
 .NavbarContainer {
-  color: white;
-  height: var(--navbar-height);
-  justify-content: space-between;
-  display: flex;
-  flex-direction: row;
-  width: 100%;
-  max-width: 1080px;
-  height: 72px;
+    color: white;
+    height: var(--navbar-height);
+    justify-content: space-between;
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    max-width: 1080px;
+    height: 72px;
 }
 
 .NavbarStart,
 .NavbarEnd,
 .NavbarEndMobile {
-  height: var(--navbar-height);
-  display: flex;
-  justify-content: flex-start;
-  align-items: center;
-  width: 100%;
+    height: var(--navbar-height);
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    width: 100%;
 }
 
 .NavbarEnd,
 .NavbarEndMobile {
-  justify-content: flex-end;
-  gap: 24px;
+    justify-content: flex-end;
+    gap: 24px;
 }
 
 .NavbarLogo {
-  margin-right: 48px;
-  display: flex;
-  height: var(--navbar-height);
-  align-items: center;
-  justify-content: center;
-  line-height: 0;
+    margin-right: 48px;
+    display: flex;
+    height: var(--navbar-height);
+    align-items: center;
+    justify-content: center;
+    line-height: 0;
 }
 
 .NavbarItem {
-  height: var(--navbar-height);
-  color: white;
-  text-decoration: none;
-  font-weight: 500;
-  size: 15px;
-  letter-spacing: -0.3px;
-  padding: 0 24px;
-  display: flex;
-  align-items: center;
-  transition: background-color 0.3s;
-  height: 72px;
+    height: var(--navbar-height);
+    color: white;
+    text-decoration: none;
+    font-weight: 500;
+    size: 15px;
+    letter-spacing: -0.3px;
+    padding: 0 24px;
+    display: flex;
+    align-items: center;
+    transition: background-color 0.3s;
+    height: 72px;
 }
 
 .NavbarItem:hover {
-  background-color: #F7F7F80D;
-  background-image: linear-gradient(0deg, #F7F7F80D, #F7F7F800);
+    background-color: #F7F7F80D;
+    background-image: linear-gradient(0deg, #F7F7F80D, #F7F7F800);
 }
 
 .NavbarItem:visited {
-  color: white !important;
+    color: white !important;
 }
 
 .NavbarConnectButton {
-  background-color: #248CFF;
-  border-radius: 100px;
-  height: 42px;
-  padding-left: 22px;
-  padding-right: 22px;
+    background-color: #248CFF;
+    border-radius: 100px;
+    height: 42px;
+    padding-left: 22px;
+    padding-right: 22px;
 }
 
 /* .NavbarEndMobile {
@@ -83,103 +86,103 @@
 } */
 
 .NavbarWalletIcon {
-  position: absolute;
-  top: 11px;
-  left: 14px;
-  z-index: 1;
+    position: absolute;
+    top: 11px;
+    left: 14px;
+    z-index: 1;
 }
 
 .NavbarBadgeZoneWrapper {
-  display: flex;
+    display: flex;
 }
 
 .BurgerMenuItems {
-  width: calc(100% - 32px);
-  background-color: #0D0D0D;
+    width: calc(100% - 32px);
+    background-color: #0D0D0D;
 
-  border: 1px solid white;
-  position: absolute;
-  left: 16px;
-  right: 16px;
-  top: calc(var(--navbar-height) + 16px);
-  padding-left: var(--card-padding-2);
-  padding-right: var(--card-padding-2);
-  border-radius: var(--border-radius);
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
+    border: 1px solid white;
+    position: absolute;
+    left: 16px;
+    right: 16px;
+    top: calc(var(--navbar-height) + 16px);
+    padding-left: var(--card-padding-2);
+    padding-right: var(--card-padding-2);
+    border-radius: var(--border-radius);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
 
 }
 
 .BurgerMenuItem {
-  height: 56px;
-  display: flex;
-  align-items: center;
-  color: var(--color-text);
-  text-decoration: none;
-  font-weight: 500;
-  size: 15px;
-  letter-spacing: -0.3px;
-  padding: 0 24px;
-  transition: background-color 0.3s;
-  overflow: hidden;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    color: var(--color-text);
+    text-decoration: none;
+    font-weight: 500;
+    size: 15px;
+    letter-spacing: -0.3px;
+    padding: 0 24px;
+    transition: background-color 0.3s;
+    overflow: hidden;
 }
 
 .BurgerMenuItem:hover {
-  background-color: #F7F7F80D;
+    background-color: #F7F7F80D;
 }
 
 .BurgerMenuItemsOverlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: #00000080;
-  z-index: 100;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #00000080;
+    z-index: 100;
 }
 
 .BurgerMenuButton {
-  display: none;
+    display: none;
 }
 
 @media (max-width: 1024px) {
 
-  .NavbarStart {
-    display: none;
-  }
+    .NavbarStart {
+        display: none;
+    }
 
 
-  .NavbarEndMobile {
-    display: flex;
-    gap: 12px;
-  }
+    .NavbarEndMobile {
+        display: flex;
+        gap: 12px;
+    }
 
-  .BurgerMenuButton {
-    display: block;
-  }
+    .BurgerMenuButton {
+        display: block;
+    }
 }
 
 @media screen and (max-width: 425px) {
-  .Navbar {
-    padding: 0 12px;
-  }
+    .Navbar {
+        padding: 0 12px;
+    }
 }
 
 
 @media screen and (max-width: 425px) {
-  .NavbarWalletIcon {
-    display: none;
-  }
+    .NavbarWalletIcon {
+        display: none;
+    }
 
-  .NavbarBadgeZoneWrapper {
-    display: flex;
-    max-width: 290px;
-    overflow: hidden;
-  }
+    .NavbarBadgeZoneWrapper {
+        display: flex;
+        max-width: 290px;
+        overflow: hidden;
+    }
 
-  .NavbarEndMobile {
-    gap: 0px;
-    justify-content: space-between;
-  }
+    .NavbarEndMobile {
+        gap: 0px;
+        justify-content: space-between;
+    }
 }
