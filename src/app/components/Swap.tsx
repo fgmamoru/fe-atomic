@@ -17,6 +17,8 @@ import { Wallet, WalletFees, WalletState } from "@/components/Services/ton-comms
 import { AtomicDex, AtomicPool, SwapOrder } from "@/services/AtomicDex/AtomicDex.service";
 import { currencyMapping, getPoolList, getResultAmount, getSwapCurrencies } from "@/services/swap/swap.service";
 import { getLastBlockSeqNo } from "@/services/ton.service";
+import { useModel } from "@/components/Services/Model";
+import { TokenSelectorModal } from "@/components/Modal/TokenSelectorModal";
 
 type ExchangeRateKey = `${string}-${string}`;
 const NETWORK_MISMATCH_ERROR_MESSAGE = 'Your wallet must be on '
@@ -66,6 +68,7 @@ type Model = {
     loadTonBalance: () => void
     isMainnet: () => boolean
     isConnected: () => boolean
+    executeSwapOrder: () => void
     pools: Record<string, AtomicPool & AtomicPoolCurrencyMapItem>,
 
 }
@@ -83,7 +86,7 @@ const useSwapModel = create<Model>((set, get) => ({
 
     errorMessage: "",
     selectedFromCurrency: currencyMapping.TON,
-    selectedToCurrency: currencyMapping.RED,
+    selectedToCurrency: currencyMapping.USDT,
     currentExchangeRate: 1,
     currencies: new Set<Currency>(),
     exchangeRateList: {} as Record<ExchangeRateKey, number>,
@@ -112,9 +115,15 @@ const useSwapModel = create<Model>((set, get) => ({
     },
 
     setFromCurrency: (currency: Currency) => {
+        if (currency === get().selectedToCurrency) {
+            set({ selectedToCurrency: get().selectedFromCurrency })
+        }
         set({ selectedFromCurrency: currency })
     },
     setToCurrency: (currency: Currency) => {
+        if (currency === get().selectedFromCurrency) {
+            set({ selectedFromCurrency: get().selectedToCurrency })
+        }
         set({ selectedToCurrency: currency })
     },
     maxAmountInTon: () => { return "0.0" },
@@ -285,6 +294,7 @@ const useSwapModel = create<Model>((set, get) => ({
 
 export function DexSwapTab() {
     const model = useSwapModel();
+    const mainModel = useModel();
     const [tonConnectUi] = useTonConnectUI();
     const wallet = useTonWallet();
     const buttonTitle = wallet ? 'Swap' : 'Connect Wallet';
@@ -295,73 +305,89 @@ export function DexSwapTab() {
     }, [tonConnectUi]);
     return (
         <>
-            <SwapInput
-                min={0}
-                id="stake-amount"
-                type="text"
-                value={model.amount}
-                onChange={model.setAmount}
-                inputMode="decimal"
-                placeholder={formatCryptoAmount(0)}
-                label="Sell"
-                cryptoName={model.selectedFromCurrency.symbol}
-                cryptoIcon={model.selectedFromCurrency.icon}
-                invalid={!!model.errorMessage}
-                error={model.errorMessage}
-                currencies={model.currencies}
-                onCurrencyChange={model.setFromCurrency}
-                endLabel={<div style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 8,
-                }}>
-                    <span style={{
-                        fontSize: 12,
-                        fontWeight: 400,
-                        color: "var(--color-text-secondary)",
+            <div>
+                <SwapInput
+                    min={0}
+                    id="stake-amount"
+                    type="text"
+                    variant="top"
+                    value={model.amount}
+                    onChange={model.setAmount}
+                    inputMode="decimal"
+                    placeholder={formatCryptoAmount(0)}
+                    label="Sell"
+                    cryptoName={model.selectedFromCurrency.symbol}
+                    cryptoIcon={model.selectedFromCurrency.icon}
+                    invalid={!!model.errorMessage}
+                    error={model.errorMessage}
+                    currencies={model.currencies}
+                    onCurrencyChange={model.setFromCurrency}
+                    endLabel={<div style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 8,
                     }}>
-                        <AnimatedNumber value={model.maxAmountInTon()} formatValue={formatCryptoAmount} duration={300} /></span>
-                    <MiniButton
-                        disabled={parseFloat(model.maxAmountInTon()) === 0}
-                        onClick={() => model.setAmountToMax()}>Max</MiniButton>
-                </div>}
-            />
-            <div
-                className={styles.SwapButtonContainer}
-            >
-                <div className={styles.SwapButtonWrapper}>
-                    <MainButton
-                        square
-                        variant="secondary"
-                        onClick={model.switchCurrencies}
-                        className={styles.SwapButton}>
-                        <img src="/icons/switch.svg" alt="swap" />
-                    </MainButton>
+                        <span style={{
+                            fontSize: 12,
+                            fontWeight: 400,
+                            color: "var(--color-text-secondary)",
+                        }}>
+                            <AnimatedNumber value={mainModel.maxAmountInTon()} formatValue={formatCryptoAmount} duration={300} /></span>
+                        <MiniButton
+                            disabled={Number(mainModel.tonBalance) === 0}
+                            onClick={() => {
+                                model.setAmount(mainModel.maxAmountInTon().toString())
+                            }}>Max</MiniButton>
+                    </div>}
+                />
+                <div
+                    className={styles.SwapButtonContainer}
+                >
+                    <div className={styles.SwapButtonWrapper}>
+                        <MainButton
+                            square
+                            variant="secondary"
+                            onClick={model.switchCurrencies}
+                            className={styles.SwapButton}>
+                            <img src="/icons/switch.svg" alt="swap" />
+                        </MainButton>
+                    </div>
                 </div>
-            </div>
 
-            <SwapInput
-                min={0}
-                id="stake-you-receive"
-                value={model.resultAmount}
-                label="Buy"
-                cryptoName={model.selectedToCurrency.symbol}
-                cryptoIcon={model.selectedToCurrency.icon}
-                disabled
-                type="text"
-                currencies={model.currencies}
-                onCurrencyChange={model.setToCurrency}
-            />
-            <pre>
-                {/* {JSON.stringify({
+                <SwapInput
+                    min={0}
+                    id="stake-you-receive"
+                    value={model.resultAmount}
+                    label="Buy"
+                    cryptoName={model.selectedToCurrency.symbol}
+                    cryptoIcon={model.selectedToCurrency.icon}
+                    disabled
+                    type="text"
+                    currencies={model.currencies}
+                    onCurrencyChange={model.setToCurrency}
+                    variant="bottom"
+                />
+            </div>
+            <MainButton
+                onClick={model.executeSwapOrder}
+                disabled={!wallet || Number(model.amount) === 0}
+
+                fullWidth>{buttonTitle}</MainButton>
+
+            {/* <pre>
+                {JSON.stringify({
                     inited: model.inited,
                     isConnected: model.isConnected(),
                     address: model.address?.toString(),
                     tonBalance: model.tonBalance?.toString(),
                     pools: model.pools,
-                }, null, 2)} */}
-            </pre>
-            <MainButton fullWidth>{buttonTitle}</MainButton>
+                }, null, 2)}
+            </pre> */}
+
+            <TokenSelectorModal
+                currencies={model.currencies}
+                isOpen={true}
+                onClose={() => { }} />
         </>
     )
 }

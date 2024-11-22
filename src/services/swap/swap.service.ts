@@ -45,25 +45,10 @@ export const currencyMapping: Record<string, Currency> = {
         icon: "/icons/ton.svg",
         name: "TON Crystal",
     },
-    RED: {
-        symbol: "RED",
-        icon: "/icons/ton.svg",
-        name: "ton",
-    },
     USDT: {
         symbol: "USDT",
-        icon: "/icons/ton.svg",
-        name: "Tether USD",
-    },
-    ETH: {
-        symbol: "ETH",
-        icon: "/icons/ton.svg",
-        name: "Ethereum",
-    },
-    BTC: {
-        symbol: "BTC",
-        icon: "/icons/ton.svg",
-        name: "Bitcoin",
+        icon: "/icons/tether.svg",
+        name: "Tether",
     },
 }
 

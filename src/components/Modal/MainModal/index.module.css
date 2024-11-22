@@ -4,132 +4,138 @@
 .panel,
 .backdrop,
 .modal {
-  --panel-header-height: 64px;
-  --panel-footer-height: 82px;
-  --color-modal-backdrop: #4E4E4E;
-  --color-modal-bg: #000000;
-  --modal-max-width: 800px;
-  --modal-min-width: 300px;
-  --border-radius: 24px;
-  --padding-body: 24px;
+    --panel-header-height: 64px;
+    --panel-footer-height: 82px;
+    --color-modal-backdrop: #4E4E4E;
+    --color-modal-bg: #000000;
+    --modal-max-width: 800px;
+    --modal-min-width: 300px;
+    --border-radius: 24px;
+    --padding-body: 24px;
 }
 
 .modal {
-  z-index: 100;
-  position: absolute;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 100vh;
-  width: 100vw;
-  top: 0;
+    z-index: 100;
+    position: absolute;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    width: 100vw;
+    top: 0;
 
 }
 
 
 .backdrop {
-  /* Set as gray, as it was hard to know that overlay was ther when user main color */
-  background-color: var(--color-modal-backdrop);
-  opacity: 50%;
-  top: 0;
-  position: fixed;
-  width: 100%;
-  height: 100%;
+    /* Set as gray, as it was hard to know that overlay was ther when user main color */
+    background-color: var(--color-modal-backdrop);
+    opacity: 50%;
+    top: 0;
+    position: fixed;
+    width: 100%;
+    height: 100%;
 }
 
 .panel {
-  padding: var(--padding-body);
-  z-index: 101;
-  max-width: var(--modal-max-width);
-  width: 95vw;
-  min-width: var(--modal-min-width);
-  position: fixed;
-  box-sizing: border-box;
+    padding: var(--padding-body);
+    z-index: 101;
+    max-width: var(--modal-max-width);
+    width: 95vw;
+    min-width: var(--modal-min-width);
+    position: fixed;
+    box-sizing: border-box;
 
 
-  background-color: var(--color-modal-bg);
-  border-radius: var(--border-radius);
-  max-height: 70vh;
+    background-color: var(--color-modal-bg);
+    border-radius: var(--border-radius);
+    max-height: 70vh;
 
 }
 
 .MiniModal {
-  text-align: center;
+    text-align: center;
 }
 
 .MiniModal .panel {
-  padding: 16px;
-  max-width: 350px;
+    padding: 16px;
+    max-width: 350px;
 
-  padding-top: 24px;
-  padding-bottom: 24px;
+    padding-top: 24px;
+    padding-bottom: 24px;
 }
 
 .MiniModal h1 {
-  font-size: 24px;
-  margin: 0;
+    font-size: 24px;
+    margin: 0;
 }
 
 .MiniModal h2 {
-  font-size: 18px;
+    font-size: 18px;
 }
 
 .MiniModal p {
-  color: var(--color-secondary-text);
-  font-size: var(--font-size-body);
-  font-weight: var(--text-weight-body);
-  margin-bottom: var(--spacing);
+    color: var(--color-secondary-text);
+    font-size: var(--font-size-body);
+    font-weight: var(--text-weight-body);
+    margin-bottom: var(--spacing);
 }
 
 .panelBody {
-  padding-right: var(--spacing-2);
-  padding-left: var(--spacing-2);
-  padding-top: var(--spacing);
-  padding-bottom: var(--spacing);
-  max-height: calc(70vh - var(--panel-header-height) - var(--panel-footer-height) - var(--padding-body) * 4);
-  /* max-height: 70v; */
-  overflow-y: auto;
-  background-color: #111111;
-  border-radius: var(--border-radius) var(--border-radius);
-  padding: 16px;
+    padding-right: var(--spacing-2);
+    padding-left: var(--spacing-2);
+    padding-top: var(--spacing);
+    padding-bottom: var(--spacing);
+    max-height: calc(70vh - var(--panel-header-height) - var(--panel-footer-height) - var(--padding-body) * 4);
+    /* max-height: 70v; */
+    overflow-y: auto;
+    background-color: #111111;
+    border-radius: var(--border-radius) var(--border-radius);
+    padding: 16px;
 }
 
 .panelFooter {
-  padding-right: var(--spacing-2);
-  padding-left: var(--spacing-2);
-  display: flex;
-  justify-content: flex-end;
-  align-items: end;
-  background-color: var(--color-light-light);
-  border-radius: 0 0 var(--border-radius) var(--border-radius);
-  height: var(--panel-footer-height);
-  gap: 16px;
+    padding-right: var(--spacing-2);
+    padding-left: var(--spacing-2);
+    display: flex;
+    justify-content: flex-end;
+    align-items: end;
+    background-color: var(--color-light-light);
+    border-radius: 0 0 var(--border-radius) var(--border-radius);
+    height: var(--panel-footer-height);
+    gap: 16px;
 }
 
 .text {
-  color: var(--color-text-primary);
-  margin-bottom: var(--spacing);
+    color: var(--color-text-primary);
+    margin-bottom: var(--spacing);
 }
 
 .header {
-  color: var(--color-text-primary);
-  font-style: normal;
-  font-weight: var(--text-weight-h3);
-  font-size: var(--font-size-h3);
+    color: var(--color-text-primary);
+    font-style: normal;
+    font-weight: var(--text-weight-h3);
+    font-size: var(--font-size-h3);
 
-  height: var(--panel-header-height);
-  display: flex;
-  align-items: center;
-  padding-left: var(--spacing-2);
-  padding-right: var(--spacing-2);
-  margin: 0px;
+    height: var(--panel-header-height);
+    display: flex;
+    align-items: center;
+    padding-left: var(--spacing-2);
+    padding-right: var(--spacing-2);
+    margin: 0px;
 }
 
 .title {
-  color: var(--color-text-primary);
-  font-family: var(--font-title);
-  font-style: normal;
-  font-weight: var(--text-weight-bold);
-  font-size: 18px;
-  margin-bottom: var(--spacing);
+    color: var(--color-text-primary);
+    font-family: var(--font-title);
+    font-style: normal;
+    font-weight: var(--text-weight-bold);
+    font-size: 18px;
+    margin-bottom: var(--spacing);
+}
+
+.RegularModal .panel {
+    background-color: #111111;
+    max-width: 400px;
+    max-height: 700px;
 }

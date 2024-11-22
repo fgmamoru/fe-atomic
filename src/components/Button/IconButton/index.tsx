@@ -7,11 +7,11 @@ interface MiniButtonProps {
     disabled?: boolean;
 }
 
-const MiniButtonComponent = (props: MiniButtonProps) => {
+const IconButtonComponent = (props: MiniButtonProps) => {
     return <button
         disabled={props.disabled}
-        className={styles.MiniButton}
+        className={styles.IconButton}
         onClick={props.onClick}>{props.children}</button>
 }
 
-export const MiniButton = memo(MiniButtonComponent);
+export const MiniButton = memo(IconButtonComponent);

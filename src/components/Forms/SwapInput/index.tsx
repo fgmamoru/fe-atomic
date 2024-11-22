@@ -59,12 +59,16 @@ const SwapInputSelector = (props: SwapInputProps) => {
 }
 
 export const SwapInput = (props: SwapInputProps) => {
+    const rootClass = clsx(
+        styles.SwapInput,
+        props.variant === "top" && styles.SwapInputInputWrapperTop,
+        props.variant === "bottom" && styles.SwapInputInputWrapperBottom
+    );
     const inputClass = clsx(
         styles.SwapInputInputWrapper,
         props.disabled && styles.SwapInputInputWrapperDisabled,
         props.error && styles.SwapInputInputWrapperError,
-        props.variant === "top" && styles.SwapInputInputWrapperTop,
-        props.variant === "bottom" && styles.SwapInputInputWrapperBottom
+
     );
 
     const errorClass = clsx(
@@ -72,7 +76,7 @@ export const SwapInput = (props: SwapInputProps) => {
         props.error && styles.SwapInputErrorVisible
     );
 
-    return <div className={styles.SwapInput}>
+    return <div className={rootClass}>
         <div className={styles.SwapInputLabelContainer} style={{ display: props.endLabel || props.label ? "flex" : "none" }}>
             <div className={errorClass}>{props.error}</div>
             {props.label && <label htmlFor={props.id} className={styles.SwapInputLabel}>{props.label}</label>}

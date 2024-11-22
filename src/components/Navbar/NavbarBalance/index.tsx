@@ -22,7 +22,6 @@ export const NavbarBalance = () => {
 
                 <NavbarBadgeCard.Value >
                     <AnimatedNumber value={model.tonBalanceInUsd()} formatValue={formatCryptoAmountAbbr} duration={300} /> USDT
-
                 </NavbarBadgeCard.Value >
             </div>
         </NavbarBadgeCard>

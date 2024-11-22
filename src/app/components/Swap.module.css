@@ -3,13 +3,13 @@
     align-items: center;
     justify-content: center;
     height: 1px;
-    margin-bottom: -24px;
+    /* margin-bottom: -42px; */
     z-index: 10;
 }
 
 .SwapButtonWrapper {
-    border: 5px solid #111;
-    border-radius: 15px;
+    border: 2px solid #111;
+    border-radius: 10px;
 }
 
 .SwapButton {
