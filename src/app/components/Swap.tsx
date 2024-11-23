@@ -105,6 +105,7 @@ export function DexSwapTab() {
                 onClick={() => {
                     if (!mainModel.address) {
                         open();
+                        return;
                     }
 
                     setWaitingTransactionModalOpen(true);
