@@ -21,6 +21,7 @@ export function DexWithdrawTab() {
     return (
         <>
             <SwapInput
+                currencies={new Set()}
                 min={0}
                 id="stake-amount"
                 type="text"
