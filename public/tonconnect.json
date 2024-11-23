@@ -1,5 +1,5 @@
 {
-  "url": "http://localhost:3000",
+  "url": "https://fe-atomic.vercel.app",
   "name": "Atomic",
-  "iconUrl": "http://localhost:3000/favicon.ico"
+  "iconUrl": "https://mevton-cripto.s3.us-west-2.amazonaws.com/images/logo.png"
 }
