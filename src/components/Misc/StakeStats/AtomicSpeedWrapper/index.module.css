@@ -8,13 +8,19 @@
     margin-top: 8px;
     margin-bottom: 8px;
     border-radius: 30px;
+    animation: move 10s linear infinite;
+    background: #EAB70000;
+    box-shadow: 0px 0px 300px 0px #eab70000;
+    transition: all 0.3s;
+}
+
+.AtomicSpeedCardWrapperActive {
     background: #EAB700;
     background: linear-gradient(90deg, #EA7E00 0%, #EAB700 67.01%, #FFC786 100%);
     background: linear-gradient(20deg, #EA7E00, #EAB700 43%, #FFC786);
     /* Gold glow */
     box-shadow: 0px 0px 300px 0px #eab70087;
-    animation: move 10s linear infinite;
-
+    animation: move 5s linear infinite;
 }
 
 .AtomicSpeedCardWrapperTitle {
@@ -25,17 +31,18 @@
 }
 
 
-/* horizontal background movement */
-.AtomicSpeedCardWrapper .move {
-    animation: move 10s linear infinite;
-}
+/* animate box-shadow */
 
-@keyframes move {
+/* @keyframes move {
     0% {
-        background-position: 0 0;
+        box-shadow: 0px 0px 300px 0px #eab70000;
+    }
+
+    50% {
+        box-shadow: 0px 0px 300px 0px #eab70087;
     }
 
     100% {
-        background-position: 100% 0;
+        box-shadow: 0px 0px 300px 0px #eab70000;
     }
-}
+} */

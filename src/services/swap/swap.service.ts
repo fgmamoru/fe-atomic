@@ -162,7 +162,7 @@ export const getSwapCurrencies = (map: Record<string, ExpandedAtomicPool>): Set<
     return currencies;
 }
 
-export const getResultAmount = (from: Currency, to: Currency, pools: Record<string, ExpandedAtomicPool>, value: string): string => {
+export const getResultAmount = (from: Currency, to: Currency, pools: Record<string, ExpandedAtomicPool>, value: string, TONToUSD: number): string => {
     const pool = Object.values(pools).find(pool => {
         return (pool.token0 === from.symbol && pool.token1 === to.symbol) || (pool.token1 === from.symbol && pool.token0 === to.symbol);
     });
@@ -175,13 +175,24 @@ export const getResultAmount = (from: Currency, to: Currency, pools: Record<stri
     const parsedValue = parseFloat(value);
     let resultValue = 0;
 
-    if (pool.token0 === from.symbol) {
-        resultValue = (parsedValue * Number(pool.reserve1) / Number(pool.reserve0));
+    console.log(`parsedValue`, parsedValue);
+    console.log(to)
+
+    if (to.symbol === "USDT") {
+        resultValue = (parsedValue * TONToUSD);
+    } else {
+        resultValue = (parsedValue / TONToUSD);
     }
 
-    if (pool.token1 === from.symbol) {
-        resultValue = (parsedValue * Number(pool.reserve0) / Number(pool.reserve1));
-    }
+
+
+    // if (pool.token0 === from.symbol) {
+    //     resultValue = (parsedValue * Number(pool.reserve1) / Number(pool.reserve0));
+    // }
+
+    // if (pool.token1 === from.symbol) {
+    //     resultValue = (parsedValue * Number(pool.reserve0) / Number(pool.reserve1));
+    // }
 
     if (Number.isNaN(resultValue)) return "0.0";
 

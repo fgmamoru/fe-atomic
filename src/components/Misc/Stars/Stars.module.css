@@ -4,6 +4,17 @@
     overflow: hidden;
 } */
 
+.inactive {
+    transition: opacity 0.5s;
+    opacity: 0;
+}
+
+.active {
+    transition: opacity 0.5s;
+    opacity: 1;
+}
+
+
 .stars {
     width: 1px;
     height: 1px;

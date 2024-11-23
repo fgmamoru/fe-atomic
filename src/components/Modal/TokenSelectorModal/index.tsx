@@ -72,7 +72,8 @@ export const TokenSelectorModal = (props: TokenSelectorModalProps) => {
             <SearchInput placeholder="Search for a token" value={search} onChange={(ev) => {
                 setSearch(ev.target.value);
             }} />
-            <div>
+            <div style={{ width: "100%" }}>
+
                 <Subtitle icon="/icons/coin.svg">Your Tokens</Subtitle>
                 {
                     Array.from(filteredCurrencies)

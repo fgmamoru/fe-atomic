@@ -14,7 +14,7 @@ export const WaitingTransactionModal = (props: WaitingTransactionModalProps) => 
         >
             <Loader />
             <h1>Finalizing your transaction</h1>
-            <p>We&apos;re waiting for your transaction to appear in the next block</p>
+            <p style={{ textAlign: "center" }}>We&apos;re waiting for your transaction to appear in the next block</p>
         </RegularModal>
     )
 };

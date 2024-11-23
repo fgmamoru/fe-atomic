@@ -10,16 +10,17 @@ import { DexDepositTab } from "./components/Deposit";
 import { DexWithdrawTab } from "./components/Withdraw";
 import { AtomicSpeedCardWrapper } from "@/components/Misc/StakeStats/AtomicSpeedWrapper";
 import { Stars } from "@/components/Misc/Stars";
+import { useSwapModel } from "@/state/swap.model";
 
 type Tab = 'Swap' | 'Deposit' | 'Withdraw';
 
 const DexPage = (() => {
     const [tab, setTab] = useState<Tab>('Swap');
-
+    const model = useSwapModel();
     return (
         <PageWrapper>
             <PageLayoutNarrow>
-                <AtomicSpeedCardWrapper active={true}>
+                <AtomicSpeedCardWrapper active={model.readyToSwap()}>
                     <Card>
                         <CardSection>
                             <div>
