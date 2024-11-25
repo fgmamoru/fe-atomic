@@ -6,17 +6,22 @@ import { Parent } from '../ton-comms/Parent'
 import { Treasury, TreasuryConfig, Times, ParticipationState } from '../ton-comms/Treasury'
 import { WalletState, Wallet, WalletFees } from '../ton-comms/Wallet'
 import { create } from 'zustand';
-import { ITicket, UnstakeType } from '@/types'
+import { AtomicPoolCurrencyMapItem, Currency, ExchangeRateKey, ITicket, UnstakeType } from '@/types'
 import { formatCryptoAmount, formatPercent } from '@/utils'
 import { NETWORK, TREASURY_CONTRACT_ADDR } from '@/services/config.service'
 import { ConnectedWallet } from '@tonconnect/ui-react'
+import { AtomicDex, AtomicPool } from '@/services/AtomicDex/AtomicDex.service'
+import { currencyMapping, getPoolList, getResultAmount, getSwapCurrencies } from '@/services/swap/swap.service'
+import { getLastBlockSeqNo } from '@/services/ton.service'
 
 type ActiveTab = 'stake' | 'unstake';
+const atomicDex = AtomicDex.fromAddress(Address.parse("EQCANtHMd-perMjM3Tk2xKoDkD3BN_CiJaGu4kqKcHmm4sdP"))
 
 type ModelType = {
     loadTonBalance(): unknown
-    onDisconnectWallet(): unknown
-    onConnectWallet(wallet: ConnectedWallet): unknown
+    connectWallet: () => void
+    onConnectWallet: (wallet: string) => void
+    onDisconnectWallet: () => void
     TONToUSD: number
     inited: boolean,
     init: any,
@@ -38,6 +43,7 @@ type ModelType = {
     ongoingRequests: number
     errorMessage: string
     isInputInvalid: () => boolean
+    _networkUrl?: string
 
     // unobserved state
     tonConnectUI?: TonConnectUI
@@ -54,7 +60,6 @@ type ModelType = {
     setUnstakeType: (unstakeType: UnstakeType) => void
     // setAmount: (amount: string) => void
     isStakeTabActive: () => boolean
-    connectWallet: () => void
     maxAmount: () => bigint
     maxAmountInTon: () => number
     isMainnet: () => boolean
@@ -86,6 +91,25 @@ type ModelType = {
     getTonToUsd: () => void
     getUnstakeFeeFormatted: () => string
     getUnstakeFeeFormattedAsUsd: () => string
+    getPools: () => void
+
+    resultAmount: string;
+    selectedFromCurrency: Currency;
+    selectedToCurrency: Currency;
+    currentExchangeRate: number;
+
+    currencies: Set<Currency>;
+    exchangeRateList: Record<ExchangeRateKey, number>;
+
+    atomicDexContract?: OpenedContract<AtomicDex>;
+
+    setFromCurrency: (currency: Currency) => void;
+    setToCurrency: (currency: Currency) => void;
+    switchCurrencies: () => void;
+    isConnected: () => boolean
+    executeSwapOrder: () => void
+    readyToSwap: () => boolean
+    pools: Record<string, AtomicPool & AtomicPoolCurrencyMapItem>,
 
 };
 type WaitForTransaction = 'no' | 'wait' | 'timeout' | 'done'
@@ -126,11 +150,12 @@ const checkBalanceChangeDelay = 6 * 1000
 const txValidUntil = 5 * 60
 const errorMessageTonAccess = 'Unable to access blockchain'
 const errorMessageNetworkMismatch = 'Your wallet must be on '
-const formattedZero = formatCryptoAmount(0)
+const formattedZero = formatCryptoAmount(0);
 export const useModel = create<ModelType>((set, get) => ({
     TONToUSD: 0,
     inited: false,
     network: NETWORK,
+    _networkUrl: undefined,
     tonClient: undefined,
     address: undefined,
     tonBalance: undefined,
@@ -205,48 +230,6 @@ export const useModel = create<ModelType>((set, get) => ({
         return get().activeTab === 'stake'
     },
 
-    init: async (tonConnectUI: any) => {
-        const readTimes = () => {
-            const tonClient = get().tonClient
-            const timeoutReadTimes = get().timeoutReadTimes;
-
-            const treasuryAddress = _treasuryAddress;
-            clearTimeout(timeoutReadTimes)
-
-            if (tonClient == null || treasuryAddress == null) {
-                set({ times: undefined })
-                return
-            }
-
-            tonClient
-                .open(Treasury.createFromAddress(treasuryAddress))
-                .getTimes()
-                .then((times) => set({ times }))
-                .catch(() => {
-                    clearTimeout(timeoutReadTimes)
-                    const newTimeoutReadTimes = setTimeout(readTimes, retryDelay)
-                    set({ timeoutReadTimes: newTimeoutReadTimes })
-                })
-        }
-
-        set({ tonConnectUI });
-
-        if (get().inited) return;
-        const endpoint = await getHttpV4Endpoint({ network: get().network })
-        console.log('!!! EDNPOINT', endpoint)
-        set({
-            inited: true,
-            network: NETWORK,
-            tonClient: new TonClient4({ endpoint })
-        });
-
-        readTimes();
-        get().connectWallet();
-
-        get().readLastBlock();
-        get().getTonToUsd();
-    },
-
     beginRequest: () => {
         set((state) => ({
             ongoingRequests: state.ongoingRequests + 1
@@ -257,131 +240,6 @@ export const useModel = create<ModelType>((set, get) => ({
         set((state) => ({
             ongoingRequests: state.ongoingRequests - 1
         }))
-    },
-
-    readLastBlock: async () => {
-        const tonClient = get().tonClient
-        const address = get().address
-        const treasuryAddress = _treasuryAddress;
-        clearTimeout(get().timeoutReadLastBlock)
-        set({ timeoutReadLastBlock: setTimeout(() => void get().readLastBlock(), updateLastBlockDelay) })
-        const getWalletAddress = async (tonClient: TonClient4, lastBlock: number, address: Address) => {
-            return (get().walletAddress != null
-                ? Promise.resolve(get().walletAddress)
-                : tonClient
-                    .openAt(lastBlock, Parent.createFromAddress(get().treasuryState?.parent as Address))
-                    .getWalletAddress(address))
-        }
-
-        if (tonClient == null || treasuryAddress == null) {
-            set({
-                tonBalance: undefined,
-                treasury: undefined,
-                treasuryState: undefined,
-                walletAddress: undefined,
-                wallet: undefined,
-                walletState: undefined,
-            })
-            return;
-        }
-
-        try {
-            get().beginRequest()
-            const lastBlock = (await tonClient.getLastBlock()).last.seqno
-
-            if (lastBlock < get().lastBlock) {
-                throw new Error('older block')
-            }
-
-            const treasury = tonClient.openAt(lastBlock, Treasury.createFromAddress(treasuryAddress))
-
-            const readTreasuryState = treasury.getTreasuryState()
-
-            const readTonBalance =
-                address == null
-                    ? Promise.resolve(0n)
-                    : tonClient.getAccountLite(lastBlock, address)
-                        .then((value) => {
-                            return value
-                        })
-                        .then((value) => BigInt(value.account.balance.coins))
-
-            const cannotReadWallet = address == null || get().treasuryState?.parent == null
-            const readWallet: Promise<[Address, OpenedContract<Wallet>, WalletState, WalletFees] | undefined> =
-                cannotReadWallet
-                    ? Promise.resolve(undefined)
-                    : getWalletAddress(tonClient, lastBlock, address)
-                        .then(async (walletAddress) => {
-                            const wallet = tonClient.openAt(lastBlock, Wallet.createFromAddress(walletAddress as Address))
-                            // Wallet may not exist or tonClient may throw an exception,
-                            // so return previous get().walletState which is good for both cases.
-                            const walletStateP = wallet.getWalletState().catch(() => get().walletState)
-                            const walletFeesP = wallet.getWalletFees().catch(() => get().walletFees)
-
-                            const [walletState, walletFees] = await Promise.all([walletStateP, walletFeesP])
-
-                            return [walletAddress!, wallet!, walletState!, walletFees!]
-                        })
-
-            const parallel: [
-                Promise<TreasuryConfig>,
-                Promise<bigint | undefined>,
-                Promise<[Address, OpenedContract<Wallet>, ModelType["walletState"], WalletFees] | undefined>,
-            ] = [readTreasuryState, readTonBalance, readWallet]
-            const [treasuryState, tonBalance, mton] = await Promise.all(parallel)
-            let [walletAddress, wallet, walletState, walletFees] = mton ?? []
-
-            if (walletAddress == null && address != null && treasuryState.parent != null) {
-                ;[walletAddress, wallet, walletState] = await tonClient
-                    .openAt(lastBlock, Parent.createFromAddress(treasuryState.parent))
-                    .getWalletAddress(address)
-                    .then(async (walletAddress) => {
-                        const wallet = tonClient.openAt(lastBlock, Wallet.createFromAddress(walletAddress))
-                        const walletState = await wallet.getWalletState().catch(() => undefined)
-                        return [walletAddress, wallet, walletState]
-                    })
-            }
-            set({
-                tonBalance: tonBalance,
-                treasury: treasury,
-                treasuryState: treasuryState,
-                walletAddress: walletAddress,
-                wallet: wallet,
-                walletState: walletState,
-                lastBlock: lastBlock,
-                walletFees: walletFees
-            })
-
-        } catch (err) {
-            console.error(err)
-            set({
-                errorMessage: errorMessageTonAccess,
-                timeoutReadLastBlock: setTimeout(() => void get().readLastBlock(), retryDelay)
-            })
-            clearTimeout(get().timeoutReadLastBlock)
-        } finally {
-            get().endRequest()
-        }
-    },
-
-    loadTonBalance: async () => {
-        const tonClient = get().tonClient
-        const address = get().address
-        if (tonClient == null || address == null) {
-            set({ tonBalance: undefined })
-            return
-        }
-
-        try {
-            console.log('loadTonBalance')
-            const lastBlock = (await tonClient.getLastBlock()).last.seqno
-            const value = await tonClient.getAccountLite(lastBlock, address)
-            set({ tonBalance: BigInt(value.account.balance.coins) })
-            console.log('loadTonBalance done', value.account.balance.coins)
-        } catch (err) {
-            console.error(err)
-            set({ tonBalance: undefined })
-        }
     },
 
     setActiveTab: (activeTab: ActiveTab) => {
@@ -395,64 +253,6 @@ export const useModel = create<ModelType>((set, get) => ({
         if (get().unstakeType !== unstakeType) {
             set({ unstakeType })
         }
-    },
-
-    connectWallet: () => {
-        if (get().tonConnectUI?.wallet) {
-            set({ address: Address.parseRaw(get().tonConnectUI!.wallet!.account.address) })
-        }
-        get().tonConnectUI!.onStatusChange((wallet) => {
-            if (wallet) get().onConnectWallet(wallet);
-            else get().onDisconnectWallet();
-        })
-    },
-
-    onConnectWallet: (wallet: ConnectedWallet) => {
-        const chain = wallet.account.chain
-        const network = get().network
-        console.log('onConnectWallet', wallet, network);
-        if (
-            (chain === CHAIN.MAINNET && network === 'mainnet') ||
-            (chain === CHAIN.TESTNET && network === 'testnet')
-        ) {
-            console.log('getting balances')
-            set({
-                address: Address.parseRaw(wallet.account.address),
-            })
-
-            get().readLastBlock();
-            get().getTonToUsd();
-            get().loadTonBalance();
-
-        } else {
-            void get().tonConnectUI?.disconnect()
-
-            set({
-                address: undefined,
-                errorMessage: errorMessageNetworkMismatch + (get().isMainnet() ? 'MainNet' : 'TestNet')
-            })
-        }
-    },
-
-    onDisconnectWallet: () => {
-        set({
-            address: undefined,
-            tonBalance: undefined,
-            wallet: undefined,
-            amount: '',
-            walletState: undefined,
-            errorMessage: '',
-        })
-    },
-
-    setAmount(amount: string) {
-        // remove non-numeric characters and replace comma with dot
-        const formatted = amount
-            .replace(/[^0-9.,]/g, '')
-            .replace(',', '.')
-            .replace(/(\..*?)([.,])/g, '$1') // keep only the first dot
-            .replace(/(\.\d{9}).*/, '$1'); // truncate after 9 decimal places
-        set({ amount: formatted })
     },
 
     setAmountToMax() {
@@ -754,15 +554,6 @@ export const useModel = create<ModelType>((set, get) => ({
         }
     },
 
-    getTonToUsd: async () => {
-        const url = "https://api.binance.com/api/v3/ticker/price?symbol=TONUSDT"
-        await fetch(url)
-            .then((response) => response.json())
-            .then((data) => data.price)
-            .then((price) => set({ TONToUSD: price }))
-            .catch((error) => console.error('Error:', error))
-    },
-
     getUnstakeFeeFormatted() {
         const unstakeFee = get().walletFees?.unstakeFee || 0n;
 
@@ -776,5 +567,227 @@ export const useModel = create<ModelType>((set, get) => ({
         return val.toLocaleString(undefined, {
             maximumFractionDigits: 2,
         })
-    }
+    },
+
+    resultAmount: "",
+    pools: {},
+
+    selectedFromCurrency: currencyMapping.TON,
+    selectedToCurrency: currencyMapping.USDT,
+    currentExchangeRate: 1,
+    currencies: new Set<Currency>(),
+    exchangeRateList: {} as Record<ExchangeRateKey, number>,
+
+    setAmount: (amount: string) => {
+        // remove non-numeric characters and replace comma with dot
+        const formatted = amount
+            .replace(/[^0-9.,]/g, '')
+            .replace(',', '.')
+            .replace(/(\..*?)([.,])/g, '$1') // keep only the first dot
+            .replace(/(\.\d{9}).*/, '$1'); // truncate after 9 decimal places
+
+        const resultAmount = getResultAmount(
+            get().selectedFromCurrency,
+            get().selectedToCurrency,
+            get().pools,
+            formatted,
+            get().TONToUSD
+        )
+
+        set({
+            amount: formatted,
+            resultAmount: resultAmount,
+        })
+    },
+
+    setFromCurrency: (currency: Currency) => {
+        if (currency === get().selectedToCurrency) {
+            set({ selectedToCurrency: get().selectedFromCurrency })
+        }
+        set({ selectedFromCurrency: currency })
+
+        get().setAmount(get().amount)
+    },
+
+    setToCurrency: (currency: Currency) => {
+        if (currency === get().selectedFromCurrency) {
+            set({ selectedFromCurrency: get().selectedToCurrency })
+        }
+        set({ selectedToCurrency: currency })
+        get().setAmount(get().amount)
+
+    },
+
+    switchCurrencies: () => {
+        get().setFromCurrency(get().selectedToCurrency)
+    },
+
+    init: async (tonConnectUI: TonConnectUI) => {
+        if (get().inited) return;
+        const url = await getHttpV4Endpoint({
+            network: get().network,
+        });
+
+        set({ _networkUrl: url })
+
+        const tonClient = new TonClient4({ endpoint: url });
+        const atomicDexContract = tonClient.open(atomicDex);
+        get().getTonToUsd();
+        set({
+            tonConnectUI,
+            tonClient,
+            inited: true,
+            atomicDexContract,
+        });
+        get().connectWallet();
+        getPoolList()
+            .then((pools) => set({ pools }))
+            .then(() => {
+                const { pools } = get();
+                const currencies = getSwapCurrencies(pools);
+                set({ currencies: currencies });
+            })
+            .then(() => {
+                console.log('pool', get().pools)
+                console.log('currencies', get().currencies)
+            })
+    },
+
+    readLastBlock: async () => {
+        const tonClient = get().tonClient!
+        const address = get().address
+
+        const lastBlockSeqNo = (await tonClient.getLastBlock()).last.seqno;
+        const wallet = tonClient.openAt(lastBlockSeqNo, Wallet.createFromAddress(get().address as Address));
+        const walletStateP = wallet.getWalletState().catch(() => get().walletState);
+        const walletFeesP = wallet.getWalletFees().catch(() => get().walletFees);
+        9
+        address == null
+            ? Promise.resolve(0n)
+            : tonClient.getAccountLite(lastBlockSeqNo, address)
+                .then((value) => {
+                    console.log('Setting up ton balance')
+                    set({ tonBalance: BigInt(value.account.balance.coins) })
+                })
+
+        const [walletState, walletFees] = await Promise.all([walletStateP, walletFeesP])
+
+        set({
+            wallet,
+            walletState,
+            walletFees,
+        })
+
+    },
+
+    loadTonBalance: async () => {
+        const tonClient = get().tonClient
+        const address = get().address
+        if (tonClient == null || address == null) {
+            set({ tonBalance: undefined })
+            return
+        }
+
+        try {
+            console.log('loadTonBalance')
+            const lastBlock = (await tonClient.getLastBlock()).last.seqno
+            const value = await tonClient.getAccountLite(lastBlock, address)
+            set({ tonBalance: BigInt(value.account.balance.coins) })
+            console.log('loadTonBalance done', value.account.balance.coins)
+        } catch (err) {
+            console.error(err)
+            set({ tonBalance: undefined })
+        }
+    },
+
+    connectWallet: () => {
+        const { tonConnectUI } = get();
+        if (tonConnectUI?.wallet) {
+            set({
+                address: Address.parseRaw(get().tonConnectUI!.wallet!.account.address),
+                errorMessage: '',
+            });
+            get().onConnectWallet(get().tonConnectUI!.wallet!.account.address);
+        }
+        tonConnectUI!.onStatusChange((wallet) => {
+            if (wallet) get().onConnectWallet(wallet.account.address);
+            else get().onDisconnectWallet();
+        })
+    },
+
+    onConnectWallet: (address: string) => {
+        console.log('onConnectWallet', address)
+        set({
+            address: Address.parseRaw(address),
+        })
+
+        get().readLastBlock();
+        get().getTonToUsd();
+        get().loadTonBalance();
+
+    },
+
+    onDisconnectWallet: () => {
+        set({
+            address: undefined,
+            tonBalance: undefined,
+            // wallet: undefined,
+            amount: '',
+            // walletState: undefined,
+            errorMessage: '',
+        })
+    },
+
+    getTonToUsd: async () => {
+        const url = "https://api.binance.com/api/v3/ticker/price?symbol=TONUSDT"
+        await fetch(url)
+            .then((response) => response.json())
+            .then((data) => data.price)
+            .then((price) => set({ TONToUSD: parseFloat(price) }))
+            .catch((error) => console.error('Error:', error))
+    },
+
+    isConnected() {
+        return get().address != null
+    },
+
+    executeSwapOrder: async () => {
+
+        // const { amount, selectedFromCurrency, selectedToCurrency, atomicDexContract } = get();
+        // const bIntAmount = BigInt(parseFloat(amount) * 1e9);
+        // const order: SwapOrder = {
+        //     $$type: 'SwapOrder',
+        //     expectedIn: bIntAmount,
+        //     expectedOut: bIntAmount,
+        // };
+        // const amountInNano = BigInt(parseFloat(amount) * 1e9);
+        // const amountOutNano = await atomicDexContract!.sendExternal({
+        //     $$type: 'MultiSwap',
+        //     orders
+        // })
+        // console.log('Swapped', amountInNano, 'for', amountOutNano)
+    },
+
+    readyToSwap: () => {
+        // if (!get().isConnected()) return false;
+        if (parseFloat(get().amount) === 0) return false;
+        if (Number.isNaN(parseFloat(get().amount))) return false;
+        // if (get().tonBalance === undefined) return false;
+
+        return true;
+    },
+
+    getSwapInputError: () => {
+        if (get().amount === '') return '';
+        if (!get().isConnected()) return 'Please connect your wallet';
+        if (parseFloat(get().amount) === 0) return 'Amount must be greater than 0';
+        if (Number.isNaN(parseFloat(get().amount))) return 'Amount must be a valid number';
+
+        return '';
+    },
+
+    getPools: async () => {
+        const pools = await getPoolList();
+        set({ pools });
+    },
 }))

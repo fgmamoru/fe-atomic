@@ -43,7 +43,7 @@ export const currencyMapping: Record<string, Currency> = {
     TON: {
         symbol: "TON",
         icon: "/icons/ton.svg",
-        name: "TON Crystal",
+        name: "TON",
     },
     USDT: {
         symbol: "USDT",

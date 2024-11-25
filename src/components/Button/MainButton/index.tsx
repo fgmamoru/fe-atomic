@@ -15,6 +15,7 @@ export const MainButton = (props: {
     debug?: boolean;
     testId?: string;
     className?: string;
+    suppressHydrationWarning?: boolean;
 }) => {
     const classes = clsx(styles.MainButton, props.className, {
         [styles.MainButtonFullWidth]: props.fullWidth,
@@ -45,6 +46,7 @@ export const MainButton = (props: {
     );
 
     return <button
+        suppressHydrationWarning={props.suppressHydrationWarning}
         data-testid={props.testId}
         onClick={props.onClick}
         disabled={props.disabled}

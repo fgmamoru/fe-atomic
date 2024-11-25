@@ -1,10 +1,10 @@
-import { useSwapModel } from '@/state/swap.model'
+import { useModel } from '@/components/Services/Model'
 import styles from './Stars.module.css'
 import clsx from 'clsx'
 
 
 export const Stars = (props: {}) => {
-    const model = useSwapModel()
+    const model = useModel()
     return (
         <>
             <div className={clsx(styles.stars, model.readyToSwap() ? styles.active : styles.inactive)} />

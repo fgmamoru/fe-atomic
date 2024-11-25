@@ -145,3 +145,5 @@ export type AtomicPoolCurrencyMapItem = {
 }
 
 export type ExpandedAtomicPool = AtomicPool & AtomicPoolCurrencyMapItem;
+
+export type ExchangeRateKey = `${string}-${string}`;

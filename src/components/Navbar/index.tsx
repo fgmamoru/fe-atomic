@@ -50,7 +50,7 @@ function BurgerMenu({ bills }: { bills: Array<any> }) {
 
             <Menu.Items className={styles.BurgerMenuItemsOverlay}>
                 <div className={styles.BurgerMenuItems}>
-                    <BurgerMenuItem href="/dex">Dex</BurgerMenuItem>
+                    <BurgerMenuItem href="/">Dex</BurgerMenuItem>
                 </div>
             </Menu.Items >
         </Menu >
@@ -73,7 +73,7 @@ export const Navbar = () => {
                             <img src="/logo.svg" alt="TON Dex" />
                         </Link>
                     </div>
-                    <Link className={styles.NavbarItem} href="/dex">Dex</Link>
+                    <Link className={styles.NavbarItem} href="/">Dex</Link>
                     <Suspense fallback={<></>}>
                         <ShowInDebug>
                             <Link className={styles.NavbarItem} href="/admin" style={{ color: 'blue' }}>Admin</Link>

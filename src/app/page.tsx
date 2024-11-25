@@ -1,6 +1,5 @@
 'use client'
 import React, { useState } from "react";
-import { useModel } from "@/components/Services/Model";
 import { PageLayoutNarrow, PageWrapper } from "@/components/Layout/PageLayout";
 import { Card } from "@/components/Card/Card";
 import { CardSection } from "@/components/Card";
@@ -9,14 +8,13 @@ import { DexSwapTab } from "./components/Swap";
 import { DexDepositTab } from "./components/Deposit";
 import { DexWithdrawTab } from "./components/Withdraw";
 import { AtomicSpeedCardWrapper } from "@/components/Misc/StakeStats/AtomicSpeedWrapper";
-import { Stars } from "@/components/Misc/Stars";
-import { useSwapModel } from "@/state/swap.model";
+import { useModel } from "@/components/Services/Model";
 
 type Tab = 'Swap' | 'Deposit' | 'Withdraw';
 
 const DexPage = (() => {
     const [tab, setTab] = useState<Tab>('Swap');
-    const model = useSwapModel();
+    const model = useModel();
     return (
         <PageWrapper>
             <PageLayoutNarrow>
