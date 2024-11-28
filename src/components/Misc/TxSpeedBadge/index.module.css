@@ -9,12 +9,17 @@
     font-size: 10px;
 }
 
-.TxSpeedBadge.normal {
+.normal {
     background-color: #222222;
     color: #898989;
 }
 
-.TxSpeedBadge.fast {
+.fast {
     background-color: #00EABB33;
     color: #00EABB;
+}
+
+.error {
+    background-color: #FF000033;
+    color: #FF0000;
 }

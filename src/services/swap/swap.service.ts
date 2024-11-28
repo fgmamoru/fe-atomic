@@ -1,4 +1,4 @@
-import { KeyPair, sign, sha256 } from '@ton/crypto';
+import { sha256 } from '@ton/crypto';
 import { Address, Builder, Dictionary, OpenedContract, TonClient4, toNano } from "@ton/ton";
 import { ATOMIC_DEX_CONTRACT_ADDRESS } from "../config.service";
 import { AtomicDex, AtomicPool, AtomicWallet, SwapOrder } from "../AtomicDex/AtomicDex.service";
@@ -377,8 +377,6 @@ export class SwapService {
         return this.pools![poolId] || this.pools!["0"];
     }
 }
-
-
 
 export const getSwapCurrencies = (map: Record<string, ExpandedAtomicPool>): Set<Currency> => {
     const currencies = new Set<Currency>();

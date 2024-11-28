@@ -54,7 +54,7 @@ type ModelType = {
     setUnstakeType: (unstakeType: UnstakeType) => void
     // setAmount: (amount: string) => void
     isStakeTabActive: () => boolean
-    maxAmount: () => bigint
+    _maxAmountInNano: () => bigint
     maxAmountInTon: () => number
     isMainnet: () => boolean
     setAmount: (amount: string) => void
@@ -85,9 +85,7 @@ type ModelType = {
     currentExchangeRate: number;
 
     currencies: Set<Currency>;
-    exchangeRateList: Record<ExchangeRateKey, number>;
-
-    atomicDexContract?: OpenedContract<AtomicDex>;
+    _atomicDexContract?: OpenedContract<AtomicDex>;
 
     setFromCurrency: (currency: Currency) => void;
     setToCurrency: (currency: Currency) => void;
@@ -192,7 +190,7 @@ export const useModel = create<ModelType>((set, get) => ({
         return ""
     },
 
-    maxAmount() {
+    _maxAmountInNano() {
         // return maxAmountToStake(get().tonBalance ?? 0n)
         const isStakeTabActive = get().isStakeTabActive()
         const tonBalance = get().tonBalance
@@ -201,8 +199,9 @@ export const useModel = create<ModelType>((set, get) => ({
     },
 
     maxAmountInTon() {
-        return Number(get().maxAmount()) / 1000000000
+        return Number(get()._maxAmountInNano()) / 1000000000
     },
+
 
     isMainnet() {
         return get().network === 'mainnet'
@@ -238,7 +237,7 @@ export const useModel = create<ModelType>((set, get) => ({
     },
 
     setAmountToMax() {
-        set({ amount: fromNano(get().maxAmount()) })
+        set({ amount: fromNano(get()._maxAmountInNano()) })
     },
 
     tonBalanceFormatted() {
@@ -271,7 +270,7 @@ export const useModel = create<ModelType>((set, get) => ({
         const nano = get().amountInNano();
         return nano != null &&
             nano >= 0n &&
-            (get().tonBalance == null || nano <= get().maxAmount())
+            (get().tonBalance == null || nano <= get()._maxAmountInNano())
     },
 
     isAmountPositive() {
@@ -398,9 +397,9 @@ export const useModel = create<ModelType>((set, get) => ({
     selectedToCurrency: currencyMapping.USDT,
     currentExchangeRate: 1,
     currencies: new Set<Currency>(),
-    exchangeRateList: {} as Record<ExchangeRateKey, number>,
 
     setAmount: (amount: string) => {
+        const { _swapService, _maxAmountInNano } = get()
         // remove non-numeric characters and replace comma with dot
         const formatted = amount
             .replace(/[^0-9.,]/g, '')
@@ -409,6 +408,17 @@ export const useModel = create<ModelType>((set, get) => ({
             .replace(/(\.\d{9}).*/, '$1'); // truncate after 9 decimal places
 
         const amountInNano = toNano(formatted);
+
+        if (amountInNano > _maxAmountInNano()) {
+            set({
+                errorMessage: `Not enough balance.`,
+            })
+        } else {
+            set({
+                errorMessage: '',
+            })
+        }
+
 
         const resultAmount = get()._swapService!.calculateExpectedOut(
             amountInNano,
@@ -464,7 +474,7 @@ export const useModel = create<ModelType>((set, get) => ({
             tonConnectUI,
             tonClient,
             inited: true,
-            atomicDexContract,
+            _atomicDexContract: atomicDexContract,
             _swapService: swapService,
         });
 
@@ -593,7 +603,7 @@ export const useModel = create<ModelType>((set, get) => ({
     },
 
     readyToSwap: () => {
-        // if (!get().isConnected()) return false;
+        if (!get().isConnected()) return false;
         if (parseFloat(get().amount) === 0) return false;
         if (Number.isNaN(parseFloat(get().amount))) return false;
         // if (get().tonBalance === undefined) return false;

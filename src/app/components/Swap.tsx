@@ -48,7 +48,6 @@ export function DexSwapTab() {
                     cryptoName={mainModel.selectedFromCurrency.symbol}
                     cryptoIcon={mainModel.selectedFromCurrency.icon}
                     invalid={!!mainModel.errorMessage}
-                    error={mainModel.errorMessage}
                     currencies={mainModel.currencies}
                     onCurrencyClick={() => {
                         setFromModalOpen(true)
@@ -65,7 +64,7 @@ export function DexSwapTab() {
                         }}>
                             <AnimatedNumber value={mainModel.maxAmountInTon()} formatValue={formatCryptoAmount} duration={300} /></span>
                         <MiniButton
-                            disabled={Number(mainModel.tonBalance) === 0}
+                            disabled={Number(mainModel.tonBalance) === 0 || !mainModel.isConnected()}
                             onClick={() => {
                                 mainModel.setAmount(mainModel.maxAmountInTon().toString())
                             }}>Max</MiniButton>
@@ -101,6 +100,7 @@ export function DexSwapTab() {
                 />
                 <TxSpeedBadge
                     speed={TxSpeed.normal}
+                    error={mainModel.errorMessage}
                 />
             </div>
             <MainButton
