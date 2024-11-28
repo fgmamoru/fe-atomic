@@ -24,17 +24,16 @@ const Subtitle = (props: { children: string, icon: string }) =>
 
 
 const TokenButton = (props: {
-    name: string, symbol: string, icon: string, onClick:
-    (currency: Currency) => void
+    currency: Currency, onClick: (currency: Currency) => void
 
 }) => {
     return <div className={styles.TokenSelectorModalItem}
-        onClick={() => props.onClick({ name: props.name, symbol: props.symbol, icon: props.icon })}
+        onClick={() => props.onClick(props.currency)}
     >
-        <img src={props.icon} alt="icon" />
+        <img src={props.currency?.icon} alt="icon" />
         <div className={styles.TokenSelectorModalItemColumn}>
-            <span className={styles.TokenSelectorModalItemName}>{props.name}</span>
-            <span className={styles.TokenSelectorModalItemSymbol}>{props.symbol}</span>
+            <span className={styles.TokenSelectorModalItemName}>{props.currency?.name}</span>
+            <span className={styles.TokenSelectorModalItemSymbol}>{props.currency?.symbol}</span>
         </div>
     </div>
 }
@@ -79,9 +78,7 @@ export const TokenSelectorModal = (props: TokenSelectorModalProps) => {
                         .map((currency) =>
                             <TokenButton
                                 key={currency.symbol}
-                                name={currency.name}
-                                symbol={currency.symbol}
-                                icon={currency.icon}
+                                currency={currency}
                                 onClick={() => props.onCurrencyClick?.(currency)}
                             />)
                 }

@@ -1,6 +1,5 @@
 import { KeyPair, sign, sha256 } from '@ton/crypto';
-import { Address, Builder, Dictionary, OpenedContract, TonClient, TonClient4, toNano } from "@ton/ton";
-import { DEX, pTON } from "@ston-fi/sdk";
+import { Address, Builder, Dictionary, OpenedContract, TonClient4, toNano } from "@ton/ton";
 import { ATOMIC_DEX_CONTRACT_ADDRESS } from "../config.service";
 import { AtomicDex, AtomicPool, AtomicWallet, SwapOrder } from "../AtomicDex/AtomicDex.service";
 import { AtomicPoolCurrencyMapItem, Currency, CurveTypes, ExpandedAtomicPool } from "@/types";
@@ -9,7 +8,7 @@ import debug from 'debug';
 import { TonConnectUI } from '@tonconnect/ui-react';
 
 const log = debug('app:swap-service');
-localStorage.debug = 'app:swap-service';
+// localStorage.debug = 'app:swap-service';
 
 export const currencyMapping: Record<string, Currency> = {
     TON: {
@@ -29,8 +28,14 @@ export const currencyMapping: Record<string, Currency> = {
 const AMPLIFICATION_FACTOR: bigint = 100n;
 
 
-const replaceCurrenciesInMap = (map: Record<string, { token0: string, token1: string }>): Record<string, AtomicPoolCurrencyMapItem> => {
-    const newMap: Record<string, AtomicPoolCurrencyMapItem> = {};
+const replaceCurrenciesInMap = (map: Record<string, { token0: string, token1: string }>): Record<string, {
+    token0: Currency,
+    token1: Currency
+}> => {
+    const newMap: Record<string, {
+        token0: Currency,
+        token1: Currency
+    }> = {};
 
     Object.keys(map).forEach(key => {
         newMap[key] = {
@@ -42,7 +47,10 @@ const replaceCurrenciesInMap = (map: Record<string, { token0: string, token1: st
     return newMap;
 }
 
-const atomicPoolMapping: Record<string, AtomicPoolCurrencyMapItem> = replaceCurrenciesInMap({
+const atomicPoolCurrencyMapping: Record<string, {
+    token0: Currency,
+    token1: Currency
+}> = replaceCurrenciesInMap({
     "1": {
         token0: "TON",
         token1: "USDT",
@@ -90,7 +98,7 @@ export class SwapService {
         const expandedPools = poolKeys.map((poolKey) => {
             const atomicPool = pools.get(poolKey);
 
-            const mappedPool = atomicPoolMapping[poolKey];
+            const mappedPool = atomicPoolCurrencyMapping[poolKey];
 
             return {
                 ...atomicPool!,
@@ -205,21 +213,21 @@ export class SwapService {
             validUntil: bigint
         }
     ) {
-        const signature = sign(
+        // const signature = sign(
 
-            publicKey,
-        );
+        //     publicKey,
+        // );
 
-        return atomicDex.sendExternal(
-            {
-                $$type: 'MultiSwap',
-                queryId: swap.queryId,
-                publicKey: swap.publicKey,
-                signature: new Builder().storeBuffer(signature, 64).endCell().asSlice(),
-                orders: this.getMultiSwapOrdersSlice(swap.orders),
-                validUntil: swap.validUntil,
-            }
-        );
+        // return atomicDex.sendExternal(
+        //     {
+        //         $$type: 'MultiSwap',
+        //         queryId: swap.queryId,
+        //         publicKey: swap.publicKey,
+        //         signature: new Builder().storeBuffer(signature, 64).endCell().asSlice(),
+        //         orders: this.getMultiSwapOrdersSlice(swap.orders),
+        //         validUntil: swap.validUntil,
+        //     }
+        // );
     }
 
     private calculateMultiSwapSlice(

@@ -1,15 +1,15 @@
 import { getHttpV4Endpoint, Network } from '@orbs-network/ton-access'
-import { Address, Dictionary, fromNano, OpenedContract, toNano, TonClient4 } from '@ton/ton'
-import { CHAIN, TonConnectUI } from '@tonconnect/ui'
-import { maxAmountToStake, createDepositMessage, createUnstakeMessage } from '../ton-comms/Helpers'
-import { Treasury, TreasuryConfig, Times, ParticipationState } from '../ton-comms/Treasury'
-import { WalletState, Wallet, WalletFees } from '../ton-comms/Wallet'
+import { Address, fromNano, OpenedContract, toNano, TonClient4 } from '@ton/ton'
+import { TonConnectUI } from '@tonconnect/ui'
+import { maxAmountToStake } from '../ton-comms/Helpers'
+import { Treasury, TreasuryConfig, Times } from '../ton-comms/Treasury'
+import { Wallet } from '../ton-comms/Wallet'
 import { create } from 'zustand';
-import { AtomicPoolCurrencyMapItem, Currency, ExchangeRateKey, ITicket, UnstakeType } from '@/types'
+import { AtomicPoolCurrencyMapItem, Currency, ExchangeRateKey, ExpandedAtomicPool, UnstakeType } from '@/types'
 import { formatCryptoAmount, formatPercent } from '@/utils'
 import { NETWORK, TREASURY_CONTRACT_ADDR } from '@/services/config.service'
 import { AtomicDex, AtomicPool } from '@/services/AtomicDex/AtomicDex.service'
-import { currencyMapping, getResultAmount, getSwapCurrencies, SwapService } from '@/services/swap/swap.service'
+import { currencyMapping, getSwapCurrencies, SwapService } from '@/services/swap/swap.service'
 
 type ActiveTab = 'stake' | 'unstake';
 const atomicDex = AtomicDex.fromAddress(Address.parse("EQCANtHMd-perMjM3Tk2xKoDkD3BN_CiJaGu4kqKcHmm4sdP"))
@@ -95,7 +95,7 @@ type ModelType = {
     isConnected: () => boolean
     executeSwapOrder: () => void
     readyToSwap: () => boolean
-    pools: Record<string, AtomicPool & AtomicPoolCurrencyMapItem>,
+    pools: Record<string, ExpandedAtomicPool>,
     _swapService?: SwapService
 };
 type WaitForTransaction = 'no' | 'wait' | 'timeout' | 'done'

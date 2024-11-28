@@ -30,7 +30,14 @@
     ".git/objects",
     ".vscode",
     ".vscode-insiders",
-    "package.json"
+    "package.json",
+    "package-lock.json",
+    "yarn.lock",
+    "dist",
+    "build",
+    ".next",
+    ".env.local",
+    ".env.sentry-build-plugin"
   ],
   "workbench.colorCustomizations": {
     "statusBar.background": "#02aabd",

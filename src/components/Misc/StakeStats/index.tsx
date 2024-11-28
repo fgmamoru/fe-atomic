@@ -46,14 +46,14 @@ export const UnStakeStats = () => {
     const model = useModel();
     return (
         <div className={styles.StakeStats}>
-            <StakeStat
+            {/* <StakeStat
                 label="Current Fee"
                 value={model.getUnstakeFeeFormatted()}
                 subLabel="USDT"
                 subValue={model.getUnstakeFeeFormattedAsUsd()} />
             <StakeStat
                 label="Stake Type"
-                value="End of round" />
+                value="End of round" /> */}
             {/* <StakeStat
         label="Unstake min. amt."
         value={`${formatCryptoAmountAbbr(0)} TON`}
