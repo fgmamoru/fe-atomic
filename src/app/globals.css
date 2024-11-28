@@ -380,3 +380,8 @@ a:hover {
 a:visited {
     color: var(--color-link-visited);
 }
+
+
+nextjs-portal {
+    display: none;
+}

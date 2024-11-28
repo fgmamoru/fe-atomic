@@ -18,6 +18,9 @@ export function DexSwapTab() {
     const mainModel = useModel();
     const [tonConnectUi] = useTonConnectUI();
     const wallet = useTonWallet();
+    wallet?.account.publicKey;
+
+
     const buttonTitle = wallet ? 'Swap' : 'Connect Wallet';
     const [fromModalOpen, setFromModalOpen] = useState(false);
     const [toModalOpen, setToModalOpen] = useState(false);
@@ -104,29 +107,12 @@ export function DexSwapTab() {
                 // onClick={model.executeSwapOrder}
                 disabled={!buttonEnabled}
                 onClick={() => {
-                    if (!mainModel.address) {
-                        open();
-                        return;
-                    }
 
-                    setWaitingTransactionModalOpen(true);
+                    if (!mainModel.address) return open();
 
-                    setTimeout(() => {
-                        setWaitingTransactionModalOpen(false);
-                        mainModel.setAmount("");
-                    }, 7000);
+                    mainModel.executeSwapOrder();
                 }}
                 fullWidth suppressHydrationWarning>{buttonTitle}</MainButton>
-
-            {/* <pre>
-                {JSON.stringify({
-                    inited: model.inited,
-                    isConnected: model.isConnected(),
-                    address: model.address?.toString(),
-                    tonBalance: model.tonBalance?.toString(),
-                    pools: model.pools,
-                }, null, 2)}
-            </pre> */}
 
             <TokenSelectorModal
                 currencies={mainModel.currencies}

@@ -137,13 +137,20 @@ export type Currency = {
     symbol: string,
     icon: string,
     name: string,
+    id: bigint,
 }
 
 export type AtomicPoolCurrencyMapItem = {
-    token0: string;
-    token1: string;
+    token0: Currency;
+    token1: Currency;
+    curveType: CurveTypes;
 }
 
-export type ExpandedAtomicPool = AtomicPool & AtomicPoolCurrencyMapItem;
+export enum CurveTypes {
+    Unbalanced = 0,
+    Balanced = 1,
+}
+
+export type ExpandedAtomicPool = Omit<AtomicPool, 'curveType'> & AtomicPoolCurrencyMapItem;
 
 export type ExchangeRateKey = `${string}-${string}`;

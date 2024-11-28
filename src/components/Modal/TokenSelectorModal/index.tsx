@@ -48,7 +48,6 @@ export const TokenSelectorModal = (props: TokenSelectorModalProps) => {
             setFilteredCurrencies(props.currencies);
             return;
         }
-        console.log('filtered')
         const filtered = new Set(Array.from(props.currencies).filter((currency) =>
             currency.name.toLowerCase().includes(search.toLowerCase())
         ));
