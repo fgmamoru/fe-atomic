@@ -5,31 +5,30 @@ import { TonClient } from "@ton/ton";
 import BN from "bn.js";
 import nacl from "tweetnacl";
 import jwt from "jsonwebtoken";
+import { CheckProofPayload } from "./dto";
+import debug from "debug";
 
+const debugLog = debug("app:be:check-proof");
 const DOMAIN = process.env.DOMAIN!;
 const SHARED_SECRET = process.env.SHARED_SECRET!;
 const PAYLOAD_TTL = parseInt(process.env.PAYLOAD_TTL!);
 const PROOF_TTL = parseInt(process.env.PROOF_TTL!);
 
 
-import {
-    CheckProofPayload,
-    CheckTonProof,
-    GenerateTonProofPayload,
-} from "./dto";
 
 
-export async function GET(request: NextRequest) {
+export async function POST(request: NextRequest) {
     const body = await request.json();
+    debugLog("POST /api/check-proof", body);
 
     const { proof, address, network } = CheckProofPayload.parse(body);
     const payload = Buffer.from(proof.payload, "hex");
 
     if (payload.length !== 32) {
-        NextResponse.json({
+        return NextResponse.json({
             error: `invalid payload length, got ${payload.length}, expected 32`,
         });
-        return;
+
     }
 
     const mac = crypto.createHmac("sha256", SHARED_SECRET);
@@ -40,8 +39,8 @@ export async function GET(request: NextRequest) {
         .subarray(16)
         .equals(payloadSignatureBytes.subarray(0, 16));
     if (!signatureValid) {
-        NextResponse.json({ error: "invalid payload signature" }, { status: 400 });
-        return;
+        return NextResponse.json({ error: "invalid payload signature" }, { status: 400 });
+
     }
 
     const now = Math.floor(Date.now() / 1000);
@@ -50,28 +49,28 @@ export async function GET(request: NextRequest) {
     const expireBytes = payload.subarray(8, 16);
     const expireTime = expireBytes.readBigUint64BE();
     if (BigInt(now) > expireTime) {
-        NextResponse.json({ error: "payload expired" }, { status: 400 });
-        return;
+        return NextResponse.json({ error: "payload expired" }, { status: 400 });
+
     }
 
     // check ton proof expiration
     if (now > proof.timestamp + PROOF_TTL) {
-        NextResponse.json({ error: "ton proof has been expired" }, { status: 400 });
-        return;
+        return NextResponse.json({ error: "ton proof has been expired" }, { status: 400 });
+
     }
 
     if (proof.domain.value !== DOMAIN) {
-        NextResponse.json({
+        return NextResponse.json({
             error: `wrong domain, got ${proof.domain.value}, expected ${DOMAIN}`,
         }, { status: 400 });
-        return;
+
     }
 
     if (proof.domain.lengthBytes !== proof.domain.value.length) {
-        NextResponse.json({
+        return NextResponse.json({
             error: `domain length mismatched against provided length bytes of ${proof.domain.lengthBytes}`,
         }, { status: 400 });
-        return;
+
     }
 
     const parsedAddress = Address.parse(address);
@@ -158,10 +157,9 @@ export async function GET(request: NextRequest) {
                 break;
             }
             default: {
-                NextResponse.json({
+                return NextResponse.json({
                     error: "unsupported wallet version",
                 });
-                return;
             }
         }
     }
@@ -174,10 +172,10 @@ export async function GET(request: NextRequest) {
     );
 
     if (!verified) {
-        NextResponse.json({
+        return NextResponse.json({
             error: "verification failed",
         }, { status: 401 });
-        return;
+
     }
 
     const claims = {
@@ -186,5 +184,5 @@ export async function GET(request: NextRequest) {
     };
     const token = jwt.sign(claims, SHARED_SECRET);
 
-    NextResponse.json({ token });
+    return NextResponse.json({ token });
 }

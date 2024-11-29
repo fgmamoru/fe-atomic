@@ -110,6 +110,7 @@ export function DexSwapTab() {
 
                     if (!mainModel.isConnected()) return open();
 
+
                     mainModel.executeSwapOrder();
                 }}
                 fullWidth suppressHydrationWarning>{buttonTitle}</MainButton>

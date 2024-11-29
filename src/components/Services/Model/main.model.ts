@@ -1,6 +1,6 @@
 import { getHttpV4Endpoint, Network } from '@orbs-network/ton-access'
-import { Address, fromNano, OpenedContract, toNano, TonClient4 } from '@ton/ton'
-import { TonConnectUI } from '@tonconnect/ui'
+import { address, Address, fromNano, OpenedContract, toNano, TonClient4 } from '@ton/ton'
+import { ConnectedWallet, TonConnectUI } from '@tonconnect/ui'
 import { maxAmountToStake } from '../ton-comms/Helpers'
 import { Treasury, TreasuryConfig, Times } from '../ton-comms/Treasury'
 import { Wallet } from '../ton-comms/Wallet'
@@ -11,6 +11,7 @@ import { NETWORK, TREASURY_CONTRACT_ADDR } from '@/services/config.service'
 import { AtomicDex, AtomicPool } from '@/services/AtomicDex/AtomicDex.service'
 import { currencyMapping, getSwapCurrencies, SwapService } from '@/services/swap/swap.service'
 import debug from 'debug'
+import { devtools } from 'zustand/middleware'
 
 type ActiveTab = 'stake' | 'unstake';
 const atomicDex = AtomicDex.fromAddress(Address.parse("EQCANtHMd-perMjM3Tk2xKoDkD3BN_CiJaGu4kqKcHmm4sdP"))
@@ -24,7 +25,7 @@ if (typeof localStorage !== 'undefined') {
 
 type ModelType = {
     loadTonBalance(): unknown
-    onConnectWallet: (wallet: string) => void
+    onConnectWallet: (wallet: ConnectedWallet) => void
     onDisconnectWallet: () => void
     TONToUSD: number,
     wallet: OpenedContract<Wallet> | undefined,
@@ -145,7 +146,8 @@ const txValidUntil = 5 * 60
 const errorMessageTonAccess = 'Unable to access blockchain'
 const errorMessageNetworkMismatch = 'Your wallet must be on '
 const formattedZero = formatCryptoAmount(0);
-export const useModel = create<ModelType>((set, get) => ({
+// @ts-ignore
+export const useModel = create<ModelType>(((set, get) => ({
     TONToUSD: 0,
     inited: false,
     network: NETWORK,
@@ -550,19 +552,41 @@ export const useModel = create<ModelType>((set, get) => ({
                 address: Address.parseRaw(get().tonConnectUI!.wallet!.account.address),
                 errorMessage: '',
             });
-            get().onConnectWallet(get().tonConnectUI!.wallet!.account.address);
+            get().onConnectWallet(get().tonConnectUI!.wallet! as ConnectedWallet);
         }
         tonConnectUI!.onStatusChange((wallet) => {
-            if (wallet) get().onConnectWallet(wallet.account.address);
+            if (wallet) get().onConnectWallet(wallet);
             else get().onDisconnectWallet();
         })
     },
 
-    onConnectWallet: (address: string) => {
-        debugLog('onConnectWallet')
+    onConnectWallet: (wallet: ConnectedWallet) => {
+        if (
+            wallet.connectItems?.tonProof &&
+            "proof" in wallet.connectItems.tonProof
+        ) {
+            debugLog('onConnectWallet, handling proof', wallet.connectItems.tonProof.proof)
+
+            fetch('/api/check-proof', {
+                body: JSON.stringify({
+                    address: wallet.account.address,
+                    network: get().network === 'mainnet' ? '-239' : '-3',
+                    proof: {
+                        ...wallet.connectItems.tonProof.proof,
+                        state_init: "..."
+                    }
+                }),
+                method: 'POST',
+            })
+                .then((response) => response.json())
+                .then((data) => {
+                    debugLog('proof response', data)
+                })
+        }
+
         try {
             set({
-                address: Address.parseRaw(address),
+                address: Address.parseRaw(wallet.account.address),
             })
 
             get().readLastBlock();
@@ -654,21 +678,22 @@ export const useModel = create<ModelType>((set, get) => ({
     },
 
     _initTonProofPayloadFromBackend: async () => {
+        debugLog('_initTonProofPayloadFromBackend')
         try {
 
             get().tonConnectUI!.setConnectRequestParameters({
                 state: "loading"
             })
-            const payload = await get()._fetchTonProofPayloadFromBackend();
+            const proof = await get()._fetchTonProofPayloadFromBackend();
 
-            console.log("payload", payload)
+            debugLog("_initTonProofPayloadFromBackend, proof", proof)
             get().tonConnectUI!.setConnectRequestParameters({
                 state: "ready",
-                value: { tonProof: "proof" },
+                value: { tonProof: proof },
             })
         } catch (error) {
             console.error(error)
             get().tonConnectUI!.setConnectRequestParameters(null)
         }
     }
-}))
+})))
