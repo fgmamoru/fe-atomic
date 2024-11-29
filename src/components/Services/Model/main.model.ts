@@ -10,13 +10,20 @@ import { formatCryptoAmount, formatPercent } from '@/utils'
 import { NETWORK, TREASURY_CONTRACT_ADDR } from '@/services/config.service'
 import { AtomicDex, AtomicPool } from '@/services/AtomicDex/AtomicDex.service'
 import { currencyMapping, getSwapCurrencies, SwapService } from '@/services/swap/swap.service'
+import debug from 'debug'
 
 type ActiveTab = 'stake' | 'unstake';
 const atomicDex = AtomicDex.fromAddress(Address.parse("EQCANtHMd-perMjM3Tk2xKoDkD3BN_CiJaGu4kqKcHmm4sdP"))
+const debugLog = debug('app:model')
+
+// check if localStorage is defined
+if (typeof localStorage !== 'undefined') {
+    localStorage.debug = 'app:model'
+}
+
 
 type ModelType = {
     loadTonBalance(): unknown
-    connectWallet: () => void
     onConnectWallet: (wallet: string) => void
     onDisconnectWallet: () => void
     TONToUSD: number,
@@ -95,6 +102,9 @@ type ModelType = {
     readyToSwap: () => boolean
     pools: Record<string, ExpandedAtomicPool>,
     _swapService?: SwapService
+    _fetchTonProofPayloadFromBackend: () => Promise<string>
+    _initTonProofPayloadFromBackend: () => Promise<void>
+    _initWallet: () => void
 };
 type WaitForTransaction = 'no' | 'wait' | 'timeout' | 'done'
 
@@ -457,6 +467,8 @@ export const useModel = create<ModelType>((set, get) => ({
 
     init: async (tonConnectUI: TonConnectUI) => {
         if (get().inited) return;
+        debugLog('init')
+
         set({ inited: true });
         const url = await getHttpV4Endpoint({
             network: get().network,
@@ -486,10 +498,12 @@ export const useModel = create<ModelType>((set, get) => ({
                 set({ currencies: currencies });
             })
 
-        get().connectWallet();
+        get()._initWallet();
+        get()._initTonProofPayloadFromBackend();
     },
 
     readLastBlock: async () => {
+        debugLog('readLastBlock')
         const tonClient = get().tonClient!
         const address = get().address
 
@@ -511,6 +525,7 @@ export const useModel = create<ModelType>((set, get) => ({
     },
 
     loadTonBalance: async () => {
+        debugLog('loadTonBalance')
         const tonClient = get().tonClient
         const address = get().address
         if (tonClient == null || address == null) {
@@ -528,7 +543,7 @@ export const useModel = create<ModelType>((set, get) => ({
         }
     },
 
-    connectWallet: () => {
+    _initWallet: () => {
         const { tonConnectUI } = get();
         if (tonConnectUI?.wallet) {
             set({
@@ -544,17 +559,24 @@ export const useModel = create<ModelType>((set, get) => ({
     },
 
     onConnectWallet: (address: string) => {
-        set({
-            address: Address.parseRaw(address),
-        })
+        debugLog('onConnectWallet')
+        try {
+            set({
+                address: Address.parseRaw(address),
+            })
 
-        get().readLastBlock();
-        get().getTonToUsd();
-        get().loadTonBalance();
+            get().readLastBlock();
+            get().getTonToUsd();
+            get().loadTonBalance();
+        } catch (error) {
+            console.error(error)
+        }
+
 
     },
 
     onDisconnectWallet: () => {
+        debugLog('onDisconnectWallet')
         set({
             address: undefined,
             tonBalance: undefined,
@@ -576,6 +598,7 @@ export const useModel = create<ModelType>((set, get) => ({
 
     isConnected() {
         return get().address != null
+
     },
 
     executeSwapOrder: async () => {
@@ -619,4 +642,33 @@ export const useModel = create<ModelType>((set, get) => ({
 
         return '';
     },
+
+    _fetchTonProofPayloadFromBackend: async () => {
+
+        const url = '/api/generate-payload';
+
+        return fetch(url)
+            .then((response) => response.json())
+            .then((data) => data.payload)
+            .catch((error) => console.error('Error:', error))
+    },
+
+    _initTonProofPayloadFromBackend: async () => {
+        try {
+
+            get().tonConnectUI!.setConnectRequestParameters({
+                state: "loading"
+            })
+            const payload = await get()._fetchTonProofPayloadFromBackend();
+
+            console.log("payload", payload)
+            get().tonConnectUI!.setConnectRequestParameters({
+                state: "ready",
+                value: { tonProof: "proof" },
+            })
+        } catch (error) {
+            console.error(error)
+            get().tonConnectUI!.setConnectRequestParameters(null)
+        }
+    }
 }))

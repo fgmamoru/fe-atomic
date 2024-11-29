@@ -35,12 +35,6 @@ if (!TON_API_URL) {
 
 
 
-
-
-
-
-
-
 /**
  * OLD CONFIG SECTION
  */

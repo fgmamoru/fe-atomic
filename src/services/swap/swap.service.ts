@@ -175,8 +175,6 @@ export class SwapService {
 
         params.tonConnectUi.account
 
-
-
     }
 
     public async getHashToSign(

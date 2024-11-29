@@ -26,7 +26,7 @@ export function DexSwapTab() {
     const [toModalOpen, setToModalOpen] = useState(false);
     const [waitingTransactionModalOpen, setWaitingTransactionModalOpen] = useState(false);
     const { open } = useTonConnectModal();
-    const buttonEnabled = mainModel.readyToSwap() || !mainModel.address;
+    // const buttonEnabled = mainModel.readyToSwap() || !mainModel.isConnected();
 
     useEffect(() => {
         if (!tonConnectUi) return;
@@ -64,7 +64,7 @@ export function DexSwapTab() {
                         }}>
                             <AnimatedNumber value={mainModel.maxAmountInTon()} formatValue={formatCryptoAmount} duration={300} /></span>
                         <MiniButton
-                            disabled={Number(mainModel.tonBalance) === 0 || !mainModel.isConnected()}
+                            disabled={Number(mainModel.tonBalance) === 0}
                             onClick={() => {
                                 mainModel.setAmount(mainModel.maxAmountInTon().toString())
                             }}>Max</MiniButton>
@@ -105,10 +105,10 @@ export function DexSwapTab() {
             </div>
             <MainButton
                 // onClick={model.executeSwapOrder}
-                disabled={!buttonEnabled}
+                // disabled={!buttonEnabled}
                 onClick={() => {
 
-                    if (!mainModel.address) return open();
+                    if (!mainModel.isConnected()) return open();
 
                     mainModel.executeSwapOrder();
                 }}
