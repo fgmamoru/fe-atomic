@@ -13,9 +13,8 @@ const DOMAIN = process.env.DOMAIN!;
 const SHARED_SECRET = process.env.SHARED_SECRET!;
 const PAYLOAD_TTL = parseInt(process.env.PAYLOAD_TTL!);
 const PROOF_TTL = parseInt(process.env.PROOF_TTL!);
-
-
-
+const AUTH_PRIVATE_KEY = process.env.AUTH_PRIVATE_KEY!;
+const AUTH_PUBLIC_KEY = process.env.AUTH_PUBLIC_KEY!;
 
 export async function POST(request: NextRequest) {
     const body = await request.json();
@@ -28,7 +27,6 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({
             error: `invalid payload length, got ${payload.length}, expected 32`,
         });
-
     }
 
     const mac = crypto.createHmac("sha256", SHARED_SECRET);
@@ -40,7 +38,6 @@ export async function POST(request: NextRequest) {
         .equals(payloadSignatureBytes.subarray(0, 16));
     if (!signatureValid) {
         return NextResponse.json({ error: "invalid payload signature" }, { status: 400 });
-
     }
 
     const now = Math.floor(Date.now() / 1000);
@@ -50,7 +47,6 @@ export async function POST(request: NextRequest) {
     const expireTime = expireBytes.readBigUint64BE();
     if (BigInt(now) > expireTime) {
         return NextResponse.json({ error: "payload expired" }, { status: 400 });
-
     }
 
     // check ton proof expiration
@@ -63,14 +59,12 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({
             error: `wrong domain, got ${proof.domain.value}, expected ${DOMAIN}`,
         }, { status: 400 });
-
     }
 
     if (proof.domain.lengthBytes !== proof.domain.value.length) {
         return NextResponse.json({
             error: `domain length mismatched against provided length bytes of ${proof.domain.lengthBytes}`,
         }, { status: 400 });
-
     }
 
     const parsedAddress = Address.parse(address);
@@ -184,5 +178,29 @@ export async function POST(request: NextRequest) {
     };
     const token = jwt.sign(claims, SHARED_SECRET);
 
-    return NextResponse.json({ token });
+    const signature = generateSignature(getMessageToSign(proof.payload, address));
+
+    return NextResponse.json({ token, signature });
+}
+
+function generateSignature(message: string) {
+    debugLog("AUTH_PRIVATE_KEY", AUTH_PRIVATE_KEY);
+    debugLog("AUTH_PUBLIC_KEY", AUTH_PUBLIC_KEY);
+    debugLog("!!!message", message);
+    debugLog("!!!privKey", AUTH_PRIVATE_KEY);
+
+    const privKey = Buffer.from(AUTH_PRIVATE_KEY, 'hex');
+    debugLog("!!!privKey", privKey);
+    const signature = crypto.sign(null, Buffer.from(message, 'hex'), {
+        key: privKey,
+        format: "der",
+        type: "pkcs8",
+    });
+
+
+    return signature.toString("base64");
+};
+
+function getMessageToSign(payload: string, address: string) {
+    return `${payload}:${address}`;
 }
