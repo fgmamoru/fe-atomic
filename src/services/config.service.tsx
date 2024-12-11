@@ -63,22 +63,6 @@ if (ENV === "production" && NETWORK === "testnet") {
     console.warn("ENV is production and NETWORK is testnet");
 }
 
-export const TON_ADDRESS = process.env.NEXT_PUBLIC_TON_ADDRESS as string;
-if (!TON_ADDRESS) {
-    console.warn("TON_ADDRESS is not set");
-}
-
-export const STONFI_PROXY_TON_ADDRESS = process.env.NEXT_PUBLIC_STONFI_PROXY_TON_ADDRESS as string || "kQACS30DNoUQ7NfApPvzh7eBmSZ9L4ygJ-lkNWtba8TQT-Px" // pTON v2.1.0;
-if (!STONFI_PROXY_TON_ADDRESS) {
-    console.warn("STONFI_PROXY_TON_ADDRESS is not set");
-}
-
-export const STONFI_ROUTER_ADDRESS = process.env.NEXT_PUBLIC_STONFI_ROUTER_ADDRESS as string || "kQALh-JBBIKK7gr0o4AVf9JZnEsFndqO0qTCyT-D-yBsWk0v" // CPI Router v2.1.0;
-
-if (!STONFI_ROUTER_ADDRESS) {
-    console.warn("STONFI_ROUTER_ADDRESS is not set");
-}
-
 export const HOST = process.env.HOST || process.env.NEXT_PUBLIC_HOST || "localhost:3000";
 
 if (!HOST) {
@@ -88,5 +72,3 @@ if (!HOST) {
 if (ENV !== "local" && HOST === "localhost") {
     console.warn("ENV is production and HOST is localhost");
 }
-
-export const HOST_SCHEME = process.env.NEXT_PUBLIC_HOST_SCHEME || "http";

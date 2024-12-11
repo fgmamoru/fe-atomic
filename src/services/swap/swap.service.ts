@@ -6,8 +6,9 @@ import { AtomicPoolCurrencyMapItem, Currency, CurveTypes, ExpandedAtomicPool } f
 import { SandboxContract, TreasuryContract } from '@ton/sandbox';
 import debug from 'debug';
 import { TonConnectUI } from '@tonconnect/ui-react';
+import { calculateExpectedOut } from '@/utils';
 
-const log = debug('app:swap-service');
+const debugLog = debug('app:swap')
 // localStorage.debug = 'app:swap-service';
 
 export const currencyMapping: Record<string, Currency> = {
@@ -25,7 +26,6 @@ export const currencyMapping: Record<string, Currency> = {
     },
 }
 
-const AMPLIFICATION_FACTOR: bigint = 100n;
 
 
 const replaceCurrenciesInMap = (map: Record<string, { token0: string, token1: string }>): Record<string, {
@@ -83,7 +83,6 @@ export class SwapService {
     private readonly contractAddress: string;
     private pools?: Record<string, ExpandedAtomicPool>;
 
-
     constructor(private readonly client: TonClient4) {
         this.contractAddress = ATOMIC_DEX_CONTRACT_ADDRESS;
         this.atomicDex = AtomicDex.fromAddress(Address.parse(this.contractAddress));
@@ -115,6 +114,7 @@ export class SwapService {
             map[index] = {
                 ...pool,
                 $$type: "AtomicPool",
+                contractId: (this.contractAddress),
             };
         });
 
@@ -143,13 +143,13 @@ export class SwapService {
         tonConnectUi: TonConnectUI,
 
     }): Promise<any> {
-        log("Executing swap");
+        debugLog("#Executing swap");
         const { from, to, value, poolId } = params;
 
         // get member
 
         const member = await this.getMember(params.publicKey);
-        log("Member", member);
+        debugLog("Member", member);
         // if member is not found, create it in the swap operation, otherwise use the seq.
         const seq = member ? member.seq : 0n;
 
@@ -171,10 +171,37 @@ export class SwapService {
             ],
             validUntil,
         })
-        log("Hash to sign", hashToSign);
+        debugLog("Hash to sign", hashToSign);
 
-        params.tonConnectUi.account
+        // sign hash
+        const signature = await this.signHash(hashToSign);
+        debugLog("Signature", signature);
 
+        // send swap operation
+        debugLog("Sending swap operation");
+        const r = await this.contract.sendExternal(
+            {
+                $$type: 'MultiSwap',
+                queryId: queryId,
+                publicKey: BigInt(`0x${params.publicKey}`),
+                signature: new Builder()
+                    .storeBuffer(signature, 64).endCell().asSlice(),
+                orders: this.getMultiSwapOrdersSlice([
+                    // {
+                    //     atomicWallet0: BigInt(from.id),
+                    //     atomicWallet1: BigInt(to.id),
+                    //     expectedIn: BigInt(toNano(value)),
+                    //     expectedOut: BigInt(0),
+                    //     $$type: "SwapOrder",
+                    // }
+                ]),
+                validUntil: validUntil,
+                fromBackend: 2n,
+            }
+        );
+        debugLog("Swap operation sent", r);
+
+        return r;
     }
 
     public async getHashToSign(
@@ -197,6 +224,21 @@ export class SwapService {
         }
     ) {
         return sha256(this.calculateMultiSwapSlice(seq, swap));
+    }
+
+    private async signHash(hash: Buffer) {
+        const request = await fetch("/api/sign-swap", {
+            method: "POST",
+            body: JSON.stringify({
+                hash: hash.toString("hex")
+            })
+        })
+
+        const response = await request.json();
+        // create a 64  byte buffer from the signature
+
+        return Buffer.from(response.signature, "hex");
+
     }
 
 
@@ -264,9 +306,9 @@ export class SwapService {
 
     private getMember(publicKey: string) {
         try {
-            log("Getting member", `0x${publicKey}`);
+            debugLog("Getting member", `0x${publicKey}`);
             const publicKeyBigInt = BigInt(`0x${publicKey}`);
-            log("Public key", publicKeyBigInt);
+            debugLog("Public key", publicKeyBigInt);
             return this.contract.getAtomicMemberRecord(
                 publicKeyBigInt
             );
@@ -290,86 +332,15 @@ export class SwapService {
         fromWallet: bigint,
         toWallet: bigint,
     ): bigint {
-        log("Calculating expected out of", expectedIn, "from", fromWallet, "to", toWallet, "pool", poolId);
+        debugLog(`Calculating expected out of ${expectedIn} from ${fromWallet} to ${toWallet} pool ${poolId}`);
         const pool = this.getAtomicPool(poolId);
-        const poolReserve0 = pool.reserve0;
-        const poolReserve1 = pool.reserve1;
-        let origAtomicWallet0 = fromWallet;
-        let origAtomicWallet1 = toWallet;
-        let atomicWallet0 = origAtomicWallet0;
-        let atomicWallet1 = origAtomicWallet1;
-
-        // if (atomicWallet0 > atomicWallet1) {
-        //     atomicWallet0 = atomicWallet1;
-        //     atomicWallet1 = atomicWallet0;
-        // }
-
-        // let poolId = atomicWallet0 << 4 | atomicWallet1;
-
-        // let pool = self.atomicPools.get(poolId);
-
-        let atomicWallet0balance: bigint = pool.reserve0;
-        let atomicWallet1balance: bigint = pool.reserve1;
-
-        // if (atomicWallet0balance < expectedIn) {
-        //     throw new Error("Not enough balance");
-        // }
-
-        let newReserve0 = 0n;
-        let newReserve1 = 0n;
-        let fees0 = 0n;
-        let fees1 = 0n;
-        let outputAmount = 0n;
-
-
-
-        if (pool.curveType == CurveTypes.Unbalanced) {
-            let amountWithFee = expectedIn * pool.feeNominator / pool.feeDenominator; // Deduct fee
-
-            if (origAtomicWallet0 == atomicWallet0) {
-                fees0 = expectedIn - amountWithFee;
-                newReserve0 = pool.reserve0 + expectedIn;
-                newReserve1 = pool.reserve1 - (pool.reserve1 * amountWithFee) / (pool.reserve0 + amountWithFee);
-
-                outputAmount = pool.reserve1 - newReserve1;
-            } else {
-                fees1 = expectedIn - amountWithFee;
-                newReserve1 = pool.reserve1 + expectedIn;
-                newReserve0 = pool.reserve0 - (pool.reserve0 * amountWithFee) / (pool.reserve1 + amountWithFee);
-
-                outputAmount = pool.reserve0 - newReserve0;
-            }
-        } else {
-            let amountWithFee = expectedIn * pool.feeNominator / pool.feeDenominator;
-
-            if (origAtomicWallet0 == atomicWallet0) {
-                fees0 = expectedIn - amountWithFee;
-
-                newReserve0 = pool.reserve0 + amountWithFee;
-
-                let sumReserves = newReserve0 + pool.reserve1;
-                let invariantD = this.calculateInvariantD(newReserve0, pool.reserve1);
-                newReserve1 = sumReserves / 2n + AMPLIFICATION_FACTOR * invariantD / (4n * newReserve0);
-
-                outputAmount = pool.reserve1 - newReserve1;
-            } else {
-                fees1 = expectedIn - amountWithFee;
-                newReserve1 = pool.reserve1 + amountWithFee;
-                newReserve0 = pool.reserve0 - (pool.reserve0 - pool.reserve1) / (pool.reserve1 + amountWithFee);
-            }
-        }
-        log("Expected out", outputAmount);
-        return outputAmount;
+        return calculateExpectedOut(
+            expectedIn,
+            pool,
+            fromWallet,
+        )
     }
-    private calculateInvariantD(x: bigint, y: bigint): bigint {
-        let sumXY = x + y;
-        let productXY = x * y;
 
-        // Apply amplification factor
-        let D = (AMPLIFICATION_FACTOR * sumXY) + (productXY / AMPLIFICATION_FACTOR);
-
-        return D;
-    }
 
     private getAtomicPool(poolId: number): ExpandedAtomicPool {
         return this.pools![poolId] || this.pools!["0"];

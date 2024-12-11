@@ -1,17 +1,16 @@
 import { getHttpV4Endpoint, Network } from '@orbs-network/ton-access'
-import { address, Address, fromNano, OpenedContract, toNano, TonClient4 } from '@ton/ton'
+import { Address, fromNano, OpenedContract, toNano, TonClient4 } from '@ton/ton'
 import { ConnectedWallet, TonConnectUI } from '@tonconnect/ui'
 import { maxAmountToStake } from '../ton-comms/Helpers'
 import { Treasury, TreasuryConfig, Times } from '../ton-comms/Treasury'
 import { Wallet } from '../ton-comms/Wallet'
 import { create } from 'zustand';
-import { AtomicPoolCurrencyMapItem, Currency, ExchangeRateKey, ExpandedAtomicPool, UnstakeType } from '@/types'
+import { Currency, ExpandedAtomicPool, UnstakeType } from '@/types'
 import { formatCryptoAmount, formatPercent } from '@/utils'
 import { NETWORK, TREASURY_CONTRACT_ADDR } from '@/services/config.service'
-import { AtomicDex, AtomicPool } from '@/services/AtomicDex/AtomicDex.service'
+import { AtomicDex } from '@/services/AtomicDex/AtomicDex.service'
 import { currencyMapping, getSwapCurrencies, SwapService } from '@/services/swap/swap.service'
 import debug from 'debug'
-import { devtools } from 'zustand/middleware'
 
 type ActiveTab = 'stake' | 'unstake';
 const atomicDex = AtomicDex.fromAddress(Address.parse("EQCANtHMd-perMjM3Tk2xKoDkD3BN_CiJaGu4kqKcHmm4sdP"))
@@ -19,7 +18,7 @@ const debugLog = debug('app:model')
 
 // check if localStorage is defined
 if (typeof localStorage !== 'undefined') {
-    localStorage.debug = 'app:model'
+    localStorage.debug = 'app:*'
 }
 
 
@@ -438,7 +437,7 @@ export const useModel = create<ModelType>(((set, get) => ({
             0n,
             1n
         )
-
+        debug(`setAmount, amount: ${amount}, formatted: ${formatted}, amountInNano: ${amountInNano}, resultAmount: ${resultAmount}`)
         set({
             amount: formatted,
             resultAmount: NanoToTon(resultAmount).toFixed(2),
@@ -626,20 +625,41 @@ export const useModel = create<ModelType>(((set, get) => ({
     },
 
     executeSwapOrder: async () => {
-        // process
-        get()._swapService!.executeSwap(
-            {
-                from: get().selectedFromCurrency,
-                to: get().selectedToCurrency,
-                value: get().amount,
-                poolId: 0,
-                publicKey: get().tonConnectUI?.account?.publicKey!,
-                tonConnectUi: get().tonConnectUI!,
-            }
-        );
+        debugLog('executeSwapOrder')
+        try {
+            if (!get().readyToSwap()) return;
+            get().setWaitForTransaction('wait')
+            get().beginRequest()
+            debugLog('executeSwapOrder, ready to swap', get()._swapService!.executeSwap)
+            // process
+            await get()._swapService!.executeSwap(
+                {
+                    from: get().selectedFromCurrency,
+                    to: get().selectedToCurrency,
+                    value: get().amount,
+                    poolId: 0,
+                    publicKey: get().tonConnectUI?.account?.publicKey!,
+                    tonConnectUi: get().tonConnectUI!,
+                }
+            );
+            debugLog('executeSwapOrder, swap executed')
+        }
+        catch (error) {
+            debugLog('executeSwapOrder, error', error)
+            console.error(error)
+            set({
+                errorMessage: 'Swap failed, please try again',
+
+            })
+        }
+        finally {
+            get().setWaitForTransaction('done')
+            get().endRequest()
+            get().setAmount("");
+        }
+
 
         // final state
-        get().setAmount("");
     },
 
     getSignature: async () => {
@@ -650,9 +670,14 @@ export const useModel = create<ModelType>(((set, get) => ({
     },
 
     readyToSwap: () => {
+        // debugLog('---readyToSwap')
         if (!get().isConnected()) return false;
-        if (parseFloat(get().amount) === 0) return false;
+        // debugLog('readyToSwap, connected')
         if (Number.isNaN(parseFloat(get().amount))) return false;
+        // debugLog('readyToSwap, amount not Nan')
+        if (parseFloat(get().amount) === 0) return false;
+        // debugLog('readyToSwap, amount positive')
+
         // if (get().tonBalance === undefined) return false;
 
         return true;

@@ -146,11 +146,20 @@ export type AtomicPoolCurrencyMapItem = {
     curveType: CurveTypes;
 }
 
+export type AtomicPoolContract = {
+    contractId: string;
+}
+
 export enum CurveTypes {
     Unbalanced = 0,
     Balanced = 1,
 }
 
-export type ExpandedAtomicPool = Omit<AtomicPool, 'curveType'> & AtomicPoolCurrencyMapItem;
+export enum RouteSpeed {
+    Slow = 0,
+    Fast = 1,
+}
+
+export type ExpandedAtomicPool = Omit<AtomicPool, 'curveType'> & AtomicPoolCurrencyMapItem & AtomicPoolContract;
 
 export type ExchangeRateKey = `${string}-${string}`;

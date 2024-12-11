@@ -105,7 +105,7 @@ export function DexSwapTab() {
             </div>
             <MainButton
                 // onClick={model.executeSwapOrder}
-                // disabled={!buttonEnabled}
+                disabled={!mainModel.readyToSwap()}
                 onClick={() => {
 
                     if (!mainModel.isConnected()) return open();

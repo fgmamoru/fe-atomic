@@ -1,0 +1,25 @@
+import { sign } from "@ton/crypto";
+import { NextRequest, NextResponse } from "next/server";
+
+const AUTH_PRIVATE_KEY = process.env.AUTH_PRIVATE_KEY!;
+const privKey = Buffer.from(AUTH_PRIVATE_KEY, 'hex');
+
+
+
+export async function POST(request: NextRequest) {
+    // check jwt
+
+    // sign hash
+    const body = await request.json();
+
+    if (!body.hash) {
+        return new Response("hash is required", { status: 400 });
+    }
+
+    const hash = body.hash;
+    const signature = sign(hash, privKey);
+
+    return NextResponse.json({
+        signature: signature.toString('hex'),
+    });
+}
