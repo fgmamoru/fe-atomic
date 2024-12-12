@@ -1,9 +1,9 @@
 import { Currency, CurveTypes, ExpandedAtomicPool } from "@/types";
 
-const DEFAULT_CURRENCIES: Currency[] = [{
+export const DEFAULT_CURRENCIES: Currency[] = [{
     name: 'TonCoin',
     symbol: 'TON',
-    icon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/46/Bitcoin.svg/1200px-Bitcoin.svg.png',
+    icon: '/icons/ton.svg',
     id: 0n,
 }, {
     name: 'Bitcoin',
@@ -13,22 +13,22 @@ const DEFAULT_CURRENCIES: Currency[] = [{
 }, {
     name: 'Ethereum',
     symbol: 'ETH',
-    icon: 'https://upload.wikimedia.org/wikipedia/commons/thumb/9/98/Ethereum-icon-purple.svg/1200px-Ethereum-icon-purple.svg.png',
+    icon: '/icons/ton.svg',
     id: 2n,
 }, {
     name: 'USDC',
     symbol: 'USDC',
-    icon: 'https://upload.wikimedia.org/wikipedia/commons/6/69/USDC.png',
+    icon: '/icons/ton.svg',
     id: 3n,
 }, {
-    name: 'USDT',
+    name: 'USD Tether',
     symbol: 'USDT',
-    icon: 'https://upload.wikimedia.org/wikipedia/commons/6/6f/USDT.png',
+    icon: '/icons/tether.svg',
     id: 4n,
 }, {
     name: 'ATONNIC',
     symbol: 'ATNN',
-    icon: 'https://upload.wikimedia.org/wikipedia/commons/6/6f/USDT.png',
+    icon: '/icons/ton.svg',
     id: 5n,
 }]
 

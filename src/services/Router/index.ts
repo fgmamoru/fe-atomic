@@ -1,10 +1,12 @@
 import { Currency, CurveTypes, ExpandedAtomicPool, RouteSpeed } from "@/types";
 import { DEFAULT_POOLS } from "../Defaults";
 import { calculateExpectedOut } from "@/utils";
+import debug from 'debug';
+
 
 const defaultTxFee = 50n
 
-class Pool implements ExpandedAtomicPool {
+export class Pool implements ExpandedAtomicPool {
     expandedPool: ExpandedAtomicPool;
     $$type: "AtomicPool";
     lpTokenSupply: bigint;
@@ -53,27 +55,29 @@ class Pool implements ExpandedAtomicPool {
     }
 
     toString(): string {
-        return `[[${this.Token0Symbol}-${this.Token1Symbol}]]`;
+        return `$[id:${this.contractId}[${this.Token0Symbol}-${this.Token1Symbol}]]`;
     }
     toStringInverse(): string {
-        return `[[${this.Token1Symbol}-${this.Token0Symbol}]]`;
+        return `[id:${this.contractId}[${this.Token1Symbol}-${this.Token0Symbol}]]`;
     }
     toStringFrom(token: Currency): string {
         return token === this.expandedPool.token0 ? this.toString() : this.toStringInverse();
     }
 }
 
-class Route {
+export class Route {
     pools: Pool[];
     path: Currency[];
     input: Currency;
     output: Currency;
+    debugLog: debug.Debugger;
 
     constructor(pools: Pool[], path: Currency[]) {
         this.pools = pools;
         this.input = path[0];
         this.output = path[path.length - 1];
         this.path = path;
+        this.debugLog = debug('app:Route');
     }
 
     public getPrice(
@@ -103,15 +107,17 @@ class Route {
             resultArr.push(pool.toStringFrom(currentCurrency));
             currentCurrency = pool.getInverseCurrency(currentCurrency);
         }
-        return `[[${this.constructor.name}(Fast) ${resultArr.join(' -> ')}]]`;
+        return `[[${this.constructor.name}(${this.speed}) ${resultArr.join(' -> ')}]]`;
     }
     /**
      * If all pools of the routes are in the same pool, the speed is Fast
      */
     get speed(): RouteSpeed {
+        this.debugLog('get #speed');
         const firstPool = this.pools[0];
         for (const pool of this.pools) {
-            if (pool !== firstPool) {
+            this.debugLog(`get #speed: ${pool.contractId} !== ${firstPool.contractId}`);
+            if (pool.contractId !== firstPool.contractId) {
                 return RouteSpeed.Slow;
             }
         }
@@ -125,14 +131,16 @@ class Route {
 class Router {
     private pools: Pool[];
     defaultMaximumHops: number;
+    debugLog: debug.Debugger;
 
     constructor(
     ) {
         this.pools = [];
-        this.defaultMaximumHops = 3;
+        this.defaultMaximumHops = 2;
+        this.debugLog = debug('app:Router');
     }
 
-    addPool(pool: ExpandedAtomicPool): void {
+    public addPool(pool: ExpandedAtomicPool): void {
         this.pools.push(
             new Pool(pool)
         );
@@ -141,7 +149,7 @@ class Router {
     /**
      * Get a list of all tokens in the router
      */
-    getAllTokens(): Set<Currency> {
+    public getAllTokens(): Set<Currency> {
         const tokens = new Set<Currency>();
         this.pools.forEach(pool => {
             tokens.add(pool.expandedPool.token0);
@@ -153,7 +161,7 @@ class Router {
     /**
      * Takes all tokens and returns a list of all possible pairs by combining them
      */
-    getAllPairs(): [Currency, Currency][] {
+    public getAllPairs(): [Currency, Currency][] {
         const tokens = this.getAllTokens();
         const pairs: [Currency, Currency][] = [];
         tokens.forEach(token1 => {
@@ -169,30 +177,56 @@ class Router {
     /**
      * Get all routes between two tokens with a maximum of the maximumHops using the available pools
      */
-    getAllRoutes(
+    public getAllRoutes(
         tokenIn: Currency,
         tokenOut: Currency,
         maximumHops: number = this.defaultMaximumHops,
-        currentPath: Pool[] = [],
+        currentPools: Pool[] = [],
+        id?: string
     ): Route[] {
+        if (id) { id = `${id}:${Math.random().toString(36).substring(4)}` }
+        else { id = Math.random().toString(36).substring(4) }
+        const debugLog = debug(`app:Router:getAllRoutes:${id}`);
+        debugLog(`#getAllRoutes(${tokenIn.symbol}, ${tokenOut.symbol}, ${maximumHops}, ${currentPools})`);
         const routes: Route[] = [];
 
         const pools = this.pools;
 
+        debugLog(`-- pools: ${pools.map(pool => pool.toString()).join(', ')}`);
         for (const pool of pools) {
-            if (currentPath.includes(pool) || !pool.includes(tokenIn))
+            debugLog(`-- checking pool ${pool.toString()}`);
+            if (currentPools.includes(pool)) {
+                debugLog(`---- ${pool.toString()} already in path`);
+                continue;
+            }
+            if (!pool.includes(tokenOut) && maximumHops <= 0) {
+                debugLog(`---- ${pool.toString()} does not include token OUT ${tokenOut.symbol} and maximumHops is ${maximumHops}`);
+                continue;
+            }
+
+            if (!pool.includes(tokenIn)) {
+                debugLog(`---- ${pool.toString()} does not include token IN  ${tokenIn.symbol}`);
                 continue;
 
-            const outToken = pool.token0 === tokenIn ? pool.token1 : pool.token0;
+            }
+
+            const outToken = pool.getInverseCurrency(tokenIn);
 
             if (outToken === tokenOut) {
-                routes.push(new Route([...currentPath, pool], [tokenIn, outToken]));
-            } else if (currentPath.length < maximumHops) {
-                const newRoutes = this.getAllRoutes(outToken, tokenOut, maximumHops, [...currentPath, pool]);
-                routes.push(...newRoutes.map(route => new Route([...currentPath, pool, ...route.pools], [tokenIn, ...route.path])));
+                debugLog(`---- ${pool.toString()} is the last pool`);
+                routes.push(new Route([...currentPools, pool], [tokenIn, outToken]));
+            } else if (currentPools.length < maximumHops) {
+                debugLog(`---- ${pool.toString()} is not the last pool`);
+                const newRoutes = this.getAllRoutes(outToken, tokenOut, maximumHops - 1, [...currentPools, pool], id);
+                debugLog(`---- ${pool.toString()} has ${newRoutes.length} new routes`);
+                for (const route of newRoutes) {
+                    routes.push(
+                        new Route(route.pools, [tokenIn, tokenOut])
+                    );
+                }
             }
         }
-
+        debugLog(`--getAllRoutes finished, ${routes.length} routes found`);
         return routes;
     }
 
@@ -218,7 +252,7 @@ class Router {
 
 }
 
-const router = new Router();
+export const router = new Router();
 
 DEFAULT_POOLS.forEach(pool => {
     router.addPool(pool);

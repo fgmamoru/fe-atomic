@@ -156,8 +156,8 @@ export enum CurveTypes {
 }
 
 export enum RouteSpeed {
-    Slow = 0,
-    Fast = 1,
+    Slow = 'slow',
+    Fast = 'fast',
 }
 
 export type ExpandedAtomicPool = Omit<AtomicPool, 'curveType'> & AtomicPoolCurrencyMapItem & AtomicPoolContract;

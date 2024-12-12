@@ -140,6 +140,11 @@ export function DexSwapTab() {
             <WaitingTransactionModal
                 isOpen={waitingTransactionModalOpen}
             />
+            <pre>
+                {
+                    // JSON.stringify(mainModel.potentialRoutes)
+                }
+            </pre>
         </>
     )
 }

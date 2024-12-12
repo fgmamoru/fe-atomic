@@ -11,6 +11,8 @@ import { NETWORK, TREASURY_CONTRACT_ADDR } from '@/services/config.service'
 import { AtomicDex } from '@/services/AtomicDex/AtomicDex.service'
 import { currencyMapping, getSwapCurrencies, SwapService } from '@/services/swap/swap.service'
 import debug from 'debug'
+import { DEFAULT_CURRENCIES } from '@/services/Defaults'
+import { Route, router } from '@/services/Router'
 
 type ActiveTab = 'stake' | 'unstake';
 const atomicDex = AtomicDex.fromAddress(Address.parse("EQCANtHMd-perMjM3Tk2xKoDkD3BN_CiJaGu4kqKcHmm4sdP"))
@@ -44,7 +46,10 @@ type ModelType = {
     ongoingRequests: number
     errorMessage: string
     isInputInvalid: () => boolean
+    potentialRoutes: Route[],
+
     _networkUrl?: string
+    _getRoutes: () => void
 
     // unobserved state
     tonConnectUI?: TonConnectUI
@@ -176,6 +181,7 @@ export const useModel = create<ModelType>(((set, get) => ({
     timeoutReadLastBlock: undefined,
     timeoutErrorMessage: undefined,
     _swapService: undefined,
+    potentialRoutes: [],
 
     isInputInvalid: () => {
         return get().getErrorMessage() !== ""
@@ -404,8 +410,8 @@ export const useModel = create<ModelType>(((set, get) => ({
     resultAmount: "",
     pools: {},
 
-    selectedFromCurrency: currencyMapping.TON,
-    selectedToCurrency: currencyMapping.USDT,
+    selectedFromCurrency: DEFAULT_CURRENCIES[0],
+    selectedToCurrency: DEFAULT_CURRENCIES[1],
     currentExchangeRate: 1,
     currencies: new Set<Currency>(),
 
@@ -445,21 +451,44 @@ export const useModel = create<ModelType>(((set, get) => ({
     },
 
     setFromCurrency: (currency: Currency) => {
-        if (currency === get().selectedToCurrency) {
-            set({ selectedToCurrency: get().selectedFromCurrency })
-        }
-        set({ selectedFromCurrency: currency })
+        try {
+            if (currency === get().selectedToCurrency) {
+                set({ selectedToCurrency: get().selectedFromCurrency })
+            }
+            set({ selectedFromCurrency: currency })
 
-        get().setAmount(get().amount)
+            get().setAmount(get().amount)
+            get()._getRoutes()
+        } catch (error) {
+            console.error(error)
+        }
+
+
     },
 
     setToCurrency: (currency: Currency) => {
-        if (currency === get().selectedFromCurrency) {
-            set({ selectedFromCurrency: get().selectedToCurrency })
+        try {
+            if (currency === get().selectedFromCurrency) {
+                set({ selectedFromCurrency: get().selectedToCurrency })
+            }
+            set({ selectedToCurrency: currency })
+            get().setAmount(get().amount)
+            get()._getRoutes()
+        } catch (error) {
+            console.error(error)
         }
-        set({ selectedToCurrency: currency })
-        get().setAmount(get().amount)
 
+
+    },
+
+    _getRoutes: () => {
+        debugLog('_getRoutes')
+        const { selectedFromCurrency, selectedToCurrency } = get()
+        const routes = router.getAllRoutes(selectedFromCurrency, selectedToCurrency);
+
+        debugLog(`_getRoutes, routes, ${routes.map((route) => route.toString() + '\n')}`)
+        console.log(routes)
+        set({ potentialRoutes: routes })
     },
 
     switchCurrencies: () => {

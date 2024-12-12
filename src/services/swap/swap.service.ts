@@ -7,6 +7,7 @@ import { SandboxContract, TreasuryContract } from '@ton/sandbox';
 import debug from 'debug';
 import { TonConnectUI } from '@tonconnect/ui-react';
 import { calculateExpectedOut } from '@/utils';
+import { DEFAULT_POOLS } from '../Defaults';
 
 const debugLog = debug('app:swap')
 // localStorage.debug = 'app:swap-service';
@@ -90,37 +91,54 @@ export class SwapService {
     }
 
     public async getPoolList(): Promise<Record<string, ExpandedAtomicPool>> {
-        const pools: Dictionary<number, AtomicPool> = await this.contract.getAtomicPools();
-
-        const poolKeys = pools.keys();
-
-        const expandedPools = poolKeys.map((poolKey) => {
-            const atomicPool = pools.get(poolKey);
-
-            const mappedPool = atomicPoolCurrencyMapping[poolKey];
-
-            return {
-                ...atomicPool!,
-                ...mappedPool,
-                curveType: atomicPool?.curveType ? CurveTypes.Balanced : CurveTypes.Unbalanced,
-            };
-        });
-
-        const map: Record<string, ExpandedAtomicPool> = {};
-
-
-
-        expandedPools.forEach((pool, index) => {
-            map[index] = {
-                ...pool,
+        const map: Record<string, ExpandedAtomicPool> = {}
+        for (const pool in DEFAULT_POOLS) {
+            map[pool] = {
+                ...DEFAULT_POOLS[pool],
                 $$type: "AtomicPool",
                 contractId: (this.contractAddress),
-            };
-        });
+            }
+        }
+
+        debugLog("Pools", map);
 
         this.pools = map;
 
         return map;
+
+        // const pools: Dictionary<number, AtomicPool> = await this.contract.getAtomicPools();
+
+        // const poolKeys = pools.keys();
+
+        // const expandedPools = poolKeys.map((poolKey) => {
+        //     const atomicPool = pools.get(poolKey);
+
+        //     const mappedPool = atomicPoolCurrencyMapping[poolKey];
+
+        //     return {
+        //         ...atomicPool!,
+        //         ...mappedPool,
+        //         curveType: atomicPool?.curveType ? CurveTypes.Balanced : CurveTypes.Unbalanced,
+        //     };
+        // });
+
+        // const map: Record<string, ExpandedAtomicPool> = {};
+
+
+
+        // expandedPools.forEach((pool, index) => {
+        //     map[index] = {
+        //         ...pool,
+        //         $$type: "AtomicPool",
+        //         contractId: (this.contractAddress),
+        //     };
+        // });
+
+        // this.pools = map;
+
+        // debugLog("Pools", map);
+
+        // return map;
     }
 
     public async getAtomicWallets(): Promise<Record<string, AtomicWallet>> {
@@ -343,6 +361,7 @@ export class SwapService {
 
 
     private getAtomicPool(poolId: number): ExpandedAtomicPool {
+        debugLog("#getAtomicPool", poolId);
         return this.pools![poolId] || this.pools!["0"];
     }
 }
@@ -350,12 +369,8 @@ export class SwapService {
 export const getSwapCurrencies = (map: Record<string, ExpandedAtomicPool>): Set<Currency> => {
     const currencies = new Set<Currency>();
     Object.values(map).forEach(pool => {
-        if (currencyMapping[pool.token0.symbol]) {
-            currencies.add(currencyMapping[pool.token0.symbol]);
-        }
-        if (currencyMapping[pool.token1.symbol]) {
-            currencies.add(currencyMapping[pool.token1.symbol]);
-        }
+        currencies.add(pool.token0);
+        currencies.add(pool.token1);
     });
 
     return currencies;
