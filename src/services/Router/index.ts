@@ -89,7 +89,8 @@ export class Route {
 
             const intermediateResult = calculateExpectedOut(inputAmount, pool, currentCurrency.id)
             currentCurrency = pool.getInverseCurrency(currentCurrency);
-            result = intermediateResult - defaultTxFee;
+            result = intermediateResult;
+            // result = intermediateResult - defaultTxFee;
         }
 
         return result;
@@ -230,7 +231,7 @@ class Router {
         return routes;
     }
 
-    getBestRoute(
+    public getBestRoute(
         tokenIn: Currency,
         tokenOut: Currency,
         amountIn: bigint,
@@ -249,6 +250,21 @@ class Router {
         return bestRoute;
     }
 
+    public getBestRouteFromRoutes(
+        routes: Route[],
+        amountIn: bigint,
+    ): Route | null {
+        let bestRoute: Route | null = null;
+        let bestPrice: bigint = -1000000000000000000000000000000n;
+        for (const route of routes) {
+            const price = route.getPrice(amountIn);
+            if (price > bestPrice) {
+                bestPrice = price;
+                bestRoute = route;
+            }
+        }
+        return bestRoute;
+    }
 
 }
 

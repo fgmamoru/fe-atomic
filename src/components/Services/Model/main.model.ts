@@ -9,7 +9,7 @@ import { Currency, ExpandedAtomicPool, UnstakeType } from '@/types'
 import { formatCryptoAmount, formatPercent } from '@/utils'
 import { NETWORK, TREASURY_CONTRACT_ADDR } from '@/services/config.service'
 import { AtomicDex } from '@/services/AtomicDex/AtomicDex.service'
-import { currencyMapping, getSwapCurrencies, SwapService } from '@/services/swap/swap.service'
+import { getSwapCurrencies, SwapService } from '@/services/swap/swap.service'
 import debug from 'debug'
 import { DEFAULT_CURRENCIES } from '@/services/Defaults'
 import { Route, router } from '@/services/Router'
@@ -46,7 +46,8 @@ type ModelType = {
     ongoingRequests: number
     errorMessage: string
     isInputInvalid: () => boolean
-    potentialRoutes: Route[],
+    _potentialRoutes: Route[],
+    _selectedRoute: Route | null,
 
     _networkUrl?: string
     _getRoutes: () => void
@@ -110,6 +111,7 @@ type ModelType = {
     _fetchTonProofPayloadFromBackend: () => Promise<string>
     _initTonProofPayloadFromBackend: () => Promise<void>
     _initWallet: () => void
+    _initRouting: () => void
 };
 type WaitForTransaction = 'no' | 'wait' | 'timeout' | 'done'
 
@@ -181,7 +183,7 @@ export const useModel = create<ModelType>(((set, get) => ({
     timeoutReadLastBlock: undefined,
     timeoutErrorMessage: undefined,
     _swapService: undefined,
-    potentialRoutes: [],
+    _potentialRoutes: [],
 
     isInputInvalid: () => {
         return get().getErrorMessage() !== ""
@@ -416,6 +418,7 @@ export const useModel = create<ModelType>(((set, get) => ({
     currencies: new Set<Currency>(),
 
     setAmount: (amount: string) => {
+        debugLog('setAmount')
         const { _swapService, _maxAmountInNano } = get()
         // remove non-numeric characters and replace comma with dot
         const formatted = amount
@@ -435,17 +438,25 @@ export const useModel = create<ModelType>(((set, get) => ({
                 errorMessage: '',
             })
         }
+        set({ amount: formatted })
 
+        const selectedRoute = router.getBestRouteFromRoutes(get()._potentialRoutes, get().amountInNano()!);
+        debugLog(`setAmount, potentialRoutes: ${get()._potentialRoutes}, selectedRoute: ${selectedRoute}`)
+        set({ _selectedRoute: selectedRoute })
 
-        const resultAmount = get()._swapService!.calculateExpectedOut(
-            amountInNano,
-            0,
-            0n,
-            1n
-        )
+        if (selectedRoute == null) {
+            set({
+                errorMessage: 'No route found',
+                resultAmount: '',
+                amount: formatted,
+            })
+            return
+        }
+
+        const resultAmount = selectedRoute.getPrice(get().amountInNano()!);
+
         debug(`setAmount, amount: ${amount}, formatted: ${formatted}, amountInNano: ${amountInNano}, resultAmount: ${resultAmount}`)
         set({
-            amount: formatted,
             resultAmount: NanoToTon(resultAmount).toFixed(2),
         })
     },
@@ -477,18 +488,18 @@ export const useModel = create<ModelType>(((set, get) => ({
         } catch (error) {
             console.error(error)
         }
-
-
     },
 
     _getRoutes: () => {
         debugLog('_getRoutes')
-        const { selectedFromCurrency, selectedToCurrency } = get()
+        const { selectedFromCurrency, selectedToCurrency, amount } = get()
         const routes = router.getAllRoutes(selectedFromCurrency, selectedToCurrency);
 
         debugLog(`_getRoutes, routes, ${routes.map((route) => route.toString() + '\n')}`)
         console.log(routes)
-        set({ potentialRoutes: routes })
+        set({ _potentialRoutes: routes })
+        const selectedRoute = router.getBestRouteFromRoutes(routes, get().amountInNano()!);
+        set({ _selectedRoute: selectedRoute })
     },
 
     switchCurrencies: () => {
@@ -530,6 +541,7 @@ export const useModel = create<ModelType>(((set, get) => ({
 
         get()._initWallet();
         get()._initTonProofPayloadFromBackend();
+        get()._initRouting();
     },
 
     readLastBlock: async () => {
@@ -749,5 +761,8 @@ export const useModel = create<ModelType>(((set, get) => ({
             console.error(error)
             get().tonConnectUI!.setConnectRequestParameters(null)
         }
+    },
+    _initRouting: () => {
+        get()._getRoutes()
     }
 })))

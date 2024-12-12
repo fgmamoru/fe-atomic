@@ -1,4 +1,7 @@
 import { CurveTypes, ExpandedAtomicPool } from "@/types";
+import debug from 'debug';
+
+const debugLog = debug('app:utils');
 
 const AMPLIFICATION_FACTOR: bigint = 100n;
 
@@ -65,6 +68,9 @@ export function calculateExpectedOut(
     fromWallet: bigint,
     // toWallet: bigint,
 ): bigint {
+    const log = debugLog.extend('calculateExpectedOut')
+
+    log(`calculateExpectedOut ${expectedIn}, ${pool}, ${fromWallet}`);
     try {
         const poolReserve0 = pool.reserve0;
         const poolReserve1 = pool.reserve1;
@@ -98,9 +104,10 @@ export function calculateExpectedOut(
 
 
         if (pool.curveType == CurveTypes.Unbalanced) {
+
             let amountWithFee = expectedIn * pool.feeNominator / pool.feeDenominator; // Deduct fee
 
-            if (origAtomicWallet0 == atomicWallet0) {
+            if (origAtomicWallet0 === atomicWallet0) {
                 fees0 = expectedIn - amountWithFee;
                 newReserve0 = pool.reserve0 + expectedIn;
                 newReserve1 = pool.reserve1 - (pool.reserve1 * amountWithFee) / (pool.reserve0 + amountWithFee);
@@ -116,19 +123,26 @@ export function calculateExpectedOut(
         } else {
             let amountWithFee = expectedIn * pool.feeNominator / pool.feeDenominator;
 
-            if (origAtomicWallet0 == atomicWallet0) {
+            if (origAtomicWallet0 === atomicWallet0) {
+                log(`orig wallet 0`);
                 fees0 = expectedIn - amountWithFee;
-
+                log(`fees0 ${fees0}`);
                 newReserve0 = pool.reserve0 + amountWithFee;
+                log(`newReserve0 ${newReserve0}`);
 
                 let sumReserves = newReserve0 + pool.reserve1;
                 let invariantD = calculateInvariantD(newReserve0, pool.reserve1);
                 newReserve1 = sumReserves / 2n + AMPLIFICATION_FACTOR * invariantD / (4n * newReserve0);
-
+                log(`newReserve1 ${newReserve1}`);
+                log(`outputAmount ${pool.reserve1 - newReserve1}`);
                 outputAmount = pool.reserve1 - newReserve1;
             } else {
+                log(`orig wallet 1`);
+                debugLog(`amountWithFee ${amountWithFee}`);
                 fees1 = expectedIn - amountWithFee;
+                log(`fees1 ${fees1}`);
                 newReserve1 = pool.reserve1 + amountWithFee;
+                log(`newReserve1 ${newReserve1}`);
                 newReserve0 = pool.reserve0 - (pool.reserve0 - pool.reserve1) / (pool.reserve1 + amountWithFee);
             }
         }
@@ -139,6 +153,7 @@ export function calculateExpectedOut(
     }
 
 }
+
 
 export function calculateInvariantD(x: bigint, y: bigint): bigint {
     let sumXY = x + y;
