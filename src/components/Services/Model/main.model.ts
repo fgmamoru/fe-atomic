@@ -5,7 +5,7 @@ import { maxAmountToStake } from '../ton-comms/Helpers'
 import { Treasury, TreasuryConfig, Times } from '../ton-comms/Treasury'
 import { Wallet } from '../ton-comms/Wallet'
 import { create } from 'zustand';
-import { Currency, ExpandedAtomicPool, UnstakeType } from '@/types'
+import { Currency, ExpandedAtomicPool, RouteSpeed, UnstakeType } from '@/types'
 import { formatCryptoAmount, formatPercent } from '@/utils'
 import { NETWORK, TREASURY_CONTRACT_ADDR } from '@/services/config.service'
 import { AtomicDex } from '@/services/AtomicDex/AtomicDex.service'
@@ -106,6 +106,7 @@ type ModelType = {
     isConnected: () => boolean
     executeSwapOrder: () => void
     readyToSwap: () => boolean
+    isAtomicSpeedSwap: () => boolean
     pools: Record<string, ExpandedAtomicPool>,
     _swapService?: SwapService
     _fetchTonProofPayloadFromBackend: () => Promise<string>
@@ -722,6 +723,10 @@ export const useModel = create<ModelType>(((set, get) => ({
         // if (get().tonBalance === undefined) return false;
 
         return true;
+    },
+
+    isAtomicSpeedSwap: () => {
+        return get().readyToSwap() && get()._selectedRoute?.speed === RouteSpeed.Fast
     },
 
     getSwapInputError: () => {

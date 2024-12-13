@@ -18,7 +18,7 @@ const DexPage = (() => {
     return (
         <PageWrapper>
             <PageLayoutNarrow>
-                <AtomicSpeedCardWrapper active={model.readyToSwap()}>
+                <AtomicSpeedCardWrapper active={model.isAtomicSpeedSwap()}>
                     <Card>
                         <CardSection>
                             <div>

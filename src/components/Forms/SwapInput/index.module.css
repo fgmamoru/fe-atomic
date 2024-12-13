@@ -61,6 +61,10 @@
     border: 1px solid #F7F7F8;
 }
 
+.SwapInputDisabled:focus-within {
+    border: 1px solid #18181800;
+}
+
 .SwapInputInput {
     width: 100%;
     background-color: transparent;

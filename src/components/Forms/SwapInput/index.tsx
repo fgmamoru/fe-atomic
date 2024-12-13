@@ -40,7 +40,8 @@ export const SwapInput = (props: SwapInputProps) => {
     const rootClass = clsx(
         styles.SwapInput,
         props.variant === "top" && styles.SwapInputInputWrapperTop,
-        props.variant === "bottom" && styles.SwapInputInputWrapperBottom
+        props.variant === "bottom" && styles.SwapInputInputWrapperBottom,
+        props.disabled && styles.SwapInputDisabled
     );
     const inputClass = clsx(
         styles.SwapInputInputWrapper,
