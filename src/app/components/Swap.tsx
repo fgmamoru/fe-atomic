@@ -32,6 +32,9 @@ export function DexSwapTab() {
         if (!tonConnectUi) return;
         mainModel.init(tonConnectUi);
     }, [tonConnectUi]);
+
+
+
     return (
         <>
             <div>
@@ -75,7 +78,7 @@ export function DexSwapTab() {
                 >
                     <div className={styles.SwapButtonWrapper}>
                         <MainButton
-                            square
+                            iokgh square
                             variant="secondary"
                             onClick={mainModel.switchCurrencies}
                             className={styles.SwapButton}>

@@ -1,5 +1,5 @@
 import { sha256 } from '@ton/crypto';
-import { Address, Builder, Dictionary, OpenedContract, TonClient4, toNano } from "@ton/ton";
+import { Address, Builder, Dictionary, OpenedContract, TonClient, TonClient4, toNano } from "@ton/ton";
 import { ATOMIC_DEX_CONTRACT_ADDRESS } from "../config.service";
 import { AtomicDex, AtomicPool, AtomicWallet, SwapOrder } from "../AtomicDex/AtomicDex.service";
 import { AtomicPoolCurrencyMapItem, Currency, CurveTypes, ExpandedAtomicPool } from "@/types";
@@ -7,26 +7,10 @@ import { SandboxContract, TreasuryContract } from '@ton/sandbox';
 import debug from 'debug';
 import { TonConnectUI } from '@tonconnect/ui-react';
 import { calculateExpectedOut } from '@/utils';
-import { DEFAULT_POOLS } from '../Defaults';
+import { DEFAULT_CURRENCIES_MAP, DEFAULT_POOLS } from '../Defaults';
+import { AtomicWalletModel } from '@/models/Wallet/AtomicWallet.model';
 
 const debugLog = debug('app:swap')
-// localStorage.debug = 'app:swap-service';
-
-export const currencyMapping: Record<string, Currency> = {
-    TON: {
-        symbol: "TON",
-        icon: "/icons/ton.svg",
-        name: "TON",
-        id: 0n,
-    },
-    USDT: {
-        symbol: "USDT",
-        icon: "/icons/tether.svg",
-        name: "Tether",
-        id: 1n,
-    },
-}
-
 
 
 const replaceCurrenciesInMap = (map: Record<string, { token0: string, token1: string }>): Record<string, {
@@ -40,8 +24,8 @@ const replaceCurrenciesInMap = (map: Record<string, { token0: string, token1: st
 
     Object.keys(map).forEach(key => {
         newMap[key] = {
-            token0: currencyMapping[map[key].token0],
-            token1: currencyMapping[map[key].token1],
+            token0: DEFAULT_CURRENCIES_MAP[map[key].token0],
+            token1: DEFAULT_CURRENCIES_MAP[map[key].token1],
         }
     });
 
@@ -84,85 +68,95 @@ export class SwapService {
     private readonly contractAddress: string;
     private pools?: Record<string, ExpandedAtomicPool>;
 
-    constructor(private readonly client: TonClient4) {
+    constructor(private readonly _client: TonClient4) {
         this.contractAddress = ATOMIC_DEX_CONTRACT_ADDRESS;
+        console.log("Contract address", this.contractAddress);
         this.atomicDex = AtomicDex.fromAddress(Address.parse(this.contractAddress));
+        const client = new TonClient({
+            endpoint: "https://testnet.toncenter.com/api/v2/jsonRPC",
+        });
         this.contract = client.open(this.atomicDex);
     }
 
     public async getPoolList(): Promise<Record<string, ExpandedAtomicPool>> {
-        const map: Record<string, ExpandedAtomicPool> = {}
-        for (const pool in DEFAULT_POOLS) {
-            map[pool] = {
-                ...DEFAULT_POOLS[pool],
-                $$type: "AtomicPool",
-                contractId: (this.contractAddress),
-            }
-        }
-
-        debugLog("Pools", map);
-
-        this.pools = map;
-
-        return map;
-
-        // const pools: Dictionary<number, AtomicPool> = await this.contract.getAtomicPools();
-
-        // const poolKeys = pools.keys();
-
-        // const expandedPools = poolKeys.map((poolKey) => {
-        //     const atomicPool = pools.get(poolKey);
-
-        //     const mappedPool = atomicPoolCurrencyMapping[poolKey];
-
-        //     return {
-        //         ...atomicPool!,
-        //         ...mappedPool,
-        //         curveType: atomicPool?.curveType ? CurveTypes.Balanced : CurveTypes.Unbalanced,
-        //     };
-        // });
-
-        // const map: Record<string, ExpandedAtomicPool> = {};
-
-
-
-        // expandedPools.forEach((pool, index) => {
-        //     map[index] = {
-        //         ...pool,
+        const log = debugLog.extend('#getPoolList')
+        log("Getting pool list");
+        // const map: Record<string, ExpandedAtomicPool> = {}
+        // for (const pool in DEFAULT_POOLS) {
+        //     map[pool] = {
+        //         ...DEFAULT_POOLS[pool],
         //         $$type: "AtomicPool",
         //         contractId: (this.contractAddress),
-        //     };
-        // });
-
-        // this.pools = map;
+        //     }
+        // }
 
         // debugLog("Pools", map);
 
+        // this.pools = map;
+
         // return map;
+
+        const pools: Dictionary<number, AtomicPool> = await this.contract.getAtomicPools();
+
+        const poolKeys = pools.keys();
+
+        const expandedPools = poolKeys.map((poolKey) => {
+            const atomicPool = pools.get(poolKey);
+
+            const mappedPool = atomicPoolCurrencyMapping[poolKey];
+
+            return {
+                ...atomicPool!,
+                ...mappedPool,
+                curveType: atomicPool?.curveType ? CurveTypes.Balanced : CurveTypes.Unbalanced,
+            };
+        });
+
+        const map: Record<string, ExpandedAtomicPool> = {};
+
+
+
+        expandedPools.forEach((pool, index) => {
+            map[index] = {
+                ...pool,
+                $$type: "AtomicPool",
+                contractId: (this.contractAddress),
+            };
+        });
+
+        this.pools = map;
+
+        console.log("Pools", map);
+
+        return map;
     }
 
-    public async getAtomicWallets(): Promise<Record<string, AtomicWallet>> {
-        const wallets = await this.contract.getAtomicWallets();
+    public async getAtomicWallets(): Promise<Record<string, AtomicWalletModel>> {
+        const log = debugLog.extend('#getAtomicWallets')
 
+
+        const wallets = await this.contract.getAtomicWallets();
         const walletKeys = wallets.keys();
 
-        const mappedWallets: Record<string, AtomicWallet> = {};
+        const mappedWallets: Record<string, AtomicWalletModel> = {};
 
         walletKeys.forEach((key) => {
             const wallet = wallets.get(key);
-            mappedWallets[key] = wallet!;
+            mappedWallets[key] = new AtomicWalletModel(wallet!);
         });
+
+        console.log("Atomic wallets", mappedWallets,);
 
         return mappedWallets;
     }
 
     public async executeSwap(params: {
-        from: Currency, to: Currency, value: string, poolId: number, publicKey: string,
+        from: Currency, to: Currency, inAmount: string, outAmount: string, poolId: number, publicKey: string,
         tonConnectUi: TonConnectUI,
 
     }): Promise<any> {
-        debugLog("#Executing swap");
-        const { from, to, value, poolId } = params;
+        console.log(`#Executing swap, from ${params.from.symbol} to ${params.to.symbol} inAmount ${params.inAmount} outAmount ${params.outAmount} poolId ${params.poolId} publicKey ${params.publicKey}`);
+        const { from, to, inAmount, outAmount, poolId } = params;
 
         // get member
 
@@ -175,6 +169,7 @@ export class SwapService {
         const queryId = this.getQueryId();
         const validUntil = this.getValidUntil();
 
+
         // get hash to sign
         const hashToSign = await this.getHashToSign(seq, {
             queryId,
@@ -183,8 +178,8 @@ export class SwapService {
                     $$type: "SwapOrder",
                     atomicWallet0: BigInt(from.id),
                     atomicWallet1: BigInt(to.id),
-                    expectedIn: BigInt(toNano(value)),
-                    expectedOut: BigInt(0)
+                    expectedIn: toNano(inAmount),
+                    expectedOut: toNano(outAmount)
                 }
             ],
             validUntil,
@@ -197,24 +192,28 @@ export class SwapService {
 
         // send swap operation
         debugLog("Sending swap operation");
+        console.log(`PUBLIC KEY ${params.publicKey}, ${BigInt(`0x${params.publicKey}`)}`);
+
         const r = await this.contract.sendExternal(
             {
                 $$type: 'MultiSwap',
                 queryId: queryId,
+                // publicKey: BigInt(`${params.publicKey}`),
                 publicKey: BigInt(`0x${params.publicKey}`),
                 signature: new Builder()
                     .storeBuffer(signature, 64).endCell().asSlice(),
                 orders: this.getMultiSwapOrdersSlice([
-                    // {
-                    //     atomicWallet0: BigInt(from.id),
-                    //     atomicWallet1: BigInt(to.id),
-                    //     expectedIn: BigInt(toNano(value)),
-                    //     expectedOut: BigInt(0),
-                    //     $$type: "SwapOrder",
-                    // }
+                    {
+                        atomicWallet0: BigInt(from.id),
+                        atomicWallet1: BigInt(to.id),
+                        expectedIn: toNano(inAmount),
+                        expectedOut: toNano(outAmount),
+                        $$type: "SwapOrder",
+                    }
                 ]),
                 validUntil: validUntil,
-                fromBackend: 2n,
+                fromBackend: 1n,
+                stop: 10n,
             }
         );
         debugLog("Swap operation sent", r);
@@ -272,7 +271,6 @@ export class SwapService {
         }
     ) {
         // const signature = sign(
-
         //     publicKey,
         // );
 
@@ -287,6 +285,19 @@ export class SwapService {
         //     }
         // );
     }
+
+
+
+    async sendPingOperation(
+    ) {
+
+        return this.contract.sendExternal(
+            {
+                $$type: 'Ping',
+            }
+        );
+    }
+
 
     private calculateMultiSwapSlice(
         seq: bigint,

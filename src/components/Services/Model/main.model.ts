@@ -13,6 +13,7 @@ import { getSwapCurrencies, SwapService } from '@/services/swap/swap.service'
 import debug from 'debug'
 import { DEFAULT_CURRENCIES } from '@/services/Defaults'
 import { Route, router } from '@/services/Router'
+import { AtomicWalletModel } from '@/models/Wallet/AtomicWallet.model'
 
 type ActiveTab = 'stake' | 'unstake';
 const atomicDex = AtomicDex.fromAddress(Address.parse("EQCANtHMd-perMjM3Tk2xKoDkD3BN_CiJaGu4kqKcHmm4sdP"))
@@ -113,6 +114,8 @@ type ModelType = {
     _initTonProofPayloadFromBackend: () => Promise<void>
     _initWallet: () => void
     _initRouting: () => void
+    _atomicWallets: Record<string, AtomicWalletModel>,
+    _initAtomicWallets: () => void
 };
 type WaitForTransaction = 'no' | 'wait' | 'timeout' | 'done'
 
@@ -185,6 +188,7 @@ export const useModel = create<ModelType>(((set, get) => ({
     timeoutErrorMessage: undefined,
     _swapService: undefined,
     _potentialRoutes: [],
+    _atomicWallets: {},
 
     isInputInvalid: () => {
         return get().getErrorMessage() !== ""
@@ -497,7 +501,6 @@ export const useModel = create<ModelType>(((set, get) => ({
         const routes = router.getAllRoutes(selectedFromCurrency, selectedToCurrency);
 
         debugLog(`_getRoutes, routes, ${routes.map((route) => route.toString() + '\n')}`)
-        console.log(routes)
         set({ _potentialRoutes: routes })
         const selectedRoute = router.getBestRouteFromRoutes(routes, get().amountInNano()!);
         set({ _selectedRoute: selectedRoute })
@@ -543,6 +546,7 @@ export const useModel = create<ModelType>(((set, get) => ({
         get()._initWallet();
         get()._initTonProofPayloadFromBackend();
         get()._initRouting();
+        get()._initAtomicWallets();
     },
 
     readLastBlock: async () => {
@@ -673,15 +677,17 @@ export const useModel = create<ModelType>(((set, get) => ({
             get().setWaitForTransaction('wait')
             get().beginRequest()
             debugLog('executeSwapOrder, ready to swap', get()._swapService!.executeSwap)
+            debugLog(`amount: ${get().amount}, ${get().resultAmount}`)
             // process
             await get()._swapService!.executeSwap(
                 {
                     from: get().selectedFromCurrency,
                     to: get().selectedToCurrency,
-                    value: get().amount,
-                    poolId: 0,
+                    inAmount: get().amount,
+                    outAmount: get().resultAmount,
                     publicKey: get().tonConnectUI?.account?.publicKey!,
                     tonConnectUi: get().tonConnectUI!,
+                    poolId: 0,
                 }
             );
             debugLog('executeSwapOrder, swap executed')
@@ -767,7 +773,22 @@ export const useModel = create<ModelType>(((set, get) => ({
             get().tonConnectUI!.setConnectRequestParameters(null)
         }
     },
+
     _initRouting: () => {
         get()._getRoutes()
+    },
+
+    _initAtomicWallets: async () => {
+        try {
+            const { _swapService } = get();
+
+            const atomicWallets = await _swapService!.getAtomicWallets();
+
+            set({
+                _atomicWallets: atomicWallets,
+            });
+        } catch (error) {
+
+        }
     }
 })))

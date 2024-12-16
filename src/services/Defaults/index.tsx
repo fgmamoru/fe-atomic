@@ -32,6 +32,11 @@ export const DEFAULT_CURRENCIES: Currency[] = [{
     id: 5n,
 }]
 
+export const DEFAULT_CURRENCIES_MAP: Record<string, Currency> = DEFAULT_CURRENCIES.reduce((acc: Record<string, Currency>, currency: Currency) => {
+    acc[currency.symbol] = currency;
+    return acc;
+}, {})
+
 
 export const DEFAULT_POOLS: Array<ExpandedAtomicPool> = [{
     $$type: 'AtomicPool',
