@@ -11,12 +11,18 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "@/components/Services/atomic-api";
 import { API_SCHEME, HOST } from "@/services/config.service";
 import { Stars } from "@/components/Misc/Stars";
+// import { ToastContainer } from "react-toastify";
+// import 'react-toastify/dist/ReactToastify.css';
 
 export default function RootLayout({
     children,
 }: {
     children: React.ReactNode
 }) {
+    if (typeof localStorage !== 'undefined') {
+        localStorage.debug = 'app:*'
+    }
+
     return (
         <html lang="en" suppressHydrationWarning>
             <head>
@@ -47,6 +53,7 @@ export default function RootLayout({
                     <Footer />
                 </body>
             </TonConnectUIProvider>
+            {/* <ToastContainer /> */}
         </html>
     )
 }

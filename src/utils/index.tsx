@@ -146,7 +146,7 @@ export function calculateExpectedOut(
                 newReserve0 = pool.reserve0 - (pool.reserve0 - pool.reserve1) / (pool.reserve1 + amountWithFee);
             }
         }
-        return outputAmount;
+        return outputAmount - 10n;
     } catch (error) {
         console.error(error);
         return 0n

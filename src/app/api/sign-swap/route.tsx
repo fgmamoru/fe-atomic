@@ -16,8 +16,15 @@ export async function POST(request: NextRequest) {
         return new Response("hash is required", { status: 400 });
     }
 
-    const hash = body.hash;
-    const signature = sign(hash, privKey);
+
+    const hash: string = body.hash;
+
+    // conver hash in hex to bigint
+
+    const hashBuffer = Buffer.from(hash, 'hex');
+
+
+    const signature = sign(hashBuffer, privKey);
 
     return NextResponse.json({
         signature: signature.toString('hex'),

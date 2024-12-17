@@ -8,13 +8,13 @@ import { create } from 'zustand';
 import { Currency, ExpandedAtomicPool, RouteSpeed, UnstakeType } from '@/types'
 import { formatCryptoAmount, formatPercent } from '@/utils'
 import { NETWORK, TREASURY_CONTRACT_ADDR } from '@/services/config.service'
-import { AtomicDex } from '@/services/AtomicDex/AtomicDex.service'
+import { AtomicDex, AtomicMemberRecord } from '@/services/AtomicDex/AtomicDex.service'
 import { getSwapCurrencies, SwapService } from '@/services/swap/swap.service'
 import debug from 'debug'
 import { DEFAULT_CURRENCIES } from '@/services/Defaults'
 import { Route, router } from '@/services/Router'
 import { AtomicWalletModel } from '@/models/Wallet/AtomicWallet.model'
-
+// import { toast } from "react-toastify";
 type ActiveTab = 'stake' | 'unstake';
 const atomicDex = AtomicDex.fromAddress(Address.parse("EQCANtHMd-perMjM3Tk2xKoDkD3BN_CiJaGu4kqKcHmm4sdP"))
 const debugLog = debug('app:model')
@@ -115,7 +115,9 @@ type ModelType = {
     _initWallet: () => void
     _initRouting: () => void
     _atomicWallets: Record<string, AtomicWalletModel>,
-    _initAtomicWallets: () => void
+    _initAtomicWallets: () => void,
+    _memberRecord: AtomicMemberRecord | null,
+    _initMemberRecord: () => void
 };
 type WaitForTransaction = 'no' | 'wait' | 'timeout' | 'done'
 
@@ -423,7 +425,7 @@ export const useModel = create<ModelType>(((set, get) => ({
     currencies: new Set<Currency>(),
 
     setAmount: (amount: string) => {
-        debugLog('setAmount')
+        console.log('setAmount')
         const { _swapService, _maxAmountInNano } = get()
         // remove non-numeric characters and replace comma with dot
         const formatted = amount
@@ -446,7 +448,7 @@ export const useModel = create<ModelType>(((set, get) => ({
         set({ amount: formatted })
 
         const selectedRoute = router.getBestRouteFromRoutes(get()._potentialRoutes, get().amountInNano()!);
-        debugLog(`setAmount, potentialRoutes: ${get()._potentialRoutes}, selectedRoute: ${selectedRoute}`)
+        console.log(`setAmount, potentialRoutes: ${get()._potentialRoutes}, selectedRoute: ${selectedRoute}`)
         set({ _selectedRoute: selectedRoute })
 
         if (selectedRoute == null) {
@@ -496,11 +498,11 @@ export const useModel = create<ModelType>(((set, get) => ({
     },
 
     _getRoutes: () => {
-        debugLog('_getRoutes')
+        console.log('_getRoutes')
         const { selectedFromCurrency, selectedToCurrency, amount } = get()
         const routes = router.getAllRoutes(selectedFromCurrency, selectedToCurrency);
 
-        debugLog(`_getRoutes, routes, ${routes.map((route) => route.toString() + '\n')}`)
+        console.log(`_getRoutes, routes, ${routes.map((route) => route.toString() + '\n')}`)
         set({ _potentialRoutes: routes })
         const selectedRoute = router.getBestRouteFromRoutes(routes, get().amountInNano()!);
         set({ _selectedRoute: selectedRoute })
@@ -511,46 +513,51 @@ export const useModel = create<ModelType>(((set, get) => ({
     },
 
     init: async (tonConnectUI: TonConnectUI) => {
-        if (get().inited) return;
-        debugLog('init')
+        try {
+            if (get().inited) return;
+            console.log('init')
 
-        set({ inited: true });
-        const url = await getHttpV4Endpoint({
-            network: get().network,
-        });
+            set({ inited: true });
+            const url = await getHttpV4Endpoint({
+                network: get().network,
+            });
 
-        set({ _networkUrl: url })
+            set({ _networkUrl: url })
 
-        const tonClient = new TonClient4({ endpoint: url });
-        const atomicDexContract = tonClient.open(atomicDex);
-        const swapService = new SwapService(tonClient);
+            const tonClient = new TonClient4({ endpoint: url });
+            const atomicDexContract = tonClient.open(atomicDex);
+            const swapService = new SwapService(tonClient);
 
-        get().getTonToUsd();
+            get().getTonToUsd();
 
-        set({
-            tonConnectUI,
-            tonClient,
-            inited: true,
-            _atomicDexContract: atomicDexContract,
-            _swapService: swapService,
-        });
+            set({
+                tonConnectUI,
+                tonClient,
+                inited: true,
+                _atomicDexContract: atomicDexContract,
+                _swapService: swapService,
+            });
 
-        swapService.getPoolList()
-            .then((pools) => set({ pools }))
-            .then(() => {
-                const { pools } = get();
-                const currencies = getSwapCurrencies(pools);
-                set({ currencies: currencies });
-            })
+            swapService.getPoolList()
+                .then((pools) => set({ pools }))
+                .then(() => {
+                    const { pools } = get();
+                    const currencies = getSwapCurrencies(pools);
+                    set({ currencies: currencies });
+                })
 
-        get()._initWallet();
-        get()._initTonProofPayloadFromBackend();
-        get()._initRouting();
-        get()._initAtomicWallets();
+            get()._initWallet();
+            get()._initTonProofPayloadFromBackend();
+            get()._initRouting();
+            get()._initAtomicWallets();
+        } catch (error) {
+            console.error(error)
+        }
+
     },
 
     readLastBlock: async () => {
-        debugLog('readLastBlock')
+        console.log('readLastBlock')
         const tonClient = get().tonClient!
         const address = get().address
 
@@ -572,7 +579,7 @@ export const useModel = create<ModelType>(((set, get) => ({
     },
 
     loadTonBalance: async () => {
-        debugLog('loadTonBalance')
+        console.log('loadTonBalance')
         const tonClient = get().tonClient
         const address = get().address
         if (tonClient == null || address == null) {
@@ -591,13 +598,14 @@ export const useModel = create<ModelType>(((set, get) => ({
     },
 
     _initWallet: () => {
-        const { tonConnectUI } = get();
+        const { tonConnectUI, _initMemberRecord } = get();
         if (tonConnectUI?.wallet) {
             set({
                 address: Address.parseRaw(get().tonConnectUI!.wallet!.account.address),
                 errorMessage: '',
             });
             get().onConnectWallet(get().tonConnectUI!.wallet! as ConnectedWallet);
+            _initMemberRecord();
         }
         tonConnectUI!.onStatusChange((wallet) => {
             if (wallet) get().onConnectWallet(wallet);
@@ -610,7 +618,8 @@ export const useModel = create<ModelType>(((set, get) => ({
             wallet.connectItems?.tonProof &&
             "proof" in wallet.connectItems.tonProof
         ) {
-            debugLog('onConnectWallet, handling proof', wallet.connectItems.tonProof.proof)
+            console.log('onConnectWallet, handling proof', wallet.connectItems.tonProof.proof)
+            get()._initMemberRecord();
 
             fetch('/api/check-proof', {
                 body: JSON.stringify({
@@ -625,7 +634,7 @@ export const useModel = create<ModelType>(((set, get) => ({
             })
                 .then((response) => response.json())
                 .then((data) => {
-                    debugLog('proof response', data)
+                    console.log('proof response', data)
                 })
         }
 
@@ -645,7 +654,7 @@ export const useModel = create<ModelType>(((set, get) => ({
     },
 
     onDisconnectWallet: () => {
-        debugLog('onDisconnectWallet')
+        console.log('onDisconnectWallet')
         set({
             address: undefined,
             tonBalance: undefined,
@@ -671,13 +680,13 @@ export const useModel = create<ModelType>(((set, get) => ({
     },
 
     executeSwapOrder: async () => {
-        debugLog('executeSwapOrder')
+        console.log('executeSwapOrder')
         try {
             if (!get().readyToSwap()) return;
             get().setWaitForTransaction('wait')
             get().beginRequest()
-            debugLog('executeSwapOrder, ready to swap', get()._swapService!.executeSwap)
-            debugLog(`amount: ${get().amount}, ${get().resultAmount}`)
+            console.log('executeSwapOrder, ready to swap', get()._swapService!.executeSwap)
+            console.log(`amount: ${get().amount}, ${get().resultAmount}`)
             // process
             await get()._swapService!.executeSwap(
                 {
@@ -690,15 +699,16 @@ export const useModel = create<ModelType>(((set, get) => ({
                     poolId: 0,
                 }
             );
-            debugLog('executeSwapOrder, swap executed')
+            console.log('executeSwapOrder, swap executed')
+            // toast.success('Swap executed successfully')
         }
         catch (error) {
-            debugLog('executeSwapOrder, error', error)
+            console.log('executeSwapOrder, error', error)
             console.error(error)
             set({
                 errorMessage: 'Swap failed, please try again',
-
             })
+            // toast.error('Swap failed, please try again')
         }
         finally {
             get().setWaitForTransaction('done')
@@ -718,13 +728,13 @@ export const useModel = create<ModelType>(((set, get) => ({
     },
 
     readyToSwap: () => {
-        // debugLog('---readyToSwap')
+        // console.log('---readyToSwap')
         if (!get().isConnected()) return false;
-        // debugLog('readyToSwap, connected')
+        // console.log('readyToSwap, connected')
         if (Number.isNaN(parseFloat(get().amount))) return false;
-        // debugLog('readyToSwap, amount not Nan')
+        // console.log('readyToSwap, amount not Nan')
         if (parseFloat(get().amount) === 0) return false;
-        // debugLog('readyToSwap, amount positive')
+        // console.log('readyToSwap, amount positive')
 
         // if (get().tonBalance === undefined) return false;
 
@@ -755,7 +765,7 @@ export const useModel = create<ModelType>(((set, get) => ({
     },
 
     _initTonProofPayloadFromBackend: async () => {
-        debugLog('_initTonProofPayloadFromBackend')
+        console.log('_initTonProofPayloadFromBackend')
         try {
 
             get().tonConnectUI!.setConnectRequestParameters({
@@ -763,7 +773,7 @@ export const useModel = create<ModelType>(((set, get) => ({
             })
             const proof = await get()._fetchTonProofPayloadFromBackend();
 
-            debugLog("_initTonProofPayloadFromBackend, proof", proof)
+            console.log("_initTonProofPayloadFromBackend, proof", proof)
             get().tonConnectUI!.setConnectRequestParameters({
                 state: "ready",
                 value: { tonProof: proof },
@@ -790,5 +800,16 @@ export const useModel = create<ModelType>(((set, get) => ({
         } catch (error) {
 
         }
+    },
+
+    _initMemberRecord: async () => {
+        const { _swapService } = get();
+        const _memberRecord = await _swapService!.getMemberRecord(get().tonConnectUI?.account?.publicKey!);
+
+        console.log('memberRecord', _memberRecord);
+
+        set({
+            _memberRecord,
+        });
     }
 })))

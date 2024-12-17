@@ -2,6 +2,7 @@ import { Currency, CurveTypes, ExpandedAtomicPool, RouteSpeed } from "@/types";
 import { DEFAULT_POOLS } from "../Defaults";
 import { calculateExpectedOut } from "@/utils";
 import debug from 'debug';
+import { toNano } from "@ton/core";
 
 
 const defaultTxFee = 50n
@@ -83,17 +84,17 @@ export class Route {
     public getPrice(
         inputAmount: bigint,
     ): bigint {
-        let result: bigint = 0n;
+        let result: bigint = inputAmount;
         let currentCurrency: Currency = this.input;
         for (const pool of this.pools) {
 
-            const intermediateResult = calculateExpectedOut(inputAmount, pool, currentCurrency.id)
+            const intermediateResult = calculateExpectedOut(result, pool, currentCurrency.id)
             currentCurrency = pool.getInverseCurrency(currentCurrency);
             result = intermediateResult;
             // result = intermediateResult - defaultTxFee;
         }
 
-        return result;
+        return result - toNano(1)
     }
 
     /**
