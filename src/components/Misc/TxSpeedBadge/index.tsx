@@ -8,7 +8,7 @@ export enum TxSpeed {
 }
 
 export type TxSpeedBadgeProps = {
-    speed: TxSpeed;
+    speed?: TxSpeed;
     error?: string;
 }
 
@@ -19,6 +19,9 @@ export const TxSpeedBadgeComponent = (props: TxSpeedBadgeProps) => {
         props.speed === TxSpeed.normal && styles.normal,
         props.error && styles.error
     )
+    if (!props.speed && !props.error) {
+        return null;
+    }
 
 
 
@@ -33,6 +36,7 @@ function getMessage(props: TxSpeedBadgeProps) {
     if (props.error) {
         return props.error;
     }
+
     if (props.speed === TxSpeed.fast) {
         return "Increased Transaction Speed";
     } else {

@@ -221,7 +221,9 @@ export const useModel = create<ModelType>(((set, get) => ({
     },
 
     _maxAmountInNano() {
-        // return maxAmountToStake(get().tonBalance ?? 0n)
+        if (get().activeTab === 'deposit') {
+            return get()._maxAmountOfTonBalanceInNano()
+        }
         const member = get()._memberRecord;
 
         if (member == null) {
