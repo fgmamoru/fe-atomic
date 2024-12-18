@@ -195,11 +195,6 @@ export class SwapService {
         return mappedWallets;
     }
 
-    public async getMemberRecord(publicKey: string): Promise<AtomicMemberRecord | null> {
-        const record = await this.contract.getAtomicMemberRecord(BigInt(`0x${publicKey}`));
-        return record;
-    }
-
     public async executeSwap(params: {
         from: Currency, to: Currency, inAmount: string, outAmount: string, poolId: number, publicKey: string,
         tonConnectUi: TonConnectUI,
@@ -383,7 +378,7 @@ export class SwapService {
         return builder.asSlice();
     }
 
-    private getMember(publicKey: string) {
+    public getMember(publicKey: string) {
         try {
             console.log("Getting member", `0x${publicKey}`);
             const publicKeyBigInt = BigInt(`0x${publicKey}`);
@@ -395,7 +390,6 @@ export class SwapService {
         } catch (error) {
             console.error(error);
         }
-
     }
 
     private getValidUntil(): bigint {

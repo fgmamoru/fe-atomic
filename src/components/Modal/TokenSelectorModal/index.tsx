@@ -2,10 +2,12 @@ import { SearchInput } from "@/components/Forms/SearchInput";
 import { MainModal, RegularModal } from "../MainModal"
 import styles from './TokenSelectorModal.module.css'
 import { Currency } from "@/types";
-import { useEffect, useState } from "react";
+import { memo, useEffect, useState } from "react";
 import { CloseButton } from "@headlessui/react";
 import { MiniButton } from "@/components/Button/MiniButton";
 import { IconButton } from "@/components/Button/IconButton";
+import { useModel } from "@/components/Services/Model";
+import { fromNano } from "@ton/core";
 
 export type TokenSelectorModalProps = {
     isOpen?: boolean;
@@ -23,10 +25,17 @@ const Subtitle = (props: { children: string, icon: string }) =>
     </div>
 
 
-const TokenButton = (props: {
+const TokenButtonComponent = (props: {
     currency: Currency, onClick: (currency: Currency) => void
-
 }) => {
+    const model = useModel();
+    const member = model._memberRecord;
+
+    const balance: bigint | undefined = member ? (member as unknown as Record<string, bigint>)[props.currency.balanceKey] as bigint : undefined;
+    const formattedBalance = balance ? parseFloat(fromNano(balance)).toFixed(2) : "0";
+    console.log("Balance:", balance)
+
+
     return <div className={styles.TokenSelectorModalItem}
         onClick={() => props.onClick(props.currency)}
     >
@@ -35,12 +44,22 @@ const TokenButton = (props: {
             <span className={styles.TokenSelectorModalItemName}>{props.currency?.name}</span>
             <span className={styles.TokenSelectorModalItemSymbol}>{props.currency?.symbol}</span>
         </div>
+        {
+            balance && <div className={styles.FinalColumn}>
+                <span className={styles.TokenSelectorModalItemBalance}>{formattedBalance}</span>
+                <span className={styles.TokenSelectorModalItemBalance}>{model.getInUsd(formattedBalance, props.currency)}</span>
+            </div>
+        }
     </div>
 }
+
+const TokenButton = memo(TokenButtonComponent);
 
 export const TokenSelectorModal = (props: TokenSelectorModalProps) => {
     const [search, setSearch] = useState<string>('');
     const [filteredCurrencies, setFilteredCurrencies] = useState<Set<Currency>>(props.currencies);
+    const model = useModel();
+    const member = model._memberRecord;
 
     useEffect(() => {
         if (search === '') {
@@ -75,6 +94,11 @@ export const TokenSelectorModal = (props: TokenSelectorModalProps) => {
                 <Subtitle icon="/icons/coin.svg">Your Tokens</Subtitle>
                 {
                     Array.from(filteredCurrencies)
+                        .filter((currency) => {
+                            const balance: bigint = member ? (member as unknown as Record<string, bigint>)[currency.balanceKey] as bigint : 0n;
+
+                            return balance && balance > 0n;
+                        })
                         .map((currency) =>
                             <TokenButton
                                 key={currency.symbol}
@@ -83,6 +107,20 @@ export const TokenSelectorModal = (props: TokenSelectorModalProps) => {
                             />)
                 }
                 <Subtitle icon="/icons/star.svg">Tokens</Subtitle>
+                {
+                    Array.from(filteredCurrencies)
+                        .filter((currency) => {
+                            const balance: bigint = member ? (member as unknown as Record<string, bigint>)[currency.balanceKey] as bigint : 0n;
+
+                            return balance === 0n;
+                        })
+                        .map((currency) =>
+                            <TokenButton
+                                key={currency.symbol}
+                                currency={currency}
+                                onClick={() => props.onCurrencyClick?.(currency)}
+                            />)
+                }
             </div>
         </RegularModal>
     )

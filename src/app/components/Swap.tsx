@@ -62,11 +62,11 @@ export function DexSwapTab() {
                             fontWeight: 400,
                             color: "var(--color-text-secondary)",
                         }}>
-                            <AnimatedNumber value={mainModel.maxAmountInTon()} formatValue={formatCryptoAmount} duration={300} /></span>
+                            <AnimatedNumber value={mainModel.getMaxAmountOfSelectedCurrency()} formatValue={formatCryptoAmount} duration={300} /></span>
                         <MiniButton
                             disabled={Number(mainModel.tonBalance) === 0}
                             onClick={() => {
-                                mainModel.setAmount(mainModel.maxAmountInTon().toString())
+                                mainModel.setAmount(mainModel.getMaxAmountOfSelectedCurrency().toString())
                             }}>Max</MiniButton>
                     </div>}
                 />

@@ -6,8 +6,8 @@ import { Treasury, TreasuryConfig, Times } from '../ton-comms/Treasury'
 import { Wallet } from '../ton-comms/Wallet'
 import { create } from 'zustand';
 import { Currency, ExpandedAtomicPool, RouteSpeed, UnstakeType } from '@/types'
-import { formatCryptoAmount, formatPercent } from '@/utils'
-import { NETWORK, TREASURY_CONTRACT_ADDR } from '@/services/config.service'
+import { formatCryptoAmount, formatCryptoAmountAbbr, formatPercent } from '@/utils'
+import { ATOMIC_DEX_CONTRACT_ADDRESS, NETWORK, TREASURY_CONTRACT_ADDR } from '@/services/config.service'
 import { AtomicDex, AtomicMemberRecord } from '@/services/AtomicDex/AtomicDex.service'
 import { getSwapCurrencies, SwapService } from '@/services/swap/swap.service'
 import debug from 'debug'
@@ -16,14 +16,13 @@ import { Route, router } from '@/services/Router'
 import { AtomicWalletModel } from '@/models/Wallet/AtomicWallet.model'
 // import { toast } from "react-toastify";
 type ActiveTab = 'stake' | 'unstake';
-const atomicDex = AtomicDex.fromAddress(Address.parse("EQCANtHMd-perMjM3Tk2xKoDkD3BN_CiJaGu4kqKcHmm4sdP"))
+const atomicDex = AtomicDex.fromAddress(Address.parse(ATOMIC_DEX_CONTRACT_ADDRESS))
 const debugLog = debug('app:model')
 
 // check if localStorage is defined
 if (typeof localStorage !== 'undefined') {
     localStorage.debug = 'app:*'
 }
-
 
 type ModelType = {
     loadTonBalance(): unknown
@@ -47,6 +46,8 @@ type ModelType = {
     ongoingRequests: number
     errorMessage: string
     isInputInvalid: () => boolean
+    _exchangeRates: Record<string, string>
+
     _potentialRoutes: Route[],
     _selectedRoute: Route | null,
 
@@ -69,7 +70,7 @@ type ModelType = {
     // setAmount: (amount: string) => void
     isStakeTabActive: () => boolean
     _maxAmountInNano: () => bigint
-    maxAmountInTon: () => number
+    getMaxAmountOfSelectedCurrency: () => number | bigint
     isMainnet: () => boolean
     setAmount: (amount: string) => void
     setAmountToMax: () => void
@@ -79,6 +80,8 @@ type ModelType = {
     isAmountValid: () => boolean
     isAmountPositive: () => boolean
     getErrorMessage: () => string
+    getExchange(amount: string, from: Currency, to: Currency): string
+    getInUsd(amount: string, from: Currency): string
 
     youWillReceiveFormatted: () => string
     youWillReceive: () => string
@@ -91,7 +94,6 @@ type ModelType = {
     setWaitForTransaction: (wait: WaitForTransaction) => void
     checkIfBalanceChanged: (balance: bigint, walletStateBalance: bigint, retries: number) => void
     currentlyStakedInUsd: () => string
-    getTonToUsd: () => void
 
     resultAmount: string;
     selectedFromCurrency: Currency;
@@ -117,7 +119,10 @@ type ModelType = {
     _atomicWallets: Record<string, AtomicWalletModel>,
     _initAtomicWallets: () => void,
     _memberRecord: AtomicMemberRecord | null,
-    _initMemberRecord: () => void
+    _initMemberRecord: () => void,
+    _initExchangeRates: () => void,
+
+
 };
 type WaitForTransaction = 'no' | 'wait' | 'timeout' | 'done'
 
@@ -180,6 +185,7 @@ export const useModel = create<ModelType>(((set, get) => ({
     waitForTransaction: 'no',
     ongoingRequests: 0,
     errorMessage: '',
+    _exchangeRates: {},
 
     // unobserved state
     tonConnectUI: undefined,
@@ -218,14 +224,56 @@ export const useModel = create<ModelType>(((set, get) => ({
 
     _maxAmountInNano() {
         // return maxAmountToStake(get().tonBalance ?? 0n)
-        const isStakeTabActive = get().isStakeTabActive()
-        const tonBalance = get().tonBalance
-        return maxAmountToStake(tonBalance ?? 0n)
+        const member = get()._memberRecord;
+
+        if (member == null) {
+            return 0
+        }
+
+        const currency = get().selectedFromCurrency;
+
+        if (currency == null) {
+            return 0
+        }
+
+        // @ts-ignore
+        const balance = member[currency.balanceKey];
+
+        if (!balance) {
+            return 0
+        }
+
+        return balance
 
     },
 
-    maxAmountInTon() {
-        return Number(get()._maxAmountInNano()) / 1000000000
+    getMaxAmountOfSelectedCurrency() {
+        try {
+            const member = get()._memberRecord;
+
+            if (member == null) {
+                return 0
+            }
+
+            const currency = get().selectedFromCurrency;
+
+            if (currency == null) {
+                return 0
+            }
+
+            // @ts-ignore
+            const balance = member[currency.balanceKey];
+
+            if (!balance) {
+                return 0
+            }
+
+            return balance / 1000000000n
+        } catch (error) {
+            console.error(error)
+            return 0
+        }
+
     },
 
 
@@ -513,6 +561,8 @@ export const useModel = create<ModelType>(((set, get) => ({
     },
 
     init: async (tonConnectUI: TonConnectUI) => {
+        get()._initExchangeRates()
+
         try {
             if (get().inited) return;
             console.log('init')
@@ -527,8 +577,6 @@ export const useModel = create<ModelType>(((set, get) => ({
             const tonClient = new TonClient4({ endpoint: url });
             const atomicDexContract = tonClient.open(atomicDex);
             const swapService = new SwapService(tonClient);
-
-            get().getTonToUsd();
 
             set({
                 tonConnectUI,
@@ -592,8 +640,7 @@ export const useModel = create<ModelType>(((set, get) => ({
             const value = await tonClient.getAccountLite(lastBlock, address)
             set({ tonBalance: BigInt(value.account.balance.coins) })
         } catch (err) {
-            console.error(err)
-            set({ tonBalance: undefined })
+            set({ tonBalance: undefined });
         }
     },
 
@@ -624,7 +671,7 @@ export const useModel = create<ModelType>(((set, get) => ({
             fetch('/api/check-proof', {
                 body: JSON.stringify({
                     address: wallet.account.address,
-                    network: get().network === 'mainnet' ? '-239' : '-3',
+                    network: get().network === 'mainnet' ? '-239' : 'c-3',
                     proof: {
                         ...wallet.connectItems.tonProof.proof,
                         state_init: "..."
@@ -633,19 +680,15 @@ export const useModel = create<ModelType>(((set, get) => ({
                 method: 'POST',
             })
                 .then((response) => response.json())
-                .then((data) => {
-                    console.log('proof response', data)
-                })
         }
 
         try {
             set({
                 address: Address.parseRaw(wallet.account.address),
             })
-
             get().readLastBlock();
-            get().getTonToUsd();
             get().loadTonBalance();
+            get()._initMemberRecord();
         } catch (error) {
             console.error(error)
         }
@@ -663,15 +706,6 @@ export const useModel = create<ModelType>(((set, get) => ({
             // walletState: undefined,
             errorMessage: '',
         })
-    },
-
-    getTonToUsd: async () => {
-        const url = "https://api.binance.com/api/v3/ticker/price?symbol=TONUSDT"
-        await fetch(url)
-            .then((response) => response.json())
-            .then((data) => data.price)
-            .then((price) => set({ TONToUSD: parseFloat(price) }))
-            .catch((error) => console.error('Error:', error))
     },
 
     isConnected() {
@@ -803,13 +837,54 @@ export const useModel = create<ModelType>(((set, get) => ({
     },
 
     _initMemberRecord: async () => {
-        const { _swapService } = get();
-        const _memberRecord = await _swapService!.getMemberRecord(get().tonConnectUI?.account?.publicKey!);
+        try {
+            console.log('_initMemberRecord: getting member record')
+            const { _swapService } = get();
+            const _memberRecord = await _swapService!.getMember(get().tonConnectUI?.account?.publicKey!);
 
-        console.log('memberRecord', _memberRecord);
+            console.log('memberRecord', _memberRecord);
 
-        set({
-            _memberRecord,
-        });
-    }
+            set({
+                _memberRecord,
+            });
+        } catch (error) {
+            console.error(error)
+        }
+
+    },
+
+    _initExchangeRates: async () => {
+        try {
+            const url = "https://api.binance.com/api/v3/ticker/price"
+            const response = await fetch(url);
+            const data = await response.json();
+            const price: { price: string, symbol: string }[] = data;
+
+            const map: Record<string, string> = {}
+
+            price.forEach((item) => {
+                map[item.symbol] = item.price
+            });
+
+            set({
+                _exchangeRates: map,
+                TONToUSD: parseFloat(map['TONUSDT'])
+            })
+        } catch (error) {
+            console.error(error)
+        }
+    },
+
+    getExchange(amount: string, from: Currency, to: Currency): string {
+        const rate = get()._exchangeRates[`${from.symbol}${to.symbol}`];
+
+        return (parseFloat(amount) * parseFloat(rate)).toFixed(2)
+    },
+
+    getInUsd(amount: string, from: Currency): string {
+        const rate = get()._exchangeRates[`${from.symbol}USDT`];
+        console.log('rate', rate)
+        console.log(get()._exchangeRates)
+        return formatCryptoAmountAbbr(parseFloat(amount) * parseFloat(rate))
+    },
 })))
