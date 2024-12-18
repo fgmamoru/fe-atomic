@@ -2,7 +2,7 @@ import { sha256, signVerify } from '@ton/crypto';
 
 import { Address, Builder, Dictionary, OpenedContract, TonClient, TonClient4, beginCell, toNano } from "@ton/ton";
 import { ATOMIC_DEX_CONTRACT_ADDRESS } from "../config.service";
-import { AtomicDex, AtomicMemberRecord, AtomicPool, AtomicWallet, MultiSwapBackend, storeMultiSwapBackend, SwapOrder } from "../AtomicDex/AtomicDex.service";
+import { AtomicDex, AtomicPool, MultiSwapBackend, storeMultiSwapBackend, SwapOrder } from "../AtomicDex/AtomicDex.service";
 import { AtomicPoolCurrencyMapItem, Currency, CurveTypes, ExpandedAtomicPool } from "@/types";
 import { SandboxContract, TreasuryContract } from '@ton/sandbox';
 import debug from 'debug';
@@ -10,6 +10,7 @@ import { TonConnectUI } from '@tonconnect/ui-react';
 import { calculateExpectedOut } from '@/utils';
 import { DEFAULT_CURRENCIES_MAP, DEFAULT_POOLS } from '../Defaults';
 import { AtomicWalletModel } from '@/models/Wallet/AtomicWallet.model';
+import { AtomicMemberRecordModel } from '@/models/AtomicMember.model';
 
 const debugLog = debug('app:swap')
 
@@ -278,32 +279,6 @@ export class SwapService {
         return await this.calculateMultiSwapHash(seq, swap);
     }
 
-    private async calculateMultiSwapHash(
-        seq: bigint,
-        swap: {
-            orders: Array<SwapOrder>,
-            validUntil: bigint
-        }
-    ) {
-        return sha256(this.calculateMultiSwapSlice(seq, swap));
-    }
-
-    private async signHash(hash: Buffer) {
-        const request = await fetch("/api/sign-swap", {
-            method: "POST",
-            body: JSON.stringify({
-                hash: hash.toString("hex")
-            })
-        })
-
-        const response = await request.json();
-        // create a 64  byte buffer from the signature
-
-        return Buffer.from(response.signature, "hex");
-
-    }
-
-
     async sendMultiSwapOperation(
         publicKey: Buffer,
         atomicDex: SandboxContract<AtomicDex>,
@@ -331,8 +306,6 @@ export class SwapService {
         // );
     }
 
-
-
     async sendPingOperation(
     ) {
 
@@ -341,6 +314,25 @@ export class SwapService {
                 $$type: 'Ping',
             }
         );
+    }
+
+    public async getMember(publicKey: string): Promise<AtomicMemberRecordModel | null> {
+        try {
+            console.log("Getting member", `0x${publicKey}`);
+            const publicKeyBigInt = BigInt(`0x${publicKey}`);
+            console.log("Public key", publicKeyBigInt);
+            // when using toncenter client it doesnt work...
+            const member = await this.orbsClientContract.getAtomicMemberRecord(
+                publicKeyBigInt
+            );
+
+            if (!member) return null;
+
+            return new AtomicMemberRecordModel(member);
+        } catch (error) {
+            console.error(error);
+            return null;
+        }
     }
 
 
@@ -378,19 +370,7 @@ export class SwapService {
         return builder.asSlice();
     }
 
-    public getMember(publicKey: string) {
-        try {
-            console.log("Getting member", `0x${publicKey}`);
-            const publicKeyBigInt = BigInt(`0x${publicKey}`);
-            console.log("Public key", publicKeyBigInt);
-            // when using toncenter client it doesnt work...
-            return this.orbsClientContract.getAtomicMemberRecord(
-                publicKeyBigInt
-            );
-        } catch (error) {
-            console.error(error);
-        }
-    }
+
 
     private getValidUntil(): bigint {
         return BigInt(new Date().getTime()) / 1000n + 3600n;
@@ -415,7 +395,6 @@ export class SwapService {
         )
     }
 
-
     private getAtomicPool(poolId: number): ExpandedAtomicPool {
         console.log("#getAtomicPool", poolId);
         return this.pools![poolId] || this.pools!["0"];
@@ -425,6 +404,32 @@ export class SwapService {
         const publicKey = Buffer.from("97cc8dfc6c4344343fe902238604c418b9055229e89d2f07cfadc6df63f25da2", 'hex');
         return signVerify(hash, signature, publicKey);
     }
+
+    private async calculateMultiSwapHash(
+        seq: bigint,
+        swap: {
+            orders: Array<SwapOrder>,
+            validUntil: bigint
+        }
+    ) {
+        return sha256(this.calculateMultiSwapSlice(seq, swap));
+    }
+
+    private async signHash(hash: Buffer) {
+        const request = await fetch("/api/sign-swap", {
+            method: "POST",
+            body: JSON.stringify({
+                hash: hash.toString("hex")
+            })
+        })
+
+        const response = await request.json();
+        // create a 64  byte buffer from the signature
+
+        return Buffer.from(response.signature, "hex");
+
+    }
+
 }
 
 export const getSwapCurrencies = (map: Record<string, ExpandedAtomicPool>): Set<Currency> => {
@@ -436,16 +441,3 @@ export const getSwapCurrencies = (map: Record<string, ExpandedAtomicPool>): Set<
 
     return currencies;
 }
-
-//     const txParams = await router.getSwapJettonToTonTxParams(_params);
-
-
-
-//     return txParams;
-// };
-
-// export type SwapParams = {
-//     userWalletAddress: string;
-//     offerAmount: string;
-//     minAskAmount: string;
-// };

@@ -2,7 +2,6 @@ import { MainButton } from "@/components/Button/MainButton";
 import { MiniButton } from "@/components/Button/MiniButton";
 import { SwapInput } from "@/components/Forms/SwapInput";
 import { formatCryptoAmount } from "@/utils";
-import styles from "./Swap.module.css";
 
 // @ts-ignore
 import AnimatedNumber from "animated-number-react";

@@ -31,7 +31,7 @@ const TokenButtonComponent = (props: {
     const model = useModel();
     const member = model._memberRecord;
 
-    const balance: bigint | undefined = member ? (member as unknown as Record<string, bigint>)[props.currency.balanceKey] as bigint : undefined;
+    const balance: bigint | undefined = member ? member.getCurrencyBalance(props.currency) : undefined;
     const formattedBalance = balance ? parseFloat(fromNano(balance)).toFixed(2) : "0";
     console.log("Balance:", balance)
 
@@ -95,7 +95,7 @@ export const TokenSelectorModal = (props: TokenSelectorModalProps) => {
                 {
                     Array.from(filteredCurrencies)
                         .filter((currency) => {
-                            const balance: bigint = member ? (member as unknown as Record<string, bigint>)[currency.balanceKey] as bigint : 0n;
+                            const balance: bigint = member ? member.getCurrencyBalance(currency) : 0n;
 
                             return balance && balance > 0n;
                         })
@@ -110,7 +110,7 @@ export const TokenSelectorModal = (props: TokenSelectorModalProps) => {
                 {
                     Array.from(filteredCurrencies)
                         .filter((currency) => {
-                            const balance: bigint = member ? (member as unknown as Record<string, bigint>)[currency.balanceKey] as bigint : 0n;
+                            const balance: bigint = member ? member.getCurrencyBalance(currency) : 0n;
 
                             return balance === 0n;
                         })

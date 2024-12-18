@@ -133,14 +133,14 @@ export interface PaginatedResultWithTotals<OutputDto>
     };
 }
 
-type CurrencyBalanceName = `balance${number}`;
+export type CurrencyBalanceKeyName = `balance${number}`;
 
 export type Currency = {
     symbol: string,
     icon: string,
     name: string,
     id: bigint,
-    balanceKey: CurrencyBalanceName
+    balanceKey: CurrencyBalanceKeyName
 }
 
 export type AtomicPoolCurrencyMapItem = {

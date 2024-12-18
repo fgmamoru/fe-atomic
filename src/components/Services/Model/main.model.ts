@@ -8,7 +8,7 @@ import { create } from 'zustand';
 import { Currency, ExpandedAtomicPool, RouteSpeed, UnstakeType } from '@/types'
 import { formatCryptoAmount, formatCryptoAmountAbbr, formatPercent } from '@/utils'
 import { ATOMIC_DEX_CONTRACT_ADDRESS, NETWORK, TREASURY_CONTRACT_ADDR } from '@/services/config.service'
-import { AtomicDex, AtomicMemberRecord } from '@/services/AtomicDex/AtomicDex.service'
+import { AtomicDex } from '@/services/AtomicDex/AtomicDex.service'
 import { getSwapCurrencies, SwapService } from '@/services/swap/swap.service'
 import debug from 'debug'
 import { DEFAULT_CURRENCIES } from '@/services/Defaults'
@@ -16,6 +16,7 @@ import { Route, router } from '@/services/Router'
 import { AtomicWalletModel } from '@/models/Wallet/AtomicWallet.model'
 import { toast } from "react-toastify";
 import * as axios from 'axios';
+import { AtomicMemberRecordModel } from '@/models/AtomicMember.model'
 
 type ActiveTab = 'swap' | 'deposit' | 'withdraw';
 const atomicDex = AtomicDex.fromAddress(Address.parse(ATOMIC_DEX_CONTRACT_ADDRESS))
@@ -115,7 +116,7 @@ type ModelType = {
     _initRouting: () => void
     _atomicWallets: Record<string, AtomicWalletModel>,
     _initAtomicWallets: () => void,
-    _memberRecord: AtomicMemberRecord | null,
+    _memberRecord: AtomicMemberRecordModel | null,
     _initMemberRecord: () => void,
     _initExchangeRates: () => void,
     _maxAmountOfTonBalanceInNano: () => bigint,
@@ -220,27 +221,27 @@ export const useModel = create<ModelType>(((set, get) => ({
         return ""
     },
 
-    _maxAmountInNano() {
+    _maxAmountInNano(): bigint {
         if (get().activeTab === 'deposit') {
             return get()._maxAmountOfTonBalanceInNano()
         }
         const member = get()._memberRecord;
 
         if (member == null) {
-            return 0
+            return 0n
         }
 
         const currency = get().selectedFromCurrency;
 
         if (currency == null) {
-            return 0
+            return 0n
         }
 
         // @ts-ignore
-        const balance = member[currency.balanceKey];
+        const balance = member.getCurrencyBalance(currency);
 
         if (!balance) {
-            return 0
+            return 0n
         }
 
         return balance
@@ -262,7 +263,7 @@ export const useModel = create<ModelType>(((set, get) => ({
             }
 
             // @ts-ignore
-            const balance = member[currency.balanceKey];
+            const balance = member.getCurrencyBalance(currency)
 
             if (!balance) {
                 return 0
