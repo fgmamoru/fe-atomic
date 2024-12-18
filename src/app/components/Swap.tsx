@@ -19,6 +19,7 @@ export function DexSwapTab() {
     const [tonConnectUi] = useTonConnectUI();
     const wallet = useTonWallet();
     wallet?.account.publicKey;
+    useEffect(() => { mainModel.setActiveTab("swap") }, []);
 
 
     const buttonTitle = wallet ? 'Swap' : 'Connect Wallet';
@@ -64,7 +65,7 @@ export function DexSwapTab() {
                         }}>
                             <AnimatedNumber value={mainModel.getMaxAmountOfSelectedCurrency()} formatValue={formatCryptoAmount} duration={300} /></span>
                         <MiniButton
-                            disabled={Number(mainModel.tonBalance) === 0}
+                            disabled={Number(mainModel.getMaxAmountOfSelectedCurrency()) === 0}
                             onClick={() => {
                                 mainModel.setAmount(mainModel.getMaxAmountOfSelectedCurrency().toString())
                             }}>Max</MiniButton>

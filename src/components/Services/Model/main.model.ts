@@ -17,7 +17,7 @@ import { AtomicWalletModel } from '@/models/Wallet/AtomicWallet.model'
 import { toast } from "react-toastify";
 import * as axios from 'axios';
 
-type ActiveTab = 'stake' | 'unstake';
+type ActiveTab = 'swap' | 'deposit' | 'withdraw';
 const atomicDex = AtomicDex.fromAddress(Address.parse(ATOMIC_DEX_CONTRACT_ADDRESS))
 const debugLog = debug('app:model')
 
@@ -85,11 +85,6 @@ type ModelType = {
     getExchange(amount: string, from: Currency, to: Currency): string
     getInUsd(amount: string, from: Currency): string
 
-    youWillReceiveFormatted: () => string
-    youWillReceive: () => string
-    exchangeRate: () => number;
-    exchangeRateFormatted: () => string
-    exchangeRateInUsd: () => string
     apy: () => number | undefined
     apyFormatted: () => string | undefined
     currentlyStaked: () => string
@@ -123,7 +118,8 @@ type ModelType = {
     _memberRecord: AtomicMemberRecord | null,
     _initMemberRecord: () => void,
     _initExchangeRates: () => void,
-
+    _maxAmountOfTonBalanceInNano: () => bigint,
+    maxAmountOfTonBalanceInTon: () => number,
 
 };
 type WaitForTransaction = 'no' | 'wait' | 'timeout' | 'done'
@@ -181,7 +177,7 @@ export const useModel = create<ModelType>(((set, get) => ({
     walletFees: undefined,
     wallet: undefined,
     walletState: undefined,
-    activeTab: 'stake',
+    activeTab: 'swap',
     unstakeType: 'recommended',
     amount: '',
     waitForTransaction: 'no',
@@ -283,10 +279,6 @@ export const useModel = create<ModelType>(((set, get) => ({
         return get().network === 'mainnet'
     },
 
-    isStakeTabActive: () => {
-        return get().activeTab === 'stake'
-    },
-
     beginRequest: () => {
         set((state) => ({
             ongoingRequests: state.ongoingRequests + 1
@@ -313,6 +305,10 @@ export const useModel = create<ModelType>(((set, get) => ({
     },
 
     setAmountToMax() {
+        if (get().activeTab === 'deposit') {
+            set({ amount: get().maxAmountOfTonBalanceInTon().toString() })
+            return;
+        }
         set({ amount: fromNano(get()._maxAmountInNano()) })
     },
 
@@ -354,66 +350,6 @@ export const useModel = create<ModelType>(((set, get) => ({
         return nano != null && nano > 0n
     },
 
-    youWillReceive(): string {
-        const rate = get().exchangeRate();
-        const nano = get().amountInNano();
-        if (rate == null) {
-            return formattedZero
-        } else if (nano == null || !get().isAmountValid() || !get().isAmountPositive()) {
-            return formattedZero
-        } else {
-            return formatNano(Number(nano) * rate)
-        }
-    },
-
-    youWillReceiveFormatted() {
-        const rate = get().exchangeRate();
-        const nano = get().amountInNano();
-        const isStakeTabActive = get().isStakeTabActive();
-        if (rate == null) {
-            return ''
-        } else if (nano == null || !get().isAmountValid() || !get().isAmountPositive()) {
-            return get().isStakeTabActive() ? 'mTON' : 'TON'
-        } else {
-            return `~ ${formatNano(Number(nano) * rate)} ${isStakeTabActive ? 'mTON' : 'TON'}`
-        }
-    },
-
-    exchangeRate() {
-        const state = get().treasuryState
-        if (state != null) {
-            if (get().isStakeTabActive()) {
-                return Number(state.totalTokens) / Number(state.totalCoins) || 1
-            } else {
-                return Number(state.totalCoins) / Number(state.totalTokens) || 1
-            }
-        }
-
-        return 0;
-    },
-
-    exchangeRateInUsd() {
-        const state = get().treasuryState
-        if (state != null) {
-            const rate = get().exchangeRate()
-            if (rate != 0) {
-                const val = Number(state.totalCoins) / Number(state.totalTokens) || 1
-                return tonToUsd(val, get().TONToUSD).toLocaleString(undefined, {
-                    maximumFractionDigits: 2,
-                })
-            }
-        }
-        return ''
-    },
-
-    exchangeRateFormatted() {
-        const state = get().treasuryState
-        if (state != null) {
-            const rate = Number(state.totalCoins) / Number(state.totalTokens) || 1
-            return `~ ${rate.toLocaleString(undefined, { maximumFractionDigits: 4 })} TON`
-        }
-        return ''
-    },
 
     apy() {
         const times = get().times
@@ -792,6 +728,7 @@ export const useModel = create<ModelType>(((set, get) => ({
     },
 
     isAtomicSpeedSwap: () => {
+        if (get().activeTab !== 'swap') return false;
         return get().readyToSwap() && get()._selectedRoute?.speed === RouteSpeed.Fast
     },
 
@@ -902,6 +839,15 @@ export const useModel = create<ModelType>(((set, get) => ({
         console.log('rate', rate)
         console.log(get()._exchangeRates)
         return formatCryptoAmountAbbr(parseFloat(amount) * parseFloat(rate))
+    },
+
+    _maxAmountOfTonBalanceInNano() {
+        const tonBalance = get().tonBalance
+        return maxAmountToStake(tonBalance ?? 0n)
+    },
+
+    maxAmountOfTonBalanceInTon() {
+        return Number(get()._maxAmountOfTonBalanceInNano()) / 1000000000
     },
 })))
 

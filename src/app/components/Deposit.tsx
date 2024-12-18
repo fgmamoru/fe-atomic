@@ -6,19 +6,19 @@ import styles from "./Swap.module.css";
 
 // @ts-ignore
 import AnimatedNumber from "animated-number-react";
-import { create } from 'zustand';
-
-const useSwapModel = create(() => ({
-    amount: "0.0",
-    setAmount: () => { },
-    maxAmountInTon: () => { return "0.0" },
-    setAmountToMax: () => { },
-    errorMessage: "",
-
-}))
+import { useModel } from "@/components/Services/Model";
+import { useEffect } from "react";
+import { useTonWallet } from "@tonconnect/ui-react";
 
 export function DexDepositTab() {
-    const model = useSwapModel();
+    const model = useModel();
+    const wallet = useTonWallet();
+    const buttonTitle = wallet ? 'Deposit' : 'Connect Wallet';
+
+    useEffect(() => { model.setActiveTab("deposit") }, []);
+
+    const isDepositButtonEnabled = model.amount && parseFloat(model.amount) && wallet;
+
     return (
         <>
             <SwapInput
@@ -34,7 +34,6 @@ export function DexDepositTab() {
                 cryptoName="Ton"
                 cryptoIcon="/icons/ton.svg"
                 invalid={!!model.errorMessage}
-                error={model.errorMessage}
                 endLabel={<div style={{
                     display: "flex",
                     alignItems: "center",
@@ -45,14 +44,17 @@ export function DexDepositTab() {
                         fontWeight: 400,
                         color: "var(--color-text-secondary)",
                     }}>
-                        <AnimatedNumber value={model.maxAmountInTon()} formatValue={formatCryptoAmount} duration={300} /></span>
+                        <AnimatedNumber value={model.maxAmountOfTonBalanceInTon()} formatValue={formatCryptoAmount} duration={300} /></span>
                     <MiniButton
-                        disabled={parseFloat(model.maxAmountInTon()) === 0}
+                        disabled={model.maxAmountOfTonBalanceInTon() === 0}
                         onClick={() => model.setAmountToMax()}>Max</MiniButton>
                 </div>}
             />
 
-            <MainButton fullWidth>Connect Wallet</MainButton>
+            <MainButton
+                disabled={!isDepositButtonEnabled}
+                fullWidth
+            >{buttonTitle}</MainButton>
         </>
     )
 }
