@@ -15,7 +15,30 @@ if (!TON_API_URL) {
     console.warn("TON_API_URL is not set?");
 }
 
+export const ENV = process.env.NEXT_PUBLIC_ENV as "local" | "development" | "production";
+if (!ENV) {
+    console.warn("ENV is not set");
+}
+export const NETWORK = (process.env.NEXT_PUBLIC_NETWORK || "testnet") as "mainnet" | "testnet";
+if (!NETWORK) {
+    console.warn("NETWORK is not set");
+}
+if (NETWORK === "mainnet" || NETWORK === "testnet") {
+    console.warn("NETWORK is not set to mainnet or testnet");
+}
+if (ENV === "production" && NETWORK === "testnet") {
+    console.warn("ENV is production and NETWORK is testnet");
+}
 
+export const HOST = process.env.HOST || process.env.NEXT_PUBLIC_HOST || "localhost:3000";
+
+if (!HOST) {
+    console.warn("HOST is not set");
+}
+
+if (ENV !== "local" && HOST === "localhost") {
+    console.warn("ENV is production and HOST is localhost");
+}
 
 
 
@@ -44,31 +67,4 @@ if (!API_URL) {
     console.warn("API_URL is not set");
 }
 export const API_SCHEME = process.env.NEXT_PUBLIC_API_SCHEME || "https";
-export const TREASURY_CONTRACT_ADDR = process.env.NEXT_PUBLIC_TREASURY_CONTRACT_ADDR as string;
-if (!TREASURY_CONTRACT_ADDR) {
-    console.warn("TREASURY_CONTRACT_ADDR is not set");
-}
-export const ENV = process.env.NEXT_PUBLIC_ENV as "local" | "development" | "production";
-if (!ENV) {
-    console.warn("ENV is not set");
-}
-export const NETWORK = (process.env.NEXT_PUBLIC_NETWORK || "testnet") as "mainnet" | "testnet";
-if (!NETWORK) {
-    console.warn("NETWORK is not set");
-}
-if (NETWORK === "mainnet" || NETWORK === "testnet") {
-    console.warn("NETWORK is not set to mainnet or testnet");
-}
-if (ENV === "production" && NETWORK === "testnet") {
-    console.warn("ENV is production and NETWORK is testnet");
-}
 
-export const HOST = process.env.HOST || process.env.NEXT_PUBLIC_HOST || "localhost:3000";
-
-if (!HOST) {
-    console.warn("HOST is not set");
-}
-
-if (ENV !== "local" && HOST === "localhost") {
-    console.warn("ENV is production and HOST is localhost");
-}

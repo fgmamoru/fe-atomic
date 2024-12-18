@@ -1,14 +1,14 @@
 import { sha256, signVerify } from '@ton/crypto';
 
-import { Address, Builder, Dictionary, OpenedContract, TonClient, TonClient4, beginCell, toNano } from "@ton/ton";
-import { ATOMIC_DEX_CONTRACT_ADDRESS } from "../config.service";
-import { AtomicDex, AtomicPool, MultiSwapBackend, storeMultiSwapBackend, SwapOrder } from "../AtomicDex/AtomicDex.service";
+import { Address, Builder, Dictionary, OpenedContract, Sender, TonClient, TonClient4, beginCell, toNano } from "@ton/ton";
+import { ATOMIC_DEX_CONTRACT_ADDRESS, NETWORK } from "../config.service";
+import { AtomicDex, AtomicPool, MultiSwapBackend, storeMultiSwapBackend, storeTopUpGasMember, SwapOrder } from "../AtomicDex/AtomicDex.service";
 import { AtomicPoolCurrencyMapItem, Currency, CurveTypes, ExpandedAtomicPool } from "@/types";
 import { SandboxContract, TreasuryContract } from '@ton/sandbox';
 import debug from 'debug';
-import { TonConnectUI } from '@tonconnect/ui-react';
-import { calculateExpectedOut } from '@/utils';
-import { DEFAULT_CURRENCIES_MAP, DEFAULT_POOLS } from '../Defaults';
+import { CHAIN, TonConnectUI } from '@tonconnect/ui-react';
+import { calculateExpectedOut, getTonTxValidUntil } from '@/utils';
+import { DEFAULT_CURRENCIES_MAP, DEFAULT_POOLS, TON_TX_VALID_UNTIL } from '../Defaults';
 import { AtomicWalletModel } from '@/models/Wallet/AtomicWallet.model';
 import { AtomicMemberRecordModel } from '@/models/AtomicMember.model';
 
@@ -69,9 +69,9 @@ export class SwapService {
     private readonly contract: OpenedContract<AtomicDex>;
     private readonly contractAddress: string;
     private pools?: Record<string, ExpandedAtomicPool>;
-    orbsClientContract: OpenedContract<AtomicDex>;
+    private orbsClientContract: OpenedContract<AtomicDex>;
 
-    constructor(private readonly orbsClient: TonClient4) {
+    constructor(private readonly orbsClient: TonClient4, private readonly tonConnectUI: TonConnectUI) {
         this.contractAddress = ATOMIC_DEX_CONTRACT_ADDRESS;
         console.log("Contract address", this.contractAddress);
         this.atomicDex = AtomicDex.fromAddress(Address.parse(this.contractAddress));
@@ -80,8 +80,8 @@ export class SwapService {
         });
         this.contract = client.open(this.atomicDex);
         this.orbsClientContract = orbsClient.open(this.atomicDex);
-
-
+        this.tonConnectUI = tonConnectUI;
+        tonConnectUI.sendTransaction
         // test hash 
         // const testSeq = 0n;
         // const testQueryId = 0n;
@@ -309,11 +309,25 @@ export class SwapService {
     async sendPingOperation(
     ) {
 
-        return this.contract.sendExternal(
-            {
-                $$type: 'Ping',
-            }
-        );
+    }
+
+    async sendDepositOperation(address: Address, tonAmount: bigint) {
+        const publicKeyBigInt = BigInt(`0x${publicKey}`);
+
+        const builder = storeTopUpGasMember({
+            $$type: "TopUpGasMember",
+            publicKey: publicKeyBigInt,
+            queryId: 0n
+        })
+
+        // this.tonConnectUI.sendTransaction({
+        //     messages: [
+        //         builder
+        //     ],
+        //     validUntil: getTonTxValidUntil(),
+        //     from: address.toRawString(),
+        //     network: NETWORK === "testnet" ? CHAIN.TESTNET : CHAIN.MAINNET,
+        // })
     }
 
     public async getMember(publicKey: string): Promise<AtomicMemberRecordModel | null> {
@@ -334,7 +348,6 @@ export class SwapService {
             return null;
         }
     }
-
 
     private calculateMultiSwapSlice(
         seq: bigint,

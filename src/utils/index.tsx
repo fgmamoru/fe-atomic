@@ -1,3 +1,4 @@
+import { TON_TX_VALID_UNTIL } from "@/services/Defaults";
 import { CurveTypes, ExpandedAtomicPool } from "@/types";
 import debug from 'debug';
 
@@ -146,7 +147,7 @@ export function calculateExpectedOut(
                 newReserve0 = pool.reserve0 - (pool.reserve0 - pool.reserve1) / (pool.reserve1 + amountWithFee);
             }
         }
-        return outputAmount - 10n;
+        return outputAmount;
     } catch (error) {
         console.error(error);
         return 0n
@@ -163,4 +164,8 @@ export function calculateInvariantD(x: bigint, y: bigint): bigint {
     let D = (AMPLIFICATION_FACTOR * sumXY) + (productXY / AMPLIFICATION_FACTOR);
 
     return D;
+}
+
+export function getTonTxValidUntil() {
+    return Math.floor(Date.now() / 1000) + TON_TX_VALID_UNTIL
 }

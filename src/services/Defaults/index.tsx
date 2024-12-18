@@ -110,3 +110,5 @@ export const DEFAULT_POOLS: Array<ExpandedAtomicPool> = [{
     token1: DEFAULT_CURRENCIES[5],
     contractId: '2',
 }]
+
+export const TON_TX_VALID_UNTIL = 5 * 60;

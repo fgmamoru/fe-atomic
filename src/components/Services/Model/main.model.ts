@@ -7,7 +7,7 @@ import { Wallet } from '../ton-comms/Wallet'
 import { create } from 'zustand';
 import { Currency, ExpandedAtomicPool, RouteSpeed, UnstakeType } from '@/types'
 import { formatCryptoAmount, formatCryptoAmountAbbr, formatPercent } from '@/utils'
-import { ATOMIC_DEX_CONTRACT_ADDRESS, NETWORK, TREASURY_CONTRACT_ADDR } from '@/services/config.service'
+import { ATOMIC_DEX_CONTRACT_ADDRESS, NETWORK } from '@/services/config.service'
 import { AtomicDex } from '@/services/AtomicDex/AtomicDex.service'
 import { getSwapCurrencies, SwapService } from '@/services/swap/swap.service'
 import debug from 'debug'
@@ -17,6 +17,7 @@ import { AtomicWalletModel } from '@/models/Wallet/AtomicWallet.model'
 import { toast } from "react-toastify";
 import * as axios from 'axios';
 import { AtomicMemberRecordModel } from '@/models/AtomicMember.model'
+import { bigIntClamp } from '@/utils/math'
 
 type ActiveTab = 'swap' | 'deposit' | 'withdraw';
 const atomicDex = AtomicDex.fromAddress(Address.parse(ATOMIC_DEX_CONTRACT_ADDRESS))
@@ -71,7 +72,6 @@ type ModelType = {
     setActiveTab: (activeTab: ActiveTab) => void
     setUnstakeType: (unstakeType: UnstakeType) => void
     // setAmount: (amount: string) => void
-    isStakeTabActive: () => boolean
     _maxAmountInNano: () => bigint
     getMaxAmountOfSelectedCurrency: () => number | bigint
     isMainnet: () => boolean
@@ -121,7 +121,7 @@ type ModelType = {
     _initExchangeRates: () => void,
     _maxAmountOfTonBalanceInNano: () => bigint,
     maxAmountOfTonBalanceInTon: () => number,
-
+    _setResultAmount: (bigint: bigint) => void,
 };
 type WaitForTransaction = 'no' | 'wait' | 'timeout' | 'done'
 
@@ -152,17 +152,13 @@ function tonToUsd(ton: number, exchangeRate: number) {
 
 
 
-const _treasuryAddress = Address.parse(TREASURY_CONTRACT_ADDR)
-// Set your referrer wallet address here to receive referral rewards.
-const referrerAddress = '<REFERRER_WALLET_ADDRESS>'
-const updateLastBlockDelay = 30 * 1000
 const retryDelay = 6 * 1000
 const checkBalanceChangeDelay = 6 * 1000
 const txValidUntil = 5 * 60
 const errorMessageTonAccess = 'Unable to access blockchain'
 const errorMessageNetworkMismatch = 'Your wallet must be on '
 const formattedZero = formatCryptoAmount(0);
-// @ts-ignore
+
 export const useModel = create<ModelType>(((set, get) => ({
     TONToUSD: 0,
     inited: false,
@@ -185,6 +181,9 @@ export const useModel = create<ModelType>(((set, get) => ({
     ongoingRequests: 0,
     errorMessage: '',
     _exchangeRates: {},
+    _memberRecord: null,
+    _selectedRoute: null,
+
 
     // unobserved state
     tonConnectUI: undefined,
@@ -443,18 +442,16 @@ export const useModel = create<ModelType>(((set, get) => ({
         if (selectedRoute == null) {
             set({
                 errorMessage: 'No route found',
-                resultAmount: '',
                 amount: formatted,
             })
+            get()._setResultAmount(0n)
             return
         }
 
         const resultAmount = selectedRoute.getPrice(get().amountInNano()!);
 
         debug(`setAmount, amount: ${amount}, formatted: ${formatted}, amountInNano: ${amountInNano}, resultAmount: ${resultAmount}`)
-        set({
-            resultAmount: NanoToTon(resultAmount).toFixed(2),
-        })
+        get()._setResultAmount(resultAmount)
     },
 
     setFromCurrency: (currency: Currency) => {
@@ -517,7 +514,7 @@ export const useModel = create<ModelType>(((set, get) => ({
 
             const tonClient = new TonClient4({ endpoint: url });
             const atomicDexContract = tonClient.open(atomicDex);
-            const swapService = new SwapService(tonClient);
+            const swapService = new SwapService(tonClient, tonConnectUI);
 
             set({
                 tonConnectUI,
@@ -851,6 +848,16 @@ export const useModel = create<ModelType>(((set, get) => ({
 
     maxAmountOfTonBalanceInTon() {
         return Number(get()._maxAmountOfTonBalanceInNano()) / 1000000000
+    },
+
+    _setResultAmount: (amount: bigint) => {
+        if (amount === 0n) return '';
+        if (!amount) return '';
+
+
+        set({
+            resultAmount: formatCryptoAmount(NanoToTon(bigIntClamp(amount, 0)))
+        })
     },
 })))
 
