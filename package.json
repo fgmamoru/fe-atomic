@@ -28,6 +28,7 @@
     "@ton/ton": "^14.0.0",
     "@tonconnect/ui-react": "^2.0.9",
     "animated-number-react": "^0.1.2",
+    "axios": "^1.7.9",
     "bn.js": "^5.2.1",
     "chart.js": "^4.4.3",
     "chartjs-adapter-date-fns": "^3.0.0",

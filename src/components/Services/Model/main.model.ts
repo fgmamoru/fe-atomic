@@ -14,7 +14,9 @@ import debug from 'debug'
 import { DEFAULT_CURRENCIES } from '@/services/Defaults'
 import { Route, router } from '@/services/Router'
 import { AtomicWalletModel } from '@/models/Wallet/AtomicWallet.model'
-// import { toast } from "react-toastify";
+import { toast } from "react-toastify";
+import * as axios from 'axios';
+
 type ActiveTab = 'stake' | 'unstake';
 const atomicDex = AtomicDex.fromAddress(Address.parse(ATOMIC_DEX_CONTRACT_ADDRESS))
 const debugLog = debug('app:model')
@@ -734,15 +736,29 @@ export const useModel = create<ModelType>(((set, get) => ({
                 }
             );
             console.log('executeSwapOrder, swap executed')
-            // toast.success('Swap executed successfully')
+            toast.success('Swap executed successfully')
         }
         catch (error) {
-            console.log('executeSwapOrder, error', error)
             console.error(error)
+
             set({
                 errorMessage: 'Swap failed, please try again',
+            });
+
+            if (axios.isAxiosError(error)) {
+                if ((error.response?.data?.error as string)?.includes("unhandled out-of-gas exception")) {
+
+                    toast.error("Network out of gas, please try later", {
+                        autoClose: 15000
+                    });
+
+                    return;
+                }
+            }
+
+            toast.error('Swap failed, please try again', {
+                autoClose: 15000
             })
-            // toast.error('Swap failed, please try again')
         }
         finally {
             get().setWaitForTransaction('done')
@@ -888,3 +904,7 @@ export const useModel = create<ModelType>(((set, get) => ({
         return formatCryptoAmountAbbr(parseFloat(amount) * parseFloat(rate))
     },
 })))
+
+function isAxiosError(error: unknown) {
+    throw new Error('Function not implemented.')
+}
