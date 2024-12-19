@@ -25,9 +25,8 @@ export function DexSwapTab() {
     const buttonTitle = wallet ? 'Swap' : 'Connect Wallet';
     const [fromModalOpen, setFromModalOpen] = useState(false);
     const [toModalOpen, setToModalOpen] = useState(false);
-    const [waitingTransactionModalOpen, setWaitingTransactionModalOpen] = useState(false);
+    const [waitingTransactionModalOpen] = useState(false);
     const { open } = useTonConnectModal();
-    // const buttonEnabled = mainModel.readyToSwap() || !mainModel.isConnected();
 
     useEffect(() => {
         if (!tonConnectUi) return;
@@ -141,11 +140,6 @@ export function DexSwapTab() {
             <WaitingTransactionModal
                 isOpen={waitingTransactionModalOpen}
             />
-            <pre>
-                {
-                    // JSON.stringify(mainModel.potentialRoutes)
-                }
-            </pre>
         </>
     )
 }

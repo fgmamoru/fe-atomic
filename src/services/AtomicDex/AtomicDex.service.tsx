@@ -824,7 +824,7 @@ function loadGetterTupleTopUpGasMember(source: TupleReader) {
     return { $$type: 'TopUpGasMember' as const, queryId: _queryId, publicKey: _publicKey };
 }
 
-function storeTupleTopUpGasMember(source: TopUpGasMember) {
+export function storeTupleTopUpGasMember(source: TopUpGasMember) {
     let builder = new TupleBuilder();
     builder.writeNumber(source.queryId);
     builder.writeNumber(source.publicKey);

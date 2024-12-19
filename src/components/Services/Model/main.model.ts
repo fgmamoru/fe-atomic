@@ -74,7 +74,6 @@ type ModelType = {
     // setAmount: (amount: string) => void
     _maxAmountInNano: () => bigint
     getMaxAmountOfSelectedCurrency: () => number | bigint
-    isMainnet: () => boolean
     setAmount: (amount: string) => void
     setAmountToMax: () => void
     tonBalanceFormatted: () => string | undefined
@@ -86,12 +85,8 @@ type ModelType = {
     getExchange(amount: string, from: Currency, to: Currency): string
     getInUsd(amount: string, from: Currency): string
 
-    apy: () => number | undefined
-    apyFormatted: () => string | undefined
-    currentlyStaked: () => string
     setWaitForTransaction: (wait: WaitForTransaction) => void
     checkIfBalanceChanged: (balance: bigint, walletStateBalance: bigint, retries: number) => void
-    currentlyStakedInUsd: () => string
 
     resultAmount: string;
     selectedFromCurrency: Currency;
@@ -276,11 +271,6 @@ export const useModel = create<ModelType>(((set, get) => ({
 
     },
 
-
-    isMainnet() {
-        return get().network === 'mainnet'
-    },
-
     beginRequest: () => {
         set((state) => ({
             ongoingRequests: state.ongoingRequests + 1
@@ -350,51 +340,6 @@ export const useModel = create<ModelType>(((set, get) => ({
     isAmountPositive() {
         const nano = get().amountInNano();
         return nano != null && nano > 0n
-    },
-
-
-    apy() {
-        const times = get().times
-        const lastStaked = get().treasuryState?.lastStaked
-        const lastRecovered = get().treasuryState?.lastRecovered
-        if (times != null && lastStaked != null && lastRecovered != null) {
-            const duration = 2 * Number(times.nextRoundSince - times.currentRoundSince)
-            const year = 365 * 24 * 60 * 60
-            const compoundingFrequency = year / duration
-            return Math.pow(Number(lastRecovered) / Number(lastStaked) || 1, compoundingFrequency) - 1
-        }
-    },
-
-    apyFormatted() {
-        if (get().apy != null) {
-            return formatPercent(get().apy()! || 0)
-        }
-
-        return ''
-    },
-
-    currentlyStaked() {
-        if (get().treasuryState != null) {
-            return (
-                (Number(get().treasuryState!.totalCoins) / 1000000000).toLocaleString(undefined, {
-                    maximumFractionDigits: 0,
-                }) + ' TON'
-            )
-        }
-
-        return ''
-    },
-
-    currentlyStakedInUsd() {
-        if (get().treasuryState != null) {
-            const val = tonToUsd(Number(get().treasuryState!.totalCoins / 1000000000n), get().TONToUSD)
-
-            return val.toLocaleString(undefined, {
-                maximumFractionDigits: 0,
-            })
-        }
-
-        return "0"
     },
 
     setWaitForTransaction: (wait: WaitForTransaction) => {

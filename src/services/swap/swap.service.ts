@@ -2,7 +2,7 @@ import { sha256, signVerify } from '@ton/crypto';
 
 import { Address, Builder, Dictionary, OpenedContract, Sender, TonClient, TonClient4, beginCell, toNano } from "@ton/ton";
 import { ATOMIC_DEX_CONTRACT_ADDRESS, NETWORK } from "../config.service";
-import { AtomicDex, AtomicPool, MultiSwapBackend, storeMultiSwapBackend, storeTopUpGasMember, SwapOrder } from "../AtomicDex/AtomicDex.service";
+import { AtomicDex, AtomicPool, MultiSwapBackend, storeMultiSwapBackend, storeTopUpGasMember, storeTupleTopUpGasMember, SwapOrder } from "../AtomicDex/AtomicDex.service";
 import { AtomicPoolCurrencyMapItem, Currency, CurveTypes, ExpandedAtomicPool } from "@/types";
 import { SandboxContract, TreasuryContract } from '@ton/sandbox';
 import debug from 'debug';
@@ -312,18 +312,23 @@ export class SwapService {
     }
 
     async sendDepositOperation(address: Address, tonAmount: bigint) {
-        const publicKeyBigInt = BigInt(`0x${publicKey}`);
+        // const publicKeyBigInt = BigInt(`0x${publicKey}`);
 
-        const builder = storeTopUpGasMember({
-            $$type: "TopUpGasMember",
-            publicKey: publicKeyBigInt,
-            queryId: 0n
-        })
+        // const msg = storeTopUpGasMember({
+        //     $$type: "TopUpGasMember",
+        //     publicKey: publicKeyBigInt,
+        //     queryId: 0n
+        // })
 
         // this.tonConnectUI.sendTransaction({
         //     messages: [
-        //         builder
+        //         {
+        //             address: this.contractAddress,
+        //             value: toNano("0.05"),
+        //             stateInit: beginCell().store(storeTopUpGasMember(msg)).endCell()
+        //         }
         //     ],
+
         //     validUntil: getTonTxValidUntil(),
         //     from: address.toRawString(),
         //     network: NETWORK === "testnet" ? CHAIN.TESTNET : CHAIN.MAINNET,
