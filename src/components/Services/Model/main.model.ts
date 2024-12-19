@@ -2,7 +2,7 @@ import { getHttpV4Endpoint, Network } from '@orbs-network/ton-access'
 import { Address, fromNano, OpenedContract, toNano, TonClient4 } from '@ton/ton'
 import { ConnectedWallet, TonConnectUI } from '@tonconnect/ui'
 import { create } from 'zustand';
-import { Currency, ExpandedAtomicPool, RouteSpeed, UnstakeType } from '@/types'
+import { Currency, ExpandedAtomicPool, RouteSpeed, SwapRequestStatus, UnstakeType } from '@/types'
 import { formatCryptoAmount, formatCryptoAmountAbbr, formatPercent } from '@/utils'
 import { ATOMIC_DEX_CONTRACT_ADDRESS, NETWORK } from '@/services/config.service'
 import { AtomicDex } from '@/services/AtomicDex/AtomicDex.service'
@@ -25,7 +25,9 @@ if (typeof localStorage !== 'undefined') {
     localStorage.debug = 'app:*'
 }
 
+
 type ModelType = {
+    swapRequestStatus: SwapRequestStatus,
     loadTonBalance(): unknown
     onConnectWallet: (wallet: ConnectedWallet) => void
     onDisconnectWallet: () => void
@@ -145,6 +147,7 @@ const errorMessageNetworkMismatch = 'Your wallet must be on '
 const formattedZero = formatCryptoAmount(0);
 
 export const useModel = create<ModelType>(((set, get) => ({
+    swapRequestStatus: SwapRequestStatus.None,
     TONToUSD: 0,
     inited: false,
     network: NETWORK,
@@ -573,13 +576,15 @@ export const useModel = create<ModelType>(((set, get) => ({
     },
 
     executeSwapOrder: async () => {
-        console.log('executeSwapOrder')
+        debugLog('executeSwapOrder')
         try {
+
             if (!get().readyToSwap()) return;
-            get().setWaitForTransaction('wait')
-            get().beginRequest()
-            console.log('executeSwapOrder, ready to swap', get()._swapService!.executeSwap)
-            console.log(`amount: ${get().amount}, ${get().resultAmount}`)
+            set({ swapRequestStatus: SwapRequestStatus.Requested })
+            // get().setWaitForTransaction('wait')
+            // get().beginRequest()
+            debugLog('executeSwapOrder, ready to swap', get()._swapService!.executeSwap)
+            debugLog(`amount: ${get().amount}, ${get().resultAmount}`)
             // process
             await get()._swapService!.executeSwap(
                 {
@@ -592,15 +597,35 @@ export const useModel = create<ModelType>(((set, get) => ({
                     poolId: 0,
                 }
             );
+
+            set({
+                swapRequestStatus: SwapRequestStatus.WaitingForConfirmation,
+            })
+
+            const newMember = await get()._memberRecord?.poolForUpdates();
+
+            set({
+                swapRequestStatus: SwapRequestStatus.Confirmed,
+                _memberRecord: newMember,
+            })
+
             console.log('executeSwapOrder, swap executed')
             toast.success('Swap executed successfully')
         }
         catch (error) {
             console.error(error)
+            if (get().swapRequestStatus === SwapRequestStatus.WaitingForConfirmation) {
+                set({
+                    errorMessage: 'Swap Confirmation could not be verified',
+                });
+            }
+            else {
+                set({
+                    errorMessage: 'Swap failed, please try again',
+                });
+            }
 
-            set({
-                errorMessage: 'Swap failed, please try again',
-            });
+            set({ swapRequestStatus: SwapRequestStatus.Failed })
 
             if (axios.isAxiosError(error)) {
                 if ((error.response?.data?.error as string)?.includes("unhandled out-of-gas exception")) {
@@ -618,6 +643,7 @@ export const useModel = create<ModelType>(((set, get) => ({
             })
         }
         finally {
+            set({ swapRequestStatus: SwapRequestStatus.None })
             get().setWaitForTransaction('done')
             get().endRequest()
             get().setAmount("");
@@ -626,6 +652,7 @@ export const useModel = create<ModelType>(((set, get) => ({
 
         // final state
     },
+
 
     getSignature: async () => {
         // const seq =

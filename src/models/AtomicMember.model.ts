@@ -1,5 +1,6 @@
-import { AtomicMemberRecord } from "@/services/AtomicDex/AtomicDex.service";
+import { AtomicDex, AtomicMemberRecord } from "@/services/AtomicDex/AtomicDex.service";
 import { Currency, CurrencyBalanceKeyName } from "@/types";
+import { OpenedContract } from "@ton/core";
 
 export class AtomicMemberRecordModel implements AtomicMemberRecord {
     $$type: "AtomicMemberRecord";
@@ -23,7 +24,10 @@ export class AtomicMemberRecordModel implements AtomicMemberRecord {
     unused: bigint;
     private balances: Record<CurrencyBalanceKeyName, bigint> & { balance0: bigint; balance1: bigint; balance2: bigint; balance3: bigint; balance4: bigint; balance5: bigint; balance6: bigint; balance7: bigint; balance8: bigint; balance9: bigint; balance10: bigint; balance11: bigint; balance12: bigint; balance13: bigint; balance14: bigint; };
 
-    constructor(member: AtomicMemberRecord) {
+    constructor(
+        member: AtomicMemberRecord,
+        private readonly contract: OpenedContract<AtomicDex>,
+        private readonly publicKey: bigint) {
         this.$$type = "AtomicMemberRecord";
         this.id = member.id;
         this.seq = member.seq;
@@ -69,5 +73,23 @@ export class AtomicMemberRecordModel implements AtomicMemberRecord {
 
     getCurrencyBalance(currency: Currency): bigint {
         return this.balances[currency.balanceKey];
+    }
+    /**
+     * Starts pooling for updates in balances until it founds a change
+     */
+    poolForUpdates(): Promise<AtomicMemberRecordModel> {
+        return new Promise((resolve, reject) => {
+            const pool = () => {
+                this.contract.getAtomicMemberRecord(this.publicKey).then((member) => {
+                    if (this.seq !== member!.seq) {
+                        resolve(new AtomicMemberRecordModel(member!, this.contract, this.publicKey));
+                    } else {
+                        setTimeout(pool, 1000);
+                    }
+                }).catch(reject);
+            }
+
+            pool();
+        });
     }
 }

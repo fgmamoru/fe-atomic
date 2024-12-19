@@ -13,24 +13,24 @@ import { useModel } from "@/components/Services/Model";
 import { TokenSelectorModal } from "@/components/Modal/TokenSelectorModal";
 import { WaitingTransactionModal } from "@/components/Modal/WaitingTransactionModal";
 import { TxSpeed, TxSpeedBadge } from "@/components/Misc/TxSpeedBadge";
+import { SwapRequestStatus } from "@/types";
 
 export function DexSwapTab() {
-    const mainModel = useModel();
+    const model = useModel();
     const [tonConnectUi] = useTonConnectUI();
     const wallet = useTonWallet();
     wallet?.account.publicKey;
-    useEffect(() => { mainModel.setActiveTab("swap") }, []);
+    useEffect(() => { model.setActiveTab("swap") }, []);
 
 
     const buttonTitle = wallet ? 'Swap' : 'Connect Wallet';
     const [fromModalOpen, setFromModalOpen] = useState(false);
     const [toModalOpen, setToModalOpen] = useState(false);
-    const [waitingTransactionModalOpen] = useState(false);
     const { open } = useTonConnectModal();
 
     useEffect(() => {
         if (!tonConnectUi) return;
-        mainModel.init(tonConnectUi);
+        model.init(tonConnectUi);
     }, [tonConnectUi]);
     return (
         <>
@@ -40,15 +40,15 @@ export function DexSwapTab() {
                     id="stake-amount"
                     type="text"
                     variant="top"
-                    value={mainModel.amount}
-                    onChange={mainModel.setAmount}
+                    value={model.amount}
+                    onChange={model.setAmount}
                     inputMode="decimal"
                     placeholder={"0.0"}
                     label="Sell"
-                    cryptoName={mainModel.selectedFromCurrency.symbol}
-                    cryptoIcon={mainModel.selectedFromCurrency.icon}
-                    invalid={!!mainModel.errorMessage}
-                    currencies={mainModel.currencies}
+                    cryptoName={model.selectedFromCurrency.symbol}
+                    cryptoIcon={model.selectedFromCurrency.icon}
+                    invalid={!!model.errorMessage}
+                    currencies={model.currencies}
                     onCurrencyClick={() => {
                         setFromModalOpen(true)
                     }}
@@ -62,11 +62,11 @@ export function DexSwapTab() {
                             fontWeight: 400,
                             color: "var(--color-text-secondary)",
                         }}>
-                            <AnimatedNumber value={mainModel.getMaxAmountOfSelectedCurrency()} formatValue={formatCryptoAmount} duration={300} /></span>
+                            <AnimatedNumber value={model.getMaxAmountOfSelectedCurrency()} formatValue={formatCryptoAmount} duration={300} /></span>
                         <MiniButton
-                            disabled={Number(mainModel.getMaxAmountOfSelectedCurrency()) === 0}
+                            disabled={Number(model.getMaxAmountOfSelectedCurrency()) === 0}
                             onClick={() => {
-                                mainModel.setAmount(mainModel.getMaxAmountOfSelectedCurrency().toString())
+                                model.setAmount(model.getMaxAmountOfSelectedCurrency().toString())
                             }}>Max</MiniButton>
                     </div>}
                 />
@@ -77,7 +77,7 @@ export function DexSwapTab() {
                         <MainButton
                             square
                             variant="secondary"
-                            onClick={mainModel.switchCurrencies}
+                            onClick={model.switchCurrencies}
                             className={styles.SwapButton}>
                             <img src="/icons/switch.svg" alt="swap" />
                         </MainButton>
@@ -87,58 +87,58 @@ export function DexSwapTab() {
                 <SwapInput
                     min={0}
                     id="stake-you-receive"
-                    value={mainModel.resultAmount}
+                    value={model.resultAmount}
                     label="Buy"
-                    cryptoName={mainModel.selectedToCurrency.symbol}
-                    cryptoIcon={mainModel.selectedToCurrency.icon}
+                    cryptoName={model.selectedToCurrency.symbol}
+                    cryptoIcon={model.selectedToCurrency.icon}
                     disabled
                     type="text"
-                    currencies={mainModel.currencies}
+                    currencies={model.currencies}
                     onCurrencyClick={() => setToModalOpen(true)}
                     variant="bottom"
                     placeholder="0.0"
                 />
                 <TxSpeedBadge
                     speed={TxSpeed.normal}
-                    error={mainModel.errorMessage}
+                    error={model.errorMessage}
                 />
             </div>
             <MainButton
                 // onClick={model.executeSwapOrder}
-                disabled={!mainModel.readyToSwap()}
+                disabled={!model.readyToSwap()}
                 onClick={() => {
 
-                    if (!mainModel.isConnected()) return open();
+                    if (!model.isConnected()) return open();
 
 
-                    mainModel.executeSwapOrder();
+                    model.executeSwapOrder();
                 }}
                 fullWidth suppressHydrationWarning>{buttonTitle}</MainButton>
 
             <TokenSelectorModal
-                currencies={mainModel.currencies}
+                currencies={model.currencies}
                 isOpen={fromModalOpen}
                 onClose={() => {
                     setFromModalOpen(false)
                 }}
                 onCurrencyClick={(currency) => {
-                    mainModel.setFromCurrency(currency)
+                    model.setFromCurrency(currency)
                     setFromModalOpen(false)
                 }}
             />
             <TokenSelectorModal
-                currencies={mainModel.currencies}
+                currencies={model.currencies}
                 isOpen={toModalOpen}
                 onClose={() => {
                     setToModalOpen(false)
                 }}
                 onCurrencyClick={(currency) => {
-                    mainModel.setToCurrency(currency)
+                    model.setToCurrency(currency)
                     setToModalOpen(false)
                 }}
             />
             <WaitingTransactionModal
-                isOpen={waitingTransactionModalOpen}
+                status={model.swapRequestStatus}
             />
         </>
     )

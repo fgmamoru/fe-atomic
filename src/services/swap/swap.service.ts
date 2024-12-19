@@ -347,7 +347,7 @@ export class SwapService {
 
             if (!member) return null;
 
-            return new AtomicMemberRecordModel(member);
+            return new AtomicMemberRecordModel(member, this.orbsClientContract, publicKeyBigInt);
         } catch (error) {
             console.error(error);
             return null;

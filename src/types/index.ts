@@ -166,3 +166,12 @@ export enum RouteSpeed {
 export type ExpandedAtomicPool = Omit<AtomicPool, 'curveType'> & AtomicPoolCurrencyMapItem & AtomicPoolContract;
 
 export type ExchangeRateKey = `${string}-${string}`;
+
+
+export enum SwapRequestStatus {
+    None,
+    Requested,
+    WaitingForConfirmation,
+    Confirmed,
+    Failed,
+}
