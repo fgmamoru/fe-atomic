@@ -2,25 +2,10 @@ import { AtomicDex, AtomicMemberRecord } from "@/services/AtomicDex/AtomicDex.se
 import { Currency, CurrencyBalanceKeyName } from "@/types";
 import { OpenedContract } from "@ton/core";
 
-export class AtomicMemberRecordModel implements AtomicMemberRecord {
+export class AtomicMemberRecordModel {
     $$type: "AtomicMemberRecord";
     id: bigint;
     seq: bigint;
-    balance0: bigint;
-    balance1: bigint;
-    balance2: bigint;
-    balance3: bigint;
-    balance4: bigint;
-    balance5: bigint;
-    balance6: bigint;
-    balance7: bigint;
-    balance8: bigint;
-    balance9: bigint;
-    balance10: bigint;
-    balance11: bigint;
-    balance12: bigint;
-    balance13: bigint;
-    balance14: bigint;
     unused: bigint;
     private balances: Record<CurrencyBalanceKeyName, bigint> & { balance0: bigint; balance1: bigint; balance2: bigint; balance3: bigint; balance4: bigint; balance5: bigint; balance6: bigint; balance7: bigint; balance8: bigint; balance9: bigint; balance10: bigint; balance11: bigint; balance12: bigint; balance13: bigint; balance14: bigint; };
 
@@ -31,49 +16,62 @@ export class AtomicMemberRecordModel implements AtomicMemberRecord {
         this.$$type = "AtomicMemberRecord";
         this.id = member.id;
         this.seq = member.seq;
-        this.balance0 = member.balance0;
-        this.balance1 = member.balance1;
-        this.balance2 = member.balance2;
-        this.balance3 = member.balance3;
-        this.balance4 = member.balance4;
-        this.balance5 = member.balance5;
-        this.balance6 = member.balance6;
-        this.balance7 = member.balance7;
-        this.balance8 = member.balance8;
-        this.balance9 = member.balance9;
-        this.balance10 = member.balance10;
-        this.balance11 = member.balance11;
-        this.balance12 = member.balance12;
-        this.balance13 = member.balance13;
-        this.balance14 = member.balance14;
         this.unused = member.unused;
 
         this.balances = {
-            balance0: this.balance0,
-            balance1: this.balance1,
-            balance2: this.balance2,
-            balance3: this.balance3,
-            balance4: this.balance4,
-            balance5: this.balance5,
-            balance6: this.balance6,
-            balance7: this.balance7,
-            balance8: this.balance8,
-            balance9: this.balance9,
-            balance10: this.balance10,
-            balance11: this.balance11,
-            balance12: this.balance12,
-            balance13: this.balance13,
-            balance14: this.balance14,
+            balance0: member.balance0,
+            balance1: member.balance1,
+            balance2: member.balance2,
+            balance3: member.balance3,
+            balance4: member.balance4,
+            balance5: member.balance5,
+            balance6: member.balance6,
+            balance7: member.balance7,
+            balance8: member.balance8,
+            balance9: member.balance9,
+            balance10: member.balance10,
+            balance11: member.balance11,
+            balance12: member.balance12,
+            balance13: member.balance13,
+            balance14: member.balance14,
+        }
+    }
+
+    private reset(
+        member: AtomicMemberRecord
+    ) {
+        this.$$type = "AtomicMemberRecord";
+        this.id = member.id;
+        this.seq = member.seq;
+        this.unused = member.unused;
+
+        this.balances = {
+            balance0: member.balance0,
+            balance1: member.balance1,
+            balance2: member.balance2,
+            balance3: member.balance3,
+            balance4: member.balance4,
+            balance5: member.balance5,
+            balance6: member.balance6,
+            balance7: member.balance7,
+            balance8: member.balance8,
+            balance9: member.balance9,
+            balance10: member.balance10,
+            balance11: member.balance11,
+            balance12: member.balance12,
+            balance13: member.balance13,
+            balance14: member.balance14,
         }
     }
 
     getTonBalance(): bigint {
-        return this.balance0;
+        return this.balances.balance0;
     }
 
     getCurrencyBalance(currency: Currency): bigint {
         return this.balances[currency.balanceKey];
     }
+
     /**
      * Starts pooling for updates in balances until it founds a change
      */
@@ -82,14 +80,24 @@ export class AtomicMemberRecordModel implements AtomicMemberRecord {
             const pool = () => {
                 this.contract.getAtomicMemberRecord(this.publicKey).then((member) => {
                     if (this.seq !== member!.seq) {
+                        this.reset(member!)
                         resolve(new AtomicMemberRecordModel(member!, this.contract, this.publicKey));
                     } else {
-                        setTimeout(pool, 1000);
+                        setTimeout(pool, 2000);
                     }
                 }).catch(reject);
             }
 
             pool();
         });
+    }
+
+    private changeBalance(currency: Currency, change: bigint) {
+        this.balances[currency.balanceKey] += change;
+    }
+
+    public swap(cIn: Currency, cOut: Currency, amountIn: bigint, amountOut: bigint) {
+        this.changeBalance(cIn, -amountIn);
+        this.changeBalance(cOut, amountOut);
     }
 }

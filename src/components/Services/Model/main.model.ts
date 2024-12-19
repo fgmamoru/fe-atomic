@@ -602,6 +602,20 @@ export const useModel = create<ModelType>(((set, get) => ({
                 swapRequestStatus: SwapRequestStatus.WaitingForConfirmation,
             })
 
+            const member = await get()._memberRecord!;
+            member.swap(
+                get().selectedFromCurrency,
+                get().selectedToCurrency,
+                get().amountInNano()!,
+                toNano(get().resultAmount),
+            )
+
+            set({
+                _memberRecord: member,
+            })
+            get().setAmount("");
+
+
             const newMember = await get()._memberRecord?.poolForUpdates();
 
             set({
@@ -613,11 +627,14 @@ export const useModel = create<ModelType>(((set, get) => ({
             toast.success('Swap executed successfully')
         }
         catch (error) {
+            get().setAmount("");
+
             console.error(error)
             if (get().swapRequestStatus === SwapRequestStatus.WaitingForConfirmation) {
-                set({
-                    errorMessage: 'Swap Confirmation could not be verified',
-                });
+                // set({
+                //     errorMessage: 'Swap Confirmation could not be performed',
+                // });
+                return;
             }
             else {
                 set({
@@ -646,7 +663,6 @@ export const useModel = create<ModelType>(((set, get) => ({
             set({ swapRequestStatus: SwapRequestStatus.None })
             get().setWaitForTransaction('done')
             get().endRequest()
-            get().setAmount("");
         }
 
 
