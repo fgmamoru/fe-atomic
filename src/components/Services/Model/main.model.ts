@@ -1,9 +1,6 @@
 import { getHttpV4Endpoint, Network } from '@orbs-network/ton-access'
 import { Address, fromNano, OpenedContract, toNano, TonClient4 } from '@ton/ton'
 import { ConnectedWallet, TonConnectUI } from '@tonconnect/ui'
-import { maxAmountToStake } from '../ton-comms/Helpers'
-import { Treasury, TreasuryConfig, Times } from '../ton-comms/Treasury'
-import { Wallet } from '../ton-comms/Wallet'
 import { create } from 'zustand';
 import { Currency, ExpandedAtomicPool, RouteSpeed, UnstakeType } from '@/types'
 import { formatCryptoAmount, formatCryptoAmountAbbr, formatPercent } from '@/utils'
@@ -33,18 +30,13 @@ type ModelType = {
     onConnectWallet: (wallet: ConnectedWallet) => void
     onDisconnectWallet: () => void
     TONToUSD: number,
-    wallet: OpenedContract<Wallet> | undefined,
     inited: boolean,
     init: (client: TonConnectUI) => void,
     network: Network,
     tonClient?: TonClient4,
     address?: Address
     tonBalance?: bigint
-    treasury?: OpenedContract<Treasury>
-    treasuryState?: TreasuryConfig
-    times?: Times
     activeTab: ActiveTab
-    unstakeType: UnstakeType
     amount: string
     waitForTransaction: WaitForTransaction
     ongoingRequests: number
@@ -70,8 +62,6 @@ type ModelType = {
     beginRequest: () => void
     endRequest: () => void
     setActiveTab: (activeTab: ActiveTab) => void
-    setUnstakeType: (unstakeType: UnstakeType) => void
-    // setAmount: (amount: string) => void
     _maxAmountInNano: () => bigint
     getMaxAmountOfSelectedCurrency: () => number | bigint
     setAmount: (amount: string) => void
@@ -170,7 +160,6 @@ export const useModel = create<ModelType>(((set, get) => ({
     wallet: undefined,
     walletState: undefined,
     activeTab: 'swap',
-    unstakeType: 'recommended',
     amount: '',
     waitForTransaction: 'no',
     ongoingRequests: 0,
@@ -287,12 +276,6 @@ export const useModel = create<ModelType>(((set, get) => ({
         if (get().activeTab !== activeTab) {
             set({ activeTab })
             set({ amount: '' })
-        }
-    },
-
-    setUnstakeType: (unstakeType: UnstakeType) => {
-        if (get().unstakeType !== unstakeType) {
-            set({ unstakeType })
         }
     },
 
@@ -493,7 +476,6 @@ export const useModel = create<ModelType>(((set, get) => ({
         const address = get().address
 
         const lastBlockSeqNo = (await tonClient.getLastBlock()).last.seqno;
-        const wallet = tonClient.openAt(lastBlockSeqNo, Wallet.createFromAddress(get().address as Address));
 
         address == null
             ? Promise.resolve(0n)
@@ -501,12 +483,6 @@ export const useModel = create<ModelType>(((set, get) => ({
                 .then((value) => {
                     set({ tonBalance: BigInt(value.account.balance.coins) })
                 })
-
-
-        set({
-            wallet,
-        })
-
     },
 
     loadTonBalance: async () => {
@@ -801,11 +777,18 @@ export const useModel = create<ModelType>(((set, get) => ({
 
 
         set({
-            resultAmount: formatCryptoAmount(NanoToTon(bigIntClamp(amount, 0)))
+            resultAmount: formatCryptoAmount(NanoToTon(bigIntClamp(amount, 0n)))
         })
     },
 })))
 
 function isAxiosError(error: unknown) {
     throw new Error('Function not implemented.')
+}
+
+export const minimumTonBalanceReserve = 200000000n
+
+export function maxAmountToStake(tonBalance: bigint): bigint {
+    tonBalance -= minimumTonBalanceReserve
+    return tonBalance > 0n ? tonBalance : 0n
 }
