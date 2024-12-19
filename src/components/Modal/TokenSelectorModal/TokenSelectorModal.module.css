@@ -24,6 +24,14 @@
     color: var(--color-text-secondary);
 }
 
+.TokenSelectorModalItemSymbolSmall {
+    font-size: 12px;
+    font-weight: 400;
+    color: var(--color-text-secondary);
+    min-width: 30px;
+    display: inline-block
+}
+
 .TokenSelectorModalItemColumn {
     display: flex;
     flex-direction: column;
@@ -73,6 +81,7 @@
 .TokenSelectorModalItemBalance {
     font-family: Poppins;
     font-size: 16px;
+    height: 18px;
     font-weight: 400;
     line-height: 15.2px;
     letter-spacing: 0.15000000596046448px;
@@ -86,6 +95,8 @@
     font-family: Poppins;
     font-size: 16px;
     font-weight: 400;
+    height: 18px;
+
     line-height: 15.2px;
     letter-spacing: 0.15000000596046448px;
     text-align: right;
