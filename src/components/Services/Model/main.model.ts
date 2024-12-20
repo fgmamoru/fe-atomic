@@ -738,7 +738,9 @@ export const useModel = create<ModelType>(((set, get) => ({
             const amount = toNano(get().amount);
             const updatedMember = await member.executeDeposit(amount);
 
-            set({ _memberRecord: updatedMember, amount: '' });
+            set({ _memberRecord: updatedMember });
+
+            get().setAmount('');
 
             toast.success('Deposit successful');
         } catch (error) {
