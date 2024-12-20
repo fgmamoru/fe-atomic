@@ -1,4 +1,5 @@
 import { AtomicDex, AtomicMemberRecord } from "@/services/AtomicDex/AtomicDex.service";
+import { DEFAULT_CURRENCIES, DEFAULT_CURRENCIES_MAP } from "@/services/Defaults";
 import { Currency, CurrencyBalanceKeyName } from "@/types";
 import { OpenedContract } from "@ton/core";
 
@@ -37,6 +38,50 @@ export class AtomicMemberRecordModel {
         }
     }
 
+    public getTonBalance(): bigint {
+        return this.balances.balance0;
+    }
+
+    public getCurrencyBalance(currency: Currency): bigint {
+        return this.balances[currency.balanceKey];
+    }
+
+    /**
+     * Starts pooling for updates in balances until it founds a change
+     */
+    public poolForUpdates(): Promise<AtomicMemberRecordModel> {
+        return new Promise((resolve, reject) => {
+            const pool = () => {
+                this.contract.getAtomicMemberRecord(this.publicKey).then((member) => {
+                    if (this.seq !== member!.seq) {
+                        this.reset(member!)
+                        resolve(new AtomicMemberRecordModel(member!, this.contract, this.publicKey));
+                    } else {
+                        setTimeout(pool, 2000);
+                    }
+                }).catch(reject);
+            }
+
+            pool();
+        });
+    }
+
+    public async executeDeposit(amount: bigint): Promise<AtomicMemberRecordModel> {
+        console.log("Executing deposit of", amount);
+        await delay(3000);
+        this.changeBalance(DEFAULT_CURRENCIES_MAP["TON"], -amount);
+        return this;
+    }
+
+    /**
+     * Apply the changes of an swap to the balances.
+     * Used for optimistic Updates
+     */
+    public applySwap(currencyIn: Currency, currencyOut: Currency, amountIn: bigint, amountOut: bigint) {
+        this.changeBalance(currencyIn, -amountIn);
+        this.changeBalance(currencyOut, amountOut);
+    }
+
     private reset(
         member: AtomicMemberRecord
     ) {
@@ -64,40 +109,9 @@ export class AtomicMemberRecordModel {
         }
     }
 
-    getTonBalance(): bigint {
-        return this.balances.balance0;
-    }
-
-    getCurrencyBalance(currency: Currency): bigint {
-        return this.balances[currency.balanceKey];
-    }
-
-    /**
-     * Starts pooling for updates in balances until it founds a change
-     */
-    poolForUpdates(): Promise<AtomicMemberRecordModel> {
-        return new Promise((resolve, reject) => {
-            const pool = () => {
-                this.contract.getAtomicMemberRecord(this.publicKey).then((member) => {
-                    if (this.seq !== member!.seq) {
-                        this.reset(member!)
-                        resolve(new AtomicMemberRecordModel(member!, this.contract, this.publicKey));
-                    } else {
-                        setTimeout(pool, 2000);
-                    }
-                }).catch(reject);
-            }
-
-            pool();
-        });
-    }
-
     private changeBalance(currency: Currency, change: bigint) {
         this.balances[currency.balanceKey] += change;
     }
-
-    public swap(cIn: Currency, cOut: Currency, amountIn: bigint, amountOut: bigint) {
-        this.changeBalance(cIn, -amountIn);
-        this.changeBalance(cOut, amountOut);
-    }
 }
+
+const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));

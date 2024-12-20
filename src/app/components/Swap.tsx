@@ -13,7 +13,8 @@ import { useModel } from "@/components/Services/Model";
 import { TokenSelectorModal } from "@/components/Modal/TokenSelectorModal";
 import { WaitingTransactionModal } from "@/components/Modal/WaitingTransactionModal";
 import { TxSpeed, TxSpeedBadge } from "@/components/Misc/TxSpeedBadge";
-import { SwapRequestStatus } from "@/types";
+import { SwapSpeedModal } from "@/components/Modal/SwapSpeedModal";
+import { DepositModal } from "@/components/Modal/DepositModal";
 
 export function DexSwapTab() {
     const model = useModel();
@@ -21,11 +22,11 @@ export function DexSwapTab() {
     const wallet = useTonWallet();
     wallet?.account.publicKey;
     useEffect(() => { model.setActiveTab("swap") }, []);
-
-
     const buttonTitle = wallet ? 'Swap' : 'Connect Wallet';
     const [fromModalOpen, setFromModalOpen] = useState(false);
     const [toModalOpen, setToModalOpen] = useState(false);
+    const [swapSpeedModalOpen, setSwapSpeedModalOpen] = useState(false);
+    const [depositModalOpen, setDepositModalOpen] = useState(false);
     const { open } = useTonConnectModal();
 
     useEffect(() => {
@@ -34,6 +35,7 @@ export function DexSwapTab() {
     }, [tonConnectUi]);
     return (
         <>
+            <h2>Swap</h2>
             <div>
                 <SwapInput
                     min={0}
@@ -104,16 +106,17 @@ export function DexSwapTab() {
                 />
             </div>
             <MainButton
-                // onClick={model.executeSwapOrder}
                 disabled={!model.readyToSwap()}
                 onClick={() => {
-
                     if (!model.isConnected()) return open();
-
-
+                    if (model.isSwapFromTonWallet()) return setSwapSpeedModalOpen(true);
                     model.executeSwapOrder();
                 }}
-                fullWidth suppressHydrationWarning>{buttonTitle}</MainButton>
+                fullWidth
+                suppressHydrationWarning
+            >{buttonTitle}</MainButton>
+
+
 
             <TokenSelectorModal
                 currencies={model.currencies}
@@ -138,8 +141,25 @@ export function DexSwapTab() {
                 }}
             />
             <WaitingTransactionModal
-                status={model.swapRequestStatus}
+                status={model.requestStatus}
             />
+            <SwapSpeedModal
+                isOpen={swapSpeedModalOpen}
+                onDepositClick={() => {
+                    setSwapSpeedModalOpen(false)
+                    setDepositModalOpen(true)
+                }}
+                onSwapClick={() => {
+                    model.executeSwapOrder()
+                    setSwapSpeedModalOpen(false)
+                }}
+            />
+            <DepositModal isOpen={depositModalOpen}
+                onClose={
+                    () => {
+                        setDepositModalOpen(false)
+                    }
+                } />
         </>
     )
 }

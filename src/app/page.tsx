@@ -20,7 +20,7 @@ const DexPage = (() => {
             <PageLayoutNarrow>
                 <AtomicSpeedCardWrapper active={model.isAtomicSpeedSwap()}>
                     <Card>
-                        <CardSection>
+                        {/* <CardSection>
                             <div>
                                 <CustomSelector
                                     options={[{
@@ -33,17 +33,17 @@ const DexPage = (() => {
                                     onChange={(val) => setTab(val as Tab)}
                                 />
                             </div>
-                        </CardSection>
+                        </CardSection> */}
                         <CardSection>
                             {
                                 tab === 'Swap' ? <DexSwapTab /> : null
                             }
-                            {
+                            {/* {
                                 tab === 'Deposit' ? <DexDepositTab /> : null
                             }
                             {
                                 tab === 'Withdraw' ? <DexWithdrawTab /> : null
-                            }
+                            } */}
                         </CardSection>
                     </Card>
                 </AtomicSpeedCardWrapper>

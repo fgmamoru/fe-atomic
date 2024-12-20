@@ -10,7 +10,13 @@ import { useEffect } from "react";
 import { useTonWallet } from "@tonconnect/ui-react";
 import { TxSpeed, TxSpeedBadge } from "@/components/Misc/TxSpeedBadge";
 
-export function DexDepositTab() {
+type DexDepositTabProps = {
+    onDepositSuccessful: () => void;
+    onDepositFailed: () => void;
+}
+
+
+export function DexDepositTab(props: DexDepositTabProps) {
     const model = useModel();
     const wallet = useTonWallet();
     const buttonTitle = wallet ? 'Deposit' : 'Connect Wallet';
@@ -57,6 +63,16 @@ export function DexDepositTab() {
             <MainButton
                 disabled={!isDepositButtonEnabled}
                 fullWidth
+                onClick={() => {
+                    if (!isDepositButtonEnabled) return;
+                    if (model.amount && parseFloat(model.amount)) {
+                        model.executeDeposit().then(() => {
+                            props.onDepositSuccessful();
+                        }).catch(() => {
+                            props.onDepositFailed();
+                        });
+                    }
+                }}
             >{buttonTitle}</MainButton>
         </>
     )

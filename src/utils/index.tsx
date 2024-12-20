@@ -169,3 +169,12 @@ export function calculateInvariantD(x: bigint, y: bigint): bigint {
 export function getTonTxValidUntil() {
     return Math.floor(Date.now() / 1000) + TON_TX_VALID_UNTIL
 }
+
+export function formatDate(date: Date): string {
+    return date.toLocaleString(navigator.language, {
+        weekday: 'short',
+        hour12: false,
+        hour: '2-digit',
+        minute: '2-digit',
+    })
+}

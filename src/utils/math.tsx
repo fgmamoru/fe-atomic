@@ -1,3 +1,5 @@
+import { formatCryptoAmount } from ".";
+
 export const bigIntClamp = (value: bigint, min: bigint, max?: bigint): bigint => {
     if (value < min) {
         return min;
@@ -9,3 +11,4 @@ export const bigIntClamp = (value: bigint, min: bigint, max?: bigint): bigint =>
 
     return value;
 }
+export const formattedZero = formatCryptoAmount(0);

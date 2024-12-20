@@ -86,7 +86,7 @@ export const TokenSelectorModal = (props: TokenSelectorModalProps) => {
             onClose={props.onClose}
         >
             <div className={styles.TokenSelectorModalHeader}>
-                <div className={styles.TokenSelectorModalItem}>Search a Token</div>
+                <div className={styles.TokenSelectorModalHeaderText}>Search a Token</div>
                 <IconButton
                     onClick={props.onClose}
                     icon="/icons/close.svg"
