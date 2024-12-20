@@ -168,10 +168,16 @@ export type ExpandedAtomicPool = Omit<AtomicPool, 'curveType'> & AtomicPoolCurre
 export type ExchangeRateKey = `${string}-${string}`;
 
 
-export enum SwapRequestStatus {
+export enum RequestStatus {
     None,
     Requested,
     WaitingForConfirmation,
     Confirmed,
     Failed,
+}
+
+export enum RequestType {
+    None,
+    Deposit,
+    Swap,
 }

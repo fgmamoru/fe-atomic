@@ -36,7 +36,7 @@ export function DexDepositTab(props: DexDepositTabProps) {
                     value={model.amount}
                     onChange={model.setAmount}
                     inputMode="decimal"
-                    placeholder={formatCryptoAmount(0.0)}
+                    placeholder={"0.0"}
                     label="Deposit"
                     cryptoName="Ton"
                     cryptoIcon="/icons/ton.svg"

@@ -2,7 +2,7 @@ import { getHttpV4Endpoint, Network } from '@orbs-network/ton-access'
 import { Address, fromNano, OpenedContract, toNano, TonClient4 } from '@ton/ton'
 import { ConnectedWallet, TonConnectUI } from '@tonconnect/ui'
 import { create } from 'zustand';
-import { Currency, ExpandedAtomicPool, RouteSpeed, SwapRequestStatus, UnstakeType } from '@/types'
+import { Currency, ExpandedAtomicPool, RouteSpeed, RequestStatus, UnstakeType, RequestType } from '@/types'
 import { formatCryptoAmount, formatCryptoAmountAbbr, formatPercent } from '@/utils'
 import { ATOMIC_DEX_CONTRACT_ADDRESS, NETWORK } from '@/services/config.service'
 import { AtomicDex } from '@/services/AtomicDex/AtomicDex.service'
@@ -26,7 +26,8 @@ if (typeof localStorage !== 'undefined') {
 }
 
 type ModelType = {
-    requestStatus: SwapRequestStatus,
+    requestType: RequestType,
+    requestStatus: RequestStatus,
     loadTonBalance(): unknown
     onConnectWallet: (wallet: ConnectedWallet) => void
     onDisconnectWallet: () => void
@@ -36,7 +37,7 @@ type ModelType = {
     network: Network,
     tonClient?: TonClient4,
     address?: Address
-    tonBalanceInNano?: bigint
+    tonBalanceInNano: bigint
     activeTab: ActiveTab
     amount: string
     errorMessage: string
@@ -114,14 +115,15 @@ function tonToUsd(ton: number, exchangeRate: number) {
 }
 
 export const useModel = create<ModelType>(((set, get) => ({
-    requestStatus: SwapRequestStatus.None,
+    requestStatus: RequestStatus.None,
+    requestType: RequestType.None,
     TONToUSD: 0,
     inited: false,
     network: NETWORK,
     _networkUrl: undefined,
     tonClient: undefined,
     address: undefined,
-    tonBalanceInNano: undefined,
+    tonBalanceInNano: 0n,
     treasury: undefined,
     treasuryState: undefined,
     times: undefined,
@@ -223,7 +225,7 @@ export const useModel = create<ModelType>(((set, get) => ({
     },
 
     tonBalanceFormatted() {
-        if (get().tonBalanceInNano != null) {
+        if (get().tonBalanceInNano) {
             return formatNano(get().tonBalanceInNano!) + ' TON'
         }
     },
@@ -232,7 +234,7 @@ export const useModel = create<ModelType>(((set, get) => ({
         if (!get().tonBalanceInNano || !get().TONToUSD) {
             return 0
         }
-        if (get().tonBalanceInNano != null) {
+        if (get().tonBalanceInNano != 0n) {
 
             const val = tonToUsd(Number(get().tonBalanceInNano!) / 1_000_000_000, get().TONToUSD)
             return val
@@ -399,7 +401,7 @@ export const useModel = create<ModelType>(((set, get) => ({
         const tonClient = get().tonClient
         const address = get().address
         if (tonClient == null || address == null) {
-            set({ tonBalanceInNano: undefined })
+            set({ tonBalanceInNano: 0n })
             return
         }
 
@@ -408,7 +410,7 @@ export const useModel = create<ModelType>(((set, get) => ({
             const value = await tonClient.getAccountLite(lastBlock, address)
             set({ tonBalanceInNano: BigInt(value.account.balance.coins) })
         } catch (err) {
-            set({ tonBalanceInNano: undefined });
+            set({ tonBalanceInNano: 0n });
         }
     },
 
@@ -468,7 +470,7 @@ export const useModel = create<ModelType>(((set, get) => ({
         console.log('onDisconnectWallet')
         set({
             address: undefined,
-            tonBalanceInNano: undefined,
+            tonBalanceInNano: 0n,
             // wallet: undefined,
             amount: '',
             // walletState: undefined,
@@ -486,7 +488,7 @@ export const useModel = create<ModelType>(((set, get) => ({
         try {
 
             if (!get().readyToSwap()) return;
-            set({ requestStatus: SwapRequestStatus.Requested })
+            set({ requestStatus: RequestStatus.Requested, requestType: RequestType.Swap })
             // get().setWaitForTransaction('wait')
             // get().beginRequest()
             debugLog('executeSwapOrder, ready to swap', get()._swapService!.executeSwap)
@@ -505,7 +507,7 @@ export const useModel = create<ModelType>(((set, get) => ({
             );
 
             set({
-                requestStatus: SwapRequestStatus.WaitingForConfirmation,
+                requestStatus: RequestStatus.WaitingForConfirmation,
             })
 
             const member = await get()._memberRecord!;
@@ -525,7 +527,7 @@ export const useModel = create<ModelType>(((set, get) => ({
             const newMember = await get()._memberRecord?.poolForUpdates();
 
             set({
-                requestStatus: SwapRequestStatus.Confirmed,
+                requestStatus: RequestStatus.Confirmed,
                 _memberRecord: newMember,
             })
 
@@ -536,7 +538,7 @@ export const useModel = create<ModelType>(((set, get) => ({
             get().setAmount("");
 
             console.error(error)
-            if (get().requestStatus === SwapRequestStatus.WaitingForConfirmation) {
+            if (get().requestStatus === RequestStatus.WaitingForConfirmation) {
                 // set({
                 //     errorMessage: 'Swap Confirmation could not be performed',
                 // });
@@ -548,7 +550,7 @@ export const useModel = create<ModelType>(((set, get) => ({
                 });
             }
 
-            set({ requestStatus: SwapRequestStatus.Failed })
+            set({ requestStatus: RequestStatus.Failed })
 
             if (axios.isAxiosError(error)) {
                 if ((error.response?.data?.error as string)?.includes("unhandled out-of-gas exception")) {
@@ -566,7 +568,7 @@ export const useModel = create<ModelType>(((set, get) => ({
             })
         }
         finally {
-            set({ requestStatus: SwapRequestStatus.None })
+            set({ requestStatus: RequestStatus.None, requestType: RequestType.None })
         }
 
 
@@ -701,7 +703,7 @@ export const useModel = create<ModelType>(((set, get) => ({
 
     _maxAmountOfTonBalanceInNano() {
         const tonBalance = get().tonBalanceInNano
-        return maxAmountToStake(tonBalance ?? 0n)
+        return maxAmountToStake(tonBalance)
     },
 
     maxAmountOfTonBalanceInTon() {
@@ -728,6 +730,8 @@ export const useModel = create<ModelType>(((set, get) => ({
             if (!get().amount) return toast.error('Please enter an amount to deposit');
             if (parseFloat(get().amount) === 0) return toast.error('Amount must be greater than 0');
 
+            set({ requestStatus: RequestStatus.Requested, requestType: RequestType.Deposit })
+
             const member = get()._memberRecord;
             if (member == null) return;
 
@@ -740,6 +744,8 @@ export const useModel = create<ModelType>(((set, get) => ({
         } catch (error) {
             console.error(error)
             toast.error('Deposit failed, please try again')
+        } finally {
+            set({ requestStatus: RequestStatus.None, requestType: RequestType.None })
         }
     }
 })))
