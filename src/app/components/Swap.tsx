@@ -42,7 +42,7 @@ export function DexSwapTab() {
                     id="stake-amount"
                     type="text"
                     variant="top"
-                    value={model.amount}
+                    value={model.activeTab === "swap" ? model.amount : ""}
                     onChange={model.setAmount}
                     inputMode="decimal"
                     placeholder={"0.0"}
@@ -89,7 +89,7 @@ export function DexSwapTab() {
                 <SwapInput
                     min={0}
                     id="stake-you-receive"
-                    value={model.resultAmount}
+                    value={model.activeTab === "swap" ? model.resultAmount : ""}
                     label="Buy"
                     cryptoName={model.selectedToCurrency.symbol}
                     cryptoIcon={model.selectedToCurrency.icon}
@@ -158,6 +158,7 @@ export function DexSwapTab() {
                 onClose={
                     () => {
                         setDepositModalOpen(false)
+                        model.setActiveTab("swap")
                     }
                 } />
         </>

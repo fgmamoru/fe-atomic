@@ -41,6 +41,7 @@ type ModelType = {
     activeTab: ActiveTab
     amount: string
     errorMessage: string
+
     _exchangeRates: Record<string, string>
 
     _potentialRoutes: Route[],

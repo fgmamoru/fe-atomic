@@ -11,7 +11,7 @@ import { useTonWallet } from "@tonconnect/ui-react";
 import { TxSpeed, TxSpeedBadge } from "@/components/Misc/TxSpeedBadge";
 
 type DexDepositTabProps = {
-    onDepositSuccessful: () => void;
+    onDepositSuccess: () => void;
     onDepositFailed: () => void;
 }
 
@@ -67,7 +67,7 @@ export function DexDepositTab(props: DexDepositTabProps) {
                     if (!isDepositButtonEnabled) return;
                     if (model.amount && parseFloat(model.amount)) {
                         model.executeDeposit().then(() => {
-                            props.onDepositSuccessful();
+                            props.onDepositSuccess();
                         }).catch(() => {
                             props.onDepositFailed();
                         });

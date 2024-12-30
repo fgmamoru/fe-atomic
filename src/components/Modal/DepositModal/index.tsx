@@ -28,7 +28,10 @@ const DepositModalComponent = (props: DepositModal) => {
                         alt="close"
                     />
                 </div>
-                <DexDepositTab />
+                <DexDepositTab
+                    onDepositFailed={() => { }}
+                    onDepositSuccess={() => props.onClose()}
+                />
             </div>
 
         </RegularModal>
