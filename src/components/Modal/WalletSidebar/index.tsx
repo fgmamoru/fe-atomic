@@ -71,7 +71,7 @@ const DepositedTokensSection = () => {
                 <h2 className={styles.SectionSubtitle}>Deposited Tokens</h2>
 
                 <div className={styles.DepositedSectionEmpty}>
-                    Currently you don't have any tokens deposited.<br />
+                    Currently you don&apos;t have any tokens deposited.<br />
                     Depositing unlocks high swap speed.
                 </div>
             </section>
