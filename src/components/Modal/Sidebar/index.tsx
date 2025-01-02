@@ -9,7 +9,7 @@ export type SidebarProps = {
 }
 
 
-export const Sidebar = (props: SidebarProps) => {
+export const SidebarModal = (props: SidebarProps) => {
     return (
         <Dialog
             open={props.isOpen}
@@ -27,5 +27,18 @@ export const Sidebar = (props: SidebarProps) => {
                 {props.children}
             </DialogPanel>
         </Dialog>
+    )
+};
+
+export const Sidebar = (props: SidebarProps) => {
+    return (
+        <div
+        >
+            <div
+                className={styles.SidebarPanel}
+            >
+                {props.children}
+            </div>
+        </div>
     )
 };

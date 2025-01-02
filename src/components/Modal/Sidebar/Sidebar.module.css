@@ -5,23 +5,12 @@
     max-width: 390px;
     flex-direction: column;
     overflow: auto;
-    border-radius: 8px;
+    border-radius: var(--border-radius);
     background-color: #111;
     height: calc(100vh - 64px - 16px);
     top: 0;
     right: 0;
-    position: fixed;
     z-index: 100;
     padding: 24px;
     gap: 16px;
-}
-
-.SidebarBackdrop {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    background-color: rgba(0, 0, 0, 0.7);
-    z-index: 99;
 }

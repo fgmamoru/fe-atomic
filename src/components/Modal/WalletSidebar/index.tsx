@@ -1,6 +1,6 @@
 import styles from "./WalletSidebar.module.css";
 import { Sidebar } from "../Sidebar";
-import { useTonAddress } from "@tonconnect/ui-react";
+import { useTonAddress, useTonConnectUI } from "@tonconnect/ui-react";
 import { formatAddress, formatUSD } from "@/utils";
 import { IconButton } from "@/components/Button/IconButton";
 import { useModel } from "@/components/Services/Model";
@@ -13,6 +13,7 @@ export type WalletSidebarProps = {
 }
 
 const WalletSection = (props: { address: string }) => {
+    const [tonConnectUi] = useTonConnectUI();
     return (
         <div style={{ display: "flex", justifyContent: "space-between" }}>
             <div style={{ display: "flex", alignItems: "center" }}>
@@ -25,9 +26,11 @@ const WalletSection = (props: { address: string }) => {
             </div>
 
             <IconButton
-                alt="Close"
+                alt="Logout"
                 icon="/icons/logout.svg"
-                onClick={() => { }}
+                onClick={() => {
+                    tonConnectUi.disconnect();
+                }}
             />
         </div>
     )

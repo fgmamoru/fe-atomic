@@ -2,7 +2,7 @@
 
 import { Navbar } from "@/components/Navbar";
 import "./globals.css";
-import { TonConnectButton, TonConnectUIProvider, useTonConnectUI } from '@tonconnect/ui-react';
+import { TonConnectButton, TonConnectUIProvider, useTonAddress, useTonConnectUI } from '@tonconnect/ui-react';
 import { useModel } from "@/components/Services/Model";
 import { useEffect } from "react";
 import { messages } from "@/services/i18n";
@@ -13,6 +13,8 @@ import { API_SCHEME, HOST } from "@/services/config.service";
 import { Stars } from "@/components/Misc/Stars";
 import { ToastContainer } from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
+import NoSsr from "@/components/Misc/NoSsr";
+import { WalletSidebar } from "@/components/Modal/WalletSidebar";
 
 export default function RootLayout({
     children,
@@ -44,21 +46,46 @@ export default function RootLayout({
             <body>
                 <TonConnectUIProvider manifestUrl="https://fe-atomic.vercel.app/tonconnect.json">
 
-                    <Stars />
-
-                    <Navbar />
-                    <WrapperLayout>
+                    <Content>
                         {children}
-                    </WrapperLayout>
-                    <Footer />
+                    </Content>
+
                     <ToastContainer />
-                    <TonConnectButton />
                 </TonConnectUIProvider>
 
             </body>
         </html>
     )
 }
+
+function Content({ children }: { children: React.ReactNode }) {
+    const address = useTonAddress();
+
+    return <div style={{ display: 'flex' }}>
+        <div style={{ width: '100%' }}>
+            <Navbar />
+            <WrapperLayout>
+                {children}
+            </WrapperLayout>
+        </div>
+
+        {
+            address && <NoSsr>
+                <div>
+                    <WalletSidebar
+                        onClose={() => true}
+                        isOpen={true}
+                    />
+                </div>
+
+            </NoSsr>
+        }
+
+
+    </div>
+
+}
+
 function WrapperLayout({ children }: { children: React.ReactNode }) {
     const model = useModel();
     const [tonConnectUi] = useTonConnectUI();
@@ -76,3 +103,4 @@ function WrapperLayout({ children }: { children: React.ReactNode }) {
         </>
     )
 }
+

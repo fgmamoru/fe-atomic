@@ -82,11 +82,11 @@ export const Navbar = () => {
                         <div className={clsx(styles.NavbarEnd, styles.NavbarEndMobile)}>
                             <div className={styles.NavbarBadgeZoneWrapper} style={{ display: !isConnected() ? "none" : "" }}>
 
-                                <NavbarBalance />
+                                {/* <NavbarBalance />
                                 <div style={{ position: 'relative' }} className={clsx({ isConnected: isConnected() })}>
                                     {isConnected() && <img className={styles.NavbarWalletIcon} aria-hidden="true" src="/icons/wallet.svg" alt="" />}
                                     <TonConnectButton />
-                                </div>
+                                </div> */}
                             </div>
                             <ShowInDebug>
                                 <div style={{ fontSize: '7px', textAlign: 'center', color: 'var(--color-text-debug)' }}>Modal State: <br /> {state?.status}</div>
@@ -95,28 +95,21 @@ export const Navbar = () => {
                                 <MainButton onClick={open}>Connect Wallet</MainButton>
                             </div>
 
-
-
-                            <div className={styles.BurgerMenuButton}>
+                            {/* <div className={styles.BurgerMenuButton}>
                                 <MainButton
                                     square={true}
                                     onClick={() => setIsModalOpen(true)}
                                     variant='secondary'>
                                     <img src="/icons/menu.svg" />
                                 </MainButton>
-                            </div>
+                            </div> */}
                         </div>
-                        <TonConnectButton />
+                        {/* <TonConnectButton /> */}
                     </NoSsr>
 
                 </div>
             </nav >
-            <NoSsr>
-                <WalletSidebar
-                    onClose={() => setIsModalOpen(false)}
-                    isOpen={isModalOpen}
-                />
-            </NoSsr>
+
         </>
     )
 };
