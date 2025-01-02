@@ -408,6 +408,7 @@ export const useModel = create<ModelType>(((set, get) => ({
         try {
             const lastBlock = (await tonClient.getLastBlock()).last.seqno
             const value = await tonClient.getAccountLite(lastBlock, address)
+
             set({ tonBalanceInNano: BigInt(value.account.balance.coins) })
         } catch (err) {
             set({ tonBalanceInNano: 0n });

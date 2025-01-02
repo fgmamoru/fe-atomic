@@ -32,6 +32,7 @@
 
     --focus-outline: 1px solid #fff;
     --border-radius-half: 8px;
+    --color-text-debug: #7b77ff;
 }
 
 #ton-connect-button button {

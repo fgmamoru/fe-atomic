@@ -5,12 +5,13 @@ import styles from './index.module.css'
 import { NavbarBalance } from './NavbarBalance';
 import clsx from 'clsx';
 import { Menu } from '@headlessui/react';
-import { useTonConnectModal } from '@tonconnect/ui-react';
+import { TonConnectButton, useTonConnectModal } from '@tonconnect/ui-react';
 import { MainButton } from '../Button/MainButton';
 import { useModel } from '../Services/Model';
 import { Suspense, useState } from 'react';
 import dynamic from 'next/dynamic';
 import { WalletSidebar } from '../Modal/WalletSidebar';
+import NoSsr from '../Misc/NoSsr';
 
 type BurgerMenuItemProps = {
     href: string;
@@ -22,7 +23,7 @@ const ShowInDebug = dynamic(() =>
     import('@/services/debug.service').then((mod) => mod.ShowInDebug)
 )
 
-const TonConnectButton = dynamic(() => import('@/components/Button/TonConnectButton').then((mod) => mod.TonConnectButton))
+// const TonConnectButton = dynamic(() => import('@/components/Button/TonConnectButton').then((mod) => mod.TonConnectButton))
 
 function BurgerMenuItem({ href, children, style }: BurgerMenuItemProps): JSX.Element {
     return (
@@ -36,7 +37,7 @@ function BurgerMenuItem({ href, children, style }: BurgerMenuItemProps): JSX.Ele
     )
 }
 
-function BurgerMenu({ bills }: { bills: Array<any> }) {
+function BurgerMenu() {
     return (
         <Menu>
             <div className={styles.BurgerMenuButton}>
@@ -58,58 +59,56 @@ function BurgerMenu({ bills }: { bills: Array<any> }) {
 }
 
 export const Navbar = () => {
-    const { open } = useTonConnectModal();
+    const { open, state } = useTonConnectModal();
     const { isConnected } = useModel();
     const [isModalOpen, setIsModalOpen] = useState(false);
 
-    const bills: Array<any> = []
     return (
         <>
             <nav className={styles.Navbar}>
-                <div className={styles.NavbarContainer}>
-                    <div className={styles.NavbarStart}>
-                        <div className={styles.NavbarLogo}>
-                            <Link href="/">
-                                <img src="/logo.svg" alt="TON Dex" />
-                            </Link>
+                {/* Ton Connect UI have many bugs interacting with NextJs SSR features, so is disabled */}
+                <NoSsr>
+                    <div className={styles.NavbarContainer}>
+                        <div className={styles.NavbarStart}>
+                            <div className={styles.NavbarLogo}>
+                                <Link href="/">
+                                    <img src="/logo.svg" alt="TON Dex" />
+                                </Link>
+                            </div>
+                            <Link className={styles.NavbarItem} href="/">Dex</Link>
+
                         </div>
-                        <Link className={styles.NavbarItem} href="/">Dex</Link>
-                        <Suspense fallback={<></>}>
+                        <div className={clsx(styles.NavbarEnd, styles.NavbarEndMobile)}>
+                            <div className={styles.NavbarBadgeZoneWrapper} style={{ display: !isConnected() ? "none" : "" }}>
+
+                                <NavbarBalance />
+                                <div style={{ position: 'relative' }} className={clsx({ isConnected: isConnected() })}>
+                                    {isConnected() && <img className={styles.NavbarWalletIcon} aria-hidden="true" src="/icons/wallet.svg" alt="" />}
+                                    <TonConnectButton />
+                                </div>
+                            </div>
                             <ShowInDebug>
-                                <Link className={styles.NavbarItem} href="/admin" style={{ color: 'blue' }}>Admin</Link>
+                                <div style={{ fontSize: '7px', textAlign: 'center', color: 'var(--color-text-debug)' }}>Modal State: <br /> {state?.status}</div>
                             </ShowInDebug>
-                        </Suspense>
+                            <div className={styles.NavbarBadgeZoneWrapper} style={{ display: !isConnected() ? "" : "none" }}>
+                                <MainButton onClick={open}>Connect Wallet</MainButton>
+                            </div>
 
-                    </div>
-                    <div className={clsx(styles.NavbarEnd, styles.NavbarEndMobile)}>
-                        <div className={styles.NavbarBadgeZoneWrapper} style={{ display: !isConnected() ? "none" : "" }}>
 
-                            <NavbarBalance />
-                            <div style={{ position: 'relative' }} className={clsx({ isConnected: isConnected() })}>
-                                {isConnected() && <img className={styles.NavbarWalletIcon} aria-hidden="true" src="/icons/wallet.svg" alt="" />}
-                                <TonConnectButton />
+
+                            <div className={styles.BurgerMenuButton}>
+                                <MainButton
+                                    square={true}
+                                    onClick={() => setIsModalOpen(true)}
+                                    variant='secondary'>
+                                    <img src="/icons/menu.svg" />
+                                </MainButton>
                             </div>
                         </div>
-                        <div className={styles.NavbarBadgeZoneWrapper} style={{ display: !isConnected() ? "" : "none" }}>
-                            <MainButton onClick={open}>Connect Wallet</MainButton>
-                        </div>
+                        <TonConnectButton />
 
-                        <div className={styles.BurgerMenuButton}>
-                            <MainButton
-                                square={true}
-                                onClick={() => setIsModalOpen(true)}
-                                variant='secondary'>
-                                <img src="/icons/menu.svg" />
-                            </MainButton>
-                        </div>
-                        {/* <BurgerMenu bills={bills} /> */}
                     </div>
-                    {/* <div className={clsx(styles.NavbarEnd, styles.NavbarEndMobile)}>
-          <TonConnectButton  />
-        </div> */}
-
-                </div>
-
+                </NoSsr>
             </nav >
             <WalletSidebar
                 onClose={() => setIsModalOpen(false)}
