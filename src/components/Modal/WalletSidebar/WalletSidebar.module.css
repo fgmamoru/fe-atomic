@@ -44,13 +44,16 @@
     font-family: Poppins;
     font-size: 10px;
     font-weight: 600;
-    line-height: 9.5px;
+    line-height: 10px;
     letter-spacing: 0.15000000596046448px;
     text-align: left;
     text-underline-position: from-font;
     text-decoration-skip-ink: none;
     color: var(--color-text-secondary);
     margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
 .DepositedSectionEmpty {

@@ -84,7 +84,10 @@ const DepositedTokensSection = () => {
 
     return (
         <section>
-            <h2 className={styles.SectionSubtitle}>Deposited Tokens</h2>
+            <h2 className={styles.SectionSubtitle}>
+                <img src="/icons/mini-coins.svg" aria-hidden />
+
+                Deposited Tokens</h2>
             {
                 _memberRecord.getPositiveBalances().map(([currency, balance]) => {
                     return (<TokenButton
@@ -114,6 +117,16 @@ const ActionButtonsSection = () => {
     )
 }
 
+const TokensInYourWalletSection = () => {
+    return (
+        <section>
+            <h2 className={styles.SectionSubtitle}>
+                <img src="/icons/mini-wallet.svg" aria-hidden />
+                Tokens in your wallet</h2>
+        </section>
+    )
+}
+
 
 export const WalletSidebar = ({ isOpen, onClose }: WalletSidebarProps) => {
     const address = useTonAddress();
@@ -132,9 +145,7 @@ export const WalletSidebar = ({ isOpen, onClose }: WalletSidebarProps) => {
             <DepositedTokensSection />
 
             <ActionButtonsSection />
-            <div>
-                Tokens in your wallet section
-            </div>
+            <TokensInYourWalletSection />
         </Sidebar>
     )
 }
