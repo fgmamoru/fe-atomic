@@ -1,13 +1,11 @@
 import { SearchInput } from "@/components/Forms/SearchInput";
-import { MainModal, RegularModal } from "../MainModal"
+import { RegularModal } from "../MainModal"
 import styles from './TokenSelectorModal.module.css'
 import { Currency } from "@/types";
-import { memo, useEffect, useState } from "react";
-import { CloseButton } from "@headlessui/react";
-import { MiniButton } from "@/components/Button/MiniButton";
+import { useEffect, useState } from "react";
 import { IconButton } from "@/components/Button/IconButton";
 import { useModel } from "@/components/Services/Model";
-import { fromNano } from "@ton/core";
+import { TokenButton } from "@/components/Button/TokenButton";
 
 export type TokenSelectorModalProps = {
     isOpen?: boolean;
@@ -25,42 +23,6 @@ const Subtitle = (props: { children: string, icon: string }) =>
     </div>
 
 
-const TokenButtonComponent = (props: {
-    currency: Currency, onClick: (currency: Currency) => void
-}) => {
-    const model = useModel();
-    const member = model._memberRecord;
-
-    const balance: bigint | undefined = member ? member.getCurrencyBalance(props.currency) : undefined;
-    const formattedBalance = balance ? parseFloat(fromNano(balance)).toFixed(2) : "0";
-    console.log("Balance:", balance)
-
-
-    return <div className={styles.TokenSelectorModalItem}
-        onClick={() => props.onClick(props.currency)}
-    >
-        <img src={props.currency?.icon} alt="icon" />
-        <div className={styles.TokenSelectorModalItemColumn}>
-            <span className={styles.TokenSelectorModalItemName}>{props.currency?.name}</span>
-            <span className={styles.TokenSelectorModalItemSymbol}>{props.currency?.symbol}</span>
-        </div>
-        {
-            balance && <div className={styles.FinalColumn}>
-                <span className={styles.TokenSelectorModalItemBalance}>{formattedBalance}
-                    <span className={styles.TokenSelectorModalItemSymbolSmall}>{props.currency.symbol}</span>
-
-                </span>
-                <span className={styles.TokenSelectorModalItemUSD}>{model.getInUsd(formattedBalance, props.currency)}
-                    <span className={styles.TokenSelectorModalItemSymbolSmall}>USD</span>
-
-
-                </span>
-            </div>
-        }
-    </div>
-}
-
-const TokenButton = memo(TokenButtonComponent);
 
 export const TokenSelectorModal = (props: TokenSelectorModalProps) => {
     const [search, setSearch] = useState<string>('');
@@ -78,7 +40,6 @@ export const TokenSelectorModal = (props: TokenSelectorModalProps) => {
         ));
         setFilteredCurrencies(filtered);
     }, [search, props.currencies]);
-
 
     return (
         <RegularModal

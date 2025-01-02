@@ -10,59 +10,6 @@
     margin-right: 4px;
 }
 
-.TokenSelectorModalItemName {
-    font-size: 16px;
-    font-weight: 400;
-    color: var(--color-text-primary);
-    height: 18px;
-}
-
-.TokenSelectorModalItemSymbol {
-    height: 18px;
-    font-size: 16px;
-    font-weight: 400;
-    color: var(--color-text-secondary);
-}
-
-.TokenSelectorModalItemSymbolSmall {
-    font-size: 12px;
-    font-weight: 400;
-    color: var(--color-text-secondary);
-    min-width: 30px;
-    display: inline-block
-}
-
-.TokenSelectorModalItemColumn {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    flex: 1;
-}
-
-.FinalColumn {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-}
-
-.TokenSelectorModalItem {
-    display: flex;
-    align-items: center;
-    width: 100%;
-    padding: 10px 0;
-    border-bottom: 1px solid var(--color-background-border);
-    border-radius: var(--border-radius-half);
-    padding-left: 8px;
-    padding-right: 8px;
-    box-sizing: border-box;
-}
-
-.TokenSelectorModalItem:hover {
-    background-color: var(--button-flat-default-bg-hover);
-    cursor: pointer;
-}
-
 .TokenSelectorModalHeader {
     display: flex;
     justify-content: space-between;
@@ -81,38 +28,4 @@
     padding-left: 8px;
     padding-right: 8px;
     box-sizing: border-box;
-}
-
-.TokenSelectorModalItem img {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    margin-right: 10px;
-}
-
-.TokenSelectorModalItemBalance {
-    font-family: Poppins;
-    font-size: 16px;
-    height: 18px;
-    font-weight: 400;
-    line-height: 15.2px;
-    letter-spacing: 0.15000000596046448px;
-    text-align: right;
-    text-underline-position: from-font;
-    text-decoration-skip-ink: none;
-    align-self: flex-end;
-}
-
-.TokenSelectorModalItemUSD {
-    font-family: Poppins;
-    font-size: 16px;
-    font-weight: 400;
-    height: 18px;
-
-    line-height: 15.2px;
-    letter-spacing: 0.15000000596046448px;
-    text-align: right;
-    text-underline-position: from-font;
-    text-decoration-skip-ink: none;
-    color: var(--color-text-secondary);
 }

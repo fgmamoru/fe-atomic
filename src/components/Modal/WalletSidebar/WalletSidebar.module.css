@@ -1,0 +1,99 @@
+.WalletAvatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    margin-right: 10px;
+    background-color: #ff4000;
+}
+
+.WalletFont {
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 13.3px;
+    letter-spacing: 0.4000000059604645px;
+    text-align: left;
+    text-underline-position: from-font;
+    text-decoration-skip-ink: none;
+
+}
+
+
+.TotalPortfolio {
+    font-size: 33.19px;
+    font-weight: 600;
+    line-height: 44px;
+    letter-spacing: -0.36000001430511475px;
+    text-align: left;
+    text-underline-position: from-font;
+    text-decoration-skip-ink: none;
+}
+
+.TotalPortfolioDetails {
+    font-size: 14.5px;
+    font-weight: 500;
+    line-height: 21.75px;
+    letter-spacing: -0.1599999964237213px;
+    text-align: left;
+    text-underline-position: from-font;
+    text-decoration-skip-ink: none;
+    color: var(--color-text-secondary);
+}
+
+
+.SectionSubtitle {
+    font-family: Poppins;
+    font-size: 10px;
+    font-weight: 600;
+    line-height: 9.5px;
+    letter-spacing: 0.15000000596046448px;
+    text-align: left;
+    text-underline-position: from-font;
+    text-decoration-skip-ink: none;
+    color: var(--color-text-secondary);
+    margin-bottom: 12px;
+}
+
+.DepositedSectionEmpty {
+
+    padding: 12px;
+    gap: 4px;
+    opacity: 0px;
+    background-color: var(--color-secondary-bg);
+    border-radius: 8px;
+
+    font-size: 10px;
+    font-weight: 500;
+    line-height: 14px;
+    letter-spacing: 0.15000000596046448px;
+    text-align: left;
+    text-underline-position: from-font;
+    text-decoration-skip-ink: none;
+    color: var(--color-text-secondary-bold)
+}
+
+.ActionButtons {
+    display: flex;
+    gap: 24px;
+}
+
+.ActionButton {
+    width: 100%;
+    height: 70px;
+    border-radius: 8px;
+    background-color: var(--color-modal-backdrop);
+    color: var(--color-text-primary);
+    font-size: 16px;
+    font-weight: 400;
+    border: none;
+    display: flex;
+    flex-direction: column;
+    padding: 14px 16px;
+    align-items: flex-start;
+    justify-content: space-between;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.ActionButton:hover {
+    background-color: var(--color-modal-backdrop-hover);
+}

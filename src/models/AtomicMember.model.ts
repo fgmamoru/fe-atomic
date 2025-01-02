@@ -9,6 +9,7 @@ export class AtomicMemberRecordModel {
     seq: bigint;
     unused: bigint;
     private balances: Record<CurrencyBalanceKeyName, bigint> & { balance0: bigint; balance1: bigint; balance2: bigint; balance3: bigint; balance4: bigint; balance5: bigint; balance6: bigint; balance7: bigint; balance8: bigint; balance9: bigint; balance10: bigint; balance11: bigint; balance12: bigint; balance13: bigint; balance14: bigint; };
+    private positiveBalances: Map<Currency, bigint> = new Map();
 
     constructor(
         member: AtomicMemberRecord,
@@ -35,6 +36,13 @@ export class AtomicMemberRecordModel {
             balance12: member.balance12,
             balance13: member.balance13,
             balance14: member.balance14,
+        }
+
+        for (const currency of DEFAULT_CURRENCIES) {
+            const balance = this.balances[currency.balanceKey];
+            if (balance > 0n) {
+                this.positiveBalances.set(currency, balance);
+            }
         }
     }
 
@@ -71,6 +79,14 @@ export class AtomicMemberRecordModel {
         await delay(3000);
         this.changeBalance(DEFAULT_CURRENCIES_MAP["TON"], -amount);
         return this;
+    }
+
+    public getPositiveBalances(): Array<[Currency, bigint]> {
+        return Array.from(this.positiveBalances.entries());
+    }
+
+    public havePositiveBalances(): boolean {
+        return this.positiveBalances.size > 0;
     }
 
     /**

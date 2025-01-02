@@ -11,13 +11,22 @@ const formatter = new Intl.NumberFormat(undefined, {
     // style: 'currency',
     // currency: 'USD',
     minimumFractionDigits: 2,
-
 })
 
 const percentFormatter = new Intl.NumberFormat(undefined, {
     style: 'percent',
     minimumFractionDigits: 2
 })
+
+const usdFormatter = new Intl.NumberFormat(undefined, {
+    style: 'currency',
+    currency: 'USD',
+    minimumFractionDigits: 2,
+});
+
+export const formatUSD = (amount: number) => {
+    return usdFormatter.format(amount);
+}
 
 export const formatCryptoAmountAbbr = (amount: number | string) => {
     if (typeof amount === 'string') {
@@ -155,7 +164,6 @@ export function calculateExpectedOut(
 
 }
 
-
 export function calculateInvariantD(x: bigint, y: bigint): bigint {
     let sumXY = x + y;
     let productXY = x * y;
@@ -177,4 +185,8 @@ export function formatDate(date: Date): string {
         hour: '2-digit',
         minute: '2-digit',
     })
+}
+
+export function formatAddress(address: string): string {
+    return `${address.slice(0, 6)}...${address.slice(-4)}`
 }

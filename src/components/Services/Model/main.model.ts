@@ -134,7 +134,6 @@ export const useModel = create<ModelType>(((set, get) => ({
     walletState: undefined,
     activeTab: 'swap',
     amount: '',
-    waitForTransaction: 'no',
     errorMessage: '',
     _exchangeRates: {},
     _memberRecord: null,
@@ -754,7 +753,7 @@ export const useModel = create<ModelType>(((set, get) => ({
 })))
 export const minimumTonBalanceReserve = 200000000n
 
-export function maxAmountToStake(tonBalance: bigint): bigint {
+function maxAmountToStake(tonBalance: bigint): bigint {
     tonBalance -= minimumTonBalanceReserve
     return tonBalance > 0n ? tonBalance : 0n
 }

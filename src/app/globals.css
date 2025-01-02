@@ -23,6 +23,8 @@
     --button-default-bg: #fff;
     --button-default-bg-hover: #a4ffc5;
     --button-flat-default-bg-hover: #ffffff22;
+    --color-modal-backdrop: #4E4E4E;
+    --color-modal-backdrop-hover: #797979;
 
     --color-link: var(--color-text-primary);
     --color-link-hover: #ffeda4;
