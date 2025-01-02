@@ -67,8 +67,9 @@ export const Navbar = () => {
         <>
             <nav className={styles.Navbar}>
                 {/* Ton Connect UI have many bugs interacting with NextJs SSR features, so is disabled */}
-                <NoSsr>
-                    <div className={styles.NavbarContainer}>
+                <div className={styles.NavbarContainer}>
+                    <NoSsr>
+
                         <div className={styles.NavbarStart}>
                             <div className={styles.NavbarLogo}>
                                 <Link href="/">
@@ -106,14 +107,16 @@ export const Navbar = () => {
                             </div>
                         </div>
                         <TonConnectButton />
+                    </NoSsr>
 
-                    </div>
-                </NoSsr>
+                </div>
             </nav >
-            <WalletSidebar
-                onClose={() => setIsModalOpen(false)}
-                isOpen={isModalOpen}
-            />
+            <NoSsr>
+                <WalletSidebar
+                    onClose={() => setIsModalOpen(false)}
+                    isOpen={isModalOpen}
+                />
+            </NoSsr>
         </>
     )
 };

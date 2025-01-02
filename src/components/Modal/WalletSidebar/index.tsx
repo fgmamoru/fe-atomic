@@ -51,10 +51,6 @@ const TotalPortfolioSection = (props: { totalPortfolio: number, changeAmount: nu
 const DepositedTokensSection = () => {
     const { _memberRecord } = useModel();
 
-    console.log(_memberRecord?.getPositiveBalances().entries().map(([currency, balance]) => {
-        console.log("???", currency, balance);
-    }));
-
     if (!_memberRecord) {
         return (
             <section>
@@ -91,6 +87,7 @@ const DepositedTokensSection = () => {
             {
                 _memberRecord.getPositiveBalances().map(([currency, balance]) => {
                     return (<TokenButton
+                        key={currency.id}
                         currency={currency}
                         balance={balance}
                         onClick={() => { }} />)
