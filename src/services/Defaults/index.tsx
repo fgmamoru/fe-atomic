@@ -6,7 +6,7 @@ export const DEFAULT_CURRENCIES: Currency[] = [{
     icon: '/icons/ton.svg',
     id: 0n,
     balanceKey: 'balance0',
-    jettonMasterAddress: "0:226E80C4BFFA91ADC11DAD87706D52CD397047C128456ED2866D0549D8E2B163"
+    jettonMasterAddress: "0:226E80C4BFFA91ADC11DAD87706D52CD397047C128456ED2866D0549D8E2B162"
 }, {
     name: 'Bitcoin',
     symbol: 'BTC',

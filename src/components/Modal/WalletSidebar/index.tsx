@@ -7,6 +7,7 @@ import { useModel } from "@/components/Services/Model";
 import { TokenButton } from "@/components/Button/TokenButton";
 import { Currency } from "@/types";
 import { NativeJettonModel } from "@/models/NativeJetton.model";
+import { DEFAULT_CURRENCIES_MAP } from "@/services/Defaults";
 
 export type WalletSidebarProps = {
     isOpen: boolean;
@@ -123,14 +124,18 @@ const ActionButtonsSection = () => {
 }
 
 const TokensInYourWalletSection = () => {
-    const { jettons } = useModel();
+    const { jettons, tonBalanceInNano } = useModel();
 
     return (
         <section>
             <h2 className={styles.SectionSubtitle}>
                 <img src="/icons/mini-wallet.svg" aria-hidden />
                 Tokens in your wallet</h2>
-
+            <TokenButton
+                key={'ton'}
+                currency={DEFAULT_CURRENCIES_MAP.TON}
+                balance={tonBalanceInNano}
+                onClick={() => { }} />
             {
                 jettons.filter((jetton) => jetton.balance).map((jetton: NativeJettonModel) => {
                     return (<TokenButton
