@@ -140,7 +140,8 @@ export type Currency = {
     icon: string,
     name: string,
     id: bigint,
-    balanceKey: CurrencyBalanceKeyName
+    balanceKey: CurrencyBalanceKeyName,
+    jettonMasterAddress: string,
 }
 
 export type AtomicPoolCurrencyMapItem = {

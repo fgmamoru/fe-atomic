@@ -15,6 +15,8 @@ import { toast } from "react-toastify";
 import * as axios from 'axios';
 import { AtomicMemberRecordModel } from '@/models/AtomicMember.model'
 import { bigIntClamp } from '@/utils/math'
+import { NativeJettonModel } from '@/models/NativeJetton.model';
+import { getListOfJettonWallets } from '../atomic-api';
 
 type ActiveTab = 'swap' | 'deposit' | 'withdraw';
 const atomicDex = AtomicDex.fromAddress(Address.parse(ATOMIC_DEX_CONTRACT_ADDRESS))
@@ -36,6 +38,7 @@ type ModelType = {
     init: (client: TonConnectUI) => void,
     network: Network,
     tonClient?: TonClient4,
+    jettons: NativeJettonModel[]
     address?: Address
     tonBalanceInNano: bigint
     activeTab: ActiveTab
@@ -96,6 +99,7 @@ type ModelType = {
     _memberRecord: AtomicMemberRecordModel | null,
     _initMemberRecord: () => void,
     _initExchangeRates: () => void,
+    _initJettonWallet: () => void,
     _maxAmountOfTonBalanceInNano: () => bigint,
     maxAmountOfTonBalanceInTon: () => number,
     _setResultAmount: (bigint: bigint) => void,
@@ -121,7 +125,6 @@ export const useModel = create<ModelType>(((set, get) => ({
     TONToUSD: 0,
     inited: false,
     network: NETWORK,
-    _networkUrl: undefined,
     tonClient: undefined,
     address: undefined,
     tonBalanceInNano: 0n,
@@ -138,13 +141,15 @@ export const useModel = create<ModelType>(((set, get) => ({
     _exchangeRates: {},
     _memberRecord: null,
     _selectedRoute: null,
-
-
-    // unobserved state
-    tonConnectUI: undefined,
     _swapService: undefined,
     _potentialRoutes: [],
     _atomicWallets: {},
+    _networkUrl: undefined,
+    jettons: [],
+
+    // unobserved state
+    tonConnectUI: undefined,
+
     resultAmount: "",
     pools: {},
 
@@ -390,7 +395,7 @@ export const useModel = create<ModelType>(((set, get) => ({
 
         address == null
             ? Promise.resolve(0n)
-            : tonClient.getAccountLite(lastBlockSeqNo, address)
+            : tonClient.getAccount(lastBlockSeqNo, address)
                 .then((value) => {
                     set({ tonBalanceInNano: BigInt(value.account.balance.coins) })
                 })
@@ -407,7 +412,7 @@ export const useModel = create<ModelType>(((set, get) => ({
 
         try {
             const lastBlock = (await tonClient.getLastBlock()).last.seqno
-            const value = await tonClient.getAccountLite(lastBlock, address)
+            const value = await tonClient.getAccount(lastBlock, address)
 
             set({ tonBalanceInNano: BigInt(value.account.balance.coins) })
         } catch (err) {
@@ -415,23 +420,11 @@ export const useModel = create<ModelType>(((set, get) => ({
         }
     },
 
-    _initWallet: () => {
-        const { tonConnectUI, _initMemberRecord } = get();
-        if (tonConnectUI?.wallet) {
-            set({
-                address: Address.parseRaw(get().tonConnectUI!.wallet!.account.address),
-                errorMessage: '',
-            });
-            get().onConnectWallet(get().tonConnectUI!.wallet! as ConnectedWallet);
-            _initMemberRecord();
-        }
-        tonConnectUI!.onStatusChange((wallet) => {
-            if (wallet) get().onConnectWallet(wallet);
-            else get().onDisconnectWallet();
-        })
-    },
 
     onConnectWallet: (wallet: ConnectedWallet) => {
+        // const { tonConnectUI, _initMemberRecord } = get();
+        // tonConnectUI?.getWallets();
+
         if (
             wallet.connectItems?.tonProof &&
             "proof" in wallet.connectItems.tonProof
@@ -460,6 +453,7 @@ export const useModel = create<ModelType>(((set, get) => ({
             get().readLastBlock();
             get().loadTonBalance();
             get()._initMemberRecord();
+            get()._initJettonWallet();
         } catch (error) {
             console.error(error)
         }
@@ -689,6 +683,31 @@ export const useModel = create<ModelType>(((set, get) => ({
         } catch (error) {
             console.error(error)
         }
+    },
+
+    _initWallet: () => {
+        const { tonConnectUI, _initMemberRecord } = get();
+        if (tonConnectUI?.wallet) {
+            set({
+                address: Address.parseRaw(get().tonConnectUI!.wallet!.account.address),
+                errorMessage: '',
+            });
+            get().onConnectWallet(get().tonConnectUI!.wallet! as ConnectedWallet);
+            _initMemberRecord();
+        }
+        tonConnectUI!.onStatusChange((wallet) => {
+
+
+
+            if (wallet) get().onConnectWallet(wallet);
+            else get().onDisconnectWallet();
+        })
+    },
+
+    _initJettonWallet: async () => {
+        const list = await getListOfJettonWallets(get().address!.toString());
+
+        set({ jettons: list });
     },
 
     getExchange(amount: string, from: Currency, to: Currency): string {

@@ -4,6 +4,7 @@
     "**/bower_components": true
   },
   "cSpell.words": [
+    "atomic",
     "autorun",
     "catchain",
     "chartjs",
@@ -12,7 +13,7 @@
     "headlessui",
     "hton",
     "inited",
-    "atomic",
+    "jettons",
     "participations",
     "seqno",
     "ston",
@@ -22,7 +23,7 @@
     "unstake",
     "Unstaking",
     "zustand"
-  ],
+],
   "cSpell.ignorePaths": [
     "package-lock.json",
     "node_modules",

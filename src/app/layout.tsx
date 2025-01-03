@@ -52,7 +52,7 @@ export default function RootLayout({
 
                     <ToastContainer />
                 </TonConnectUIProvider>
-
+                <Stars />
             </body>
         </html>
     )
@@ -80,7 +80,6 @@ function Content({ children }: { children: React.ReactNode }) {
 
             </NoSsr>
         }
-
 
     </div>
 

@@ -6,6 +6,7 @@ import { IconButton } from "@/components/Button/IconButton";
 import { useModel } from "@/components/Services/Model";
 import { TokenButton } from "@/components/Button/TokenButton";
 import { Currency } from "@/types";
+import { NativeJettonModel } from "@/models/NativeJetton.model";
 
 export type WalletSidebarProps = {
     isOpen: boolean;
@@ -118,11 +119,23 @@ const ActionButtonsSection = () => {
 }
 
 const TokensInYourWalletSection = () => {
+    const { jettons } = useModel();
+
     return (
         <section>
             <h2 className={styles.SectionSubtitle}>
                 <img src="/icons/mini-wallet.svg" aria-hidden />
                 Tokens in your wallet</h2>
+
+            {
+                jettons.filter((jetton) => jetton.balance).map((jetton: NativeJettonModel) => {
+                    return (<TokenButton
+                        key={jetton.address}
+                        currency={jetton.currency}
+                        balance={jetton.balance}
+                        onClick={() => { }} />)
+                })
+            }
         </section>
     )
 }
@@ -131,19 +144,10 @@ const TokensInYourWalletSection = () => {
 export const WalletSidebar = ({ isOpen, onClose }: WalletSidebarProps) => {
     const address = useTonAddress();
     return (
-        <Sidebar
-            onClose={onClose}
-            isOpen={isOpen}
-            clickOutsideToClose
-        >
+        <Sidebar onClose={onClose} isOpen={isOpen} clickOutsideToClose>
             <WalletSection address={address} />
-            <TotalPortfolioSection
-                totalPortfolio={5759}
-                changeAmount={1.28}
-                changePercentage={2.8}
-            />
+            <TotalPortfolioSection totalPortfolio={5759} changeAmount={1.28} changePercentage={2.8} />
             <DepositedTokensSection />
-
             <ActionButtonsSection />
             <TokensInYourWalletSection />
         </Sidebar>
