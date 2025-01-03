@@ -44,6 +44,8 @@ type ModelType = {
     activeTab: ActiveTab
     amount: string
     errorMessage: string
+    isDepositModalOpen: boolean,
+    setDepositModalOpen: (isOpen: boolean) => void
 
     _exchangeRates: Record<string, string>
 
@@ -146,6 +148,12 @@ export const useModel = create<ModelType>(((set, get) => ({
     _atomicWallets: {},
     _networkUrl: undefined,
     jettons: [],
+    isDepositModalOpen: false,
+    setDepositModalOpen: (isOpen: boolean) => {
+        set({
+            isDepositModalOpen: isOpen,
+        })
+    },
 
     // unobserved state
     tonConnectUI: undefined,

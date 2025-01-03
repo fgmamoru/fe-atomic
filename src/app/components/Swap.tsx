@@ -154,13 +154,6 @@ export function DexSwapTab() {
                     setSwapSpeedModalOpen(false)
                 }}
             />
-            <DepositModal isOpen={depositModalOpen}
-                onClose={
-                    () => {
-                        setDepositModalOpen(false)
-                        model.setActiveTab("swap")
-                    }
-                } />
         </>
     )
 }

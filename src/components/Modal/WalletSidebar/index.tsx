@@ -85,9 +85,7 @@ const DepositedTokensSection = () => {
     return (
         <section>
             <h2 className={styles.SectionSubtitle}>
-                <img src="/icons/mini-coins.svg" aria-hidden />
-
-                Deposited Tokens</h2>
+                <img src="/icons/mini-coins.svg" aria-hidden /> Deposited Tokens</h2>
             {
                 _memberRecord.getPositiveBalances().map(([currency, balance]) => {
                     return (<TokenButton
@@ -102,10 +100,16 @@ const DepositedTokensSection = () => {
 }
 
 const ActionButtonsSection = () => {
+    const { setDepositModalOpen } = useModel();
+
+
     return (
         <section>
             <div className={styles.ActionButtons}>
-                <button className={styles.ActionButton}>
+                <button
+                    className={styles.ActionButton}
+                    onClick={() => setDepositModalOpen(true)}
+                >
                     <img src="/icons/deposit.svg" aria-hidden />
                     Deposit
                 </button>

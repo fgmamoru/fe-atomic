@@ -15,6 +15,7 @@ import { ToastContainer } from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
 import NoSsr from "@/components/Misc/NoSsr";
 import { WalletSidebar } from "@/components/Modal/WalletSidebar";
+import { DepositModal } from "@/components/Modal/DepositModal";
 
 export default function RootLayout({
     children,
@@ -24,6 +25,7 @@ export default function RootLayout({
     if (typeof localStorage !== 'undefined') {
         localStorage.debug = 'app:*'
     }
+    const { isDepositModalOpen, setDepositModalOpen } = useModel();
 
     return (
         <html lang="en" suppressHydrationWarning>
@@ -49,6 +51,7 @@ export default function RootLayout({
                     <Content>
                         {children}
                     </Content>
+                    <DepositModal isOpen={isDepositModalOpen} onClose={() => setDepositModalOpen(false)} />
 
                     <ToastContainer />
                 </TonConnectUIProvider>
