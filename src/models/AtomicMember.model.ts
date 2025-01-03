@@ -89,6 +89,17 @@ export class AtomicMemberRecordModel {
         return this.positiveBalances.size > 0;
     }
 
+    public getPortfolioValueInUsd(exchangeRates: Record<string, string>): number {
+        let total = 0;
+        for (const [currency, balance] of this.positiveBalances) {
+            const rate = exchangeRates[`${currency.symbol}USDT`];
+            if (rate && balance > 0) {
+                total += parseFloat(rate) * parseFloat(balance.toString()) / 1e9;
+            }
+        }
+        return total;
+    }
+
     /**
      * Apply the changes of an swap to the balances.
      * Used for optimistic Updates

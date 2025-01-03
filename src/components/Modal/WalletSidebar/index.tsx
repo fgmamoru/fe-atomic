@@ -152,10 +152,15 @@ const TokensInYourWalletSection = () => {
 
 export const WalletSidebar = ({ isOpen, onClose }: WalletSidebarProps) => {
     const address = useTonAddress();
+    const { _memberRecord, _exchangeRates } = useModel();
+
+
+
+
     return (
         <Sidebar onClose={onClose} isOpen={isOpen} clickOutsideToClose>
             <WalletSection address={address} />
-            <TotalPortfolioSection totalPortfolio={5759} changeAmount={1.28} changePercentage={2.8} />
+            <TotalPortfolioSection totalPortfolio={_memberRecord?.getPortfolioValueInUsd(_exchangeRates) || 0} changeAmount={1.28} changePercentage={2.8} />
             <DepositedTokensSection />
             <ActionButtonsSection />
             <TokensInYourWalletSection />
