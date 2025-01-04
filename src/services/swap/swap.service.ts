@@ -2,7 +2,7 @@ import { sha256, signVerify } from '@ton/crypto';
 
 import { Address, Builder, Dictionary, OpenedContract, Sender, TonClient, TonClient4, beginCell, toNano } from "@ton/ton";
 import { ATOMIC_DEX_CONTRACT_ADDRESS, NETWORK } from "../config.service";
-import { AtomicDex, AtomicPool, MultiSwapBackend, storeMultiSwapBackend, storeTopUpGasMember, storeTupleTopUpGasMember, SwapOrder } from "../AtomicDex/AtomicDex.service";
+import { AtomicDex, AtomicPool, MultiSwapBackend, SwapOrder } from "../AtomicDex/AtomicDex.service";
 import { AtomicPoolCurrencyMapItem, Currency, CurveTypes, ExpandedAtomicPool } from "@/types";
 import { SandboxContract, TreasuryContract } from '@ton/sandbox';
 import debug from 'debug';
@@ -70,6 +70,7 @@ export class SwapService {
     private readonly contractAddress: string;
     private pools?: Record<string, ExpandedAtomicPool>;
     private orbsClientContract: OpenedContract<AtomicDex>;
+    private sender: Sender;
 
     constructor(private readonly orbsClient: TonClient4, private readonly tonConnectUI: TonConnectUI) {
         this.contractAddress = ATOMIC_DEX_CONTRACT_ADDRESS;
@@ -81,7 +82,24 @@ export class SwapService {
         this.contract = client.open(this.atomicDex);
         this.orbsClientContract = orbsClient.open(this.atomicDex);
         this.tonConnectUI = tonConnectUI;
-        tonConnectUI.sendTransaction
+        tonConnectUI.sendTransaction;
+
+
+        this.sender = {
+            address: Address.parse(tonConnectUI.account?.address || ""),
+            send: async (message) => {
+                await tonConnectUI.sendTransaction({
+                    messages: [{
+                        address: this.contractAddress,
+                        amount: message.value.toString(),
+                        payload: message.body?.toBoc().toString('base64'),
+                    }],
+                    validUntil: TON_TX_VALID_UNTIL,
+                    from: tonConnectUI.account?.address || "",
+                    network: NETWORK === "testnet" ? CHAIN.TESTNET : CHAIN.MAINNET,
+                })
+            }
+        }
         // test hash 
         // const testSeq = 0n;
         // const testQueryId = 0n;
@@ -141,8 +159,9 @@ export class SwapService {
         // this.pools = map;
 
         // return map;
+        // @ts-ignore
+        const pools: Dictionary<number, AtomicPool> = await this.orbsClientContract.getAtomicPools()
 
-        const pools: Dictionary<number, AtomicPool> = await this.orbsClientContract.getAtomicPools();
 
         const poolKeys = pools.keys();
 
@@ -188,7 +207,7 @@ export class SwapService {
 
         walletKeys.forEach((key) => {
             const wallet = wallets.get(key);
-            mappedWallets[key] = new AtomicWalletModel(wallet!);
+            mappedWallets[key.toString()] = new AtomicWalletModel(wallet!);
         });
 
         console.log("Atomic wallets", mappedWallets,);
@@ -311,28 +330,41 @@ export class SwapService {
 
     }
 
-    async sendDepositOperation(address: Address, tonAmount: bigint) {
-        // const publicKeyBigInt = BigInt(`0x${publicKey}`);
+    async sendDepositOperation(publicKey: string, tonAmount: bigint, walletId: bigint,) {
+        const publicKeyBigInt = BigInt(`0x${publicKey}`);
 
-        // const msg = storeTopUpGasMember({
-        //     $$type: "TopUpGasMember",
-        //     publicKey: publicKeyBigInt,
-        //     queryId: 0n
-        // })
+        this.contract.send(
+            this.sender,
+            {
+                value: tonAmount,
+            },
+            {
+                $$type: 'DepositNotification' as const,
+                amount: tonAmount,
+                atomicWalletId: walletId,
+                publicKey: publicKeyBigInt,
+            }
+        )
+    }
 
-        // this.tonConnectUI.sendTransaction({
-        //     messages: [
-        //         {
-        //             address: this.contractAddress,
-        //             value: toNano("0.05"),
-        //             stateInit: beginCell().store(storeTopUpGasMember(msg)).endCell()
-        //         }
-        //     ],
+    async sendJoinOperation(publicKey: string, tonAmount: bigint, walletId: bigint,) {
+        const publicKeyBigInt = BigInt(`0x${publicKey}`);
 
-        //     validUntil: getTonTxValidUntil(),
-        //     from: address.toRawString(),
-        //     network: NETWORK === "testnet" ? CHAIN.TESTNET : CHAIN.MAINNET,
-        // })
+        this.contract.send(
+            this.sender,
+            {
+                value: tonAmount,
+            },
+            {
+                $$type: 'JoinMember' as const,
+                amount: tonAmount,
+                atomicWalletId: walletId,
+                publicKey: publicKeyBigInt,
+                eviction: Dictionary.empty<number, bigint>(),
+                queryId: this.getQueryId(),
+                seq: 0n,
+            }
+        )
     }
 
     public async getMember(publicKey: string): Promise<AtomicMemberRecordModel | null> {

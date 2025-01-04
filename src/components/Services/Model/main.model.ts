@@ -753,22 +753,38 @@ export const useModel = create<ModelType>(((set, get) => ({
     },
 
     executeDeposit: async () => {
+        debugLog('executeDeposit')
         try {
-            if (!get().isConnected()) return toast.error('Please connect your wallet');
-            if (!get().amount) return toast.error('Please enter an amount to deposit');
-            if (parseFloat(get().amount) === 0) return toast.error('Amount must be greater than 0');
+            const { _memberRecord, isConnected, setAmount, amountInNano, amount, _swapService } = get();
+            if (!isConnected()) return toast.error('Please connect your wallet');
+            if (!amount) return toast.error('Please enter an amount to deposit');
+            if (parseFloat(amount) === 0) return toast.error('Amount must be greater than 0');
 
             set({ requestStatus: RequestStatus.Requested, requestType: RequestType.Deposit })
 
-            const member = get()._memberRecord;
-            if (member == null) return;
+            const member = _memberRecord;
+            if (member == null) {
+                toast.info('Member record not found, Joining to the network and adding your deposit!');
+                await _swapService!.sendJoinOperation(
+                    get().tonConnectUI?.account?.publicKey!,
+                    amountInNano()!,
+                    0n
+                );
 
-            const amount = toNano(get().amount);
-            const updatedMember = await member.executeDeposit(amount);
+                return;
+            }
+
+            await _swapService!.sendDepositOperation(
+                get().tonConnectUI?.account?.publicKey!,
+                amountInNano()!,
+                0n
+            );
+
+            const updatedMember = await member.executeDeposit(amountInNano()!);
 
             set({ _memberRecord: updatedMember });
 
-            get().setAmount('');
+            setAmount('');
 
             toast.success('Deposit successful');
         } catch (error) {

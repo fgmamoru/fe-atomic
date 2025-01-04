@@ -56,19 +56,6 @@ const TotalPortfolioSection = (props: { totalPortfolio: number, changeAmount: nu
 const DepositedTokensSection = () => {
     const { _memberRecord } = useModel();
 
-    if (!_memberRecord) {
-        return (
-            <section>
-
-                <h2 className={styles.SectionSubtitle}>Deposited Tokens</h2>
-
-                <div className={styles.DepositedSectionEmpty}>
-                    You need to connect your wallet to see deposited tokens.
-                </div>
-            </section>
-        )
-    }
-
     if (!_memberRecord?.havePositiveBalances()) {
         return (
             <section>
