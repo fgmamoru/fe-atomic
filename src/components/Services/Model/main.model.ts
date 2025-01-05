@@ -158,6 +158,7 @@ export const useModel = create<ModelType>(((set, get) => ({
     _networkUrl: undefined,
     jettons: [],
     isDepositModalOpen: false,
+
     depositAmountInNano() {
         const amount = get().depositAmount.trim()
         try {
@@ -203,6 +204,7 @@ export const useModel = create<ModelType>(((set, get) => ({
                 setDepositAmount: setAmount,
                 depositAmountInNano: amountInNano,
                 depositAmount: amount,
+                selectedDepositCurrency,
                 _swapService } = get();
 
             if (!isConnected()) return toast.error('Please connect your wallet');
@@ -217,17 +219,17 @@ export const useModel = create<ModelType>(((set, get) => ({
                 await _swapService!.sendJoinOperation(
                     get().tonConnectUI?.account?.publicKey!,
                     amountInNano()!,
-                    0n
+                    selectedDepositCurrency.id,
                 );
 
-                return;
-            }
+            } else {
+                await _swapService!.sendDepositOperation(
+                    get().tonConnectUI?.account?.publicKey!,
+                    amountInNano()!,
+                    selectedDepositCurrency.id,
 
-            await _swapService!.sendDepositOperation(
-                get().tonConnectUI?.account?.publicKey!,
-                amountInNano()!,
-                0n
-            );
+                );
+            }
 
             // wait until the deposit is signed
 
@@ -235,13 +237,22 @@ export const useModel = create<ModelType>(((set, get) => ({
                 await new Promise((resolve) => setTimeout(resolve, 500));
             }
 
-            const updatedMember = await member.applyDeposit(amountInNano()!);
+            if (member) {
+                const updatedMember = await member.applyDeposit(amountInNano()!, selectedDepositCurrency);
+                set({ _memberRecord: updatedMember });
+            } else {
+                const placeholderMember = AtomicMemberRecordModel.createPlaceholder(
+                    get()._atomicDexContract!,
+                    BigInt(`0x${get().tonConnectUI?.account?.publicKey!}`)
+                );
 
-            set({ _memberRecord: updatedMember });
+                const updatedMember = await placeholderMember.applyDeposit(amountInNano()!, selectedDepositCurrency);
+                set({ _memberRecord: updatedMember });
+            }
 
             setAmount('');
-
             toast.success('Deposit successful');
+
         } catch (error) {
             console.error(error)
             toast.error('Deposit failed, please try again')

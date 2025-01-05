@@ -46,36 +46,33 @@ export class AtomicMemberRecordModel {
         }
     }
 
-    private clone(
-        member: AtomicMemberRecordModel,
-    ): AtomicMemberRecordModel {
-        const rebuildMember: AtomicMemberRecord = {
+    static createPlaceholder(
+        contract: OpenedContract<AtomicDex>,
+        publicKey: bigint
+    ) {
+        return new AtomicMemberRecordModel({
             $$type: "AtomicMemberRecord",
-            balance0: member.balances.balance0,
-            balance1: member.balances.balance1,
-            balance2: member.balances.balance2,
-            balance3: member.balances.balance3,
-            balance4: member.balances.balance4,
-            balance5: member.balances.balance5,
-            balance6: member.balances.balance6,
-            balance7: member.balances.balance7,
-            balance8: member.balances.balance8,
-            balance9: member.balances.balance9,
-            balance10: member.balances.balance10,
-            balance11: member.balances.balance11,
-            balance12: member.balances.balance12,
-            balance13: member.balances.balance13,
-            balance14: member.balances.balance14,
-            id: member.id,
-            seq: member.seq,
-            unused: member.unused,
-        }
-
-        return new AtomicMemberRecordModel(
-            rebuildMember,
-            this.contract,
-            this.publicKey,
-        );
+            balance0: 0n,
+            balance1: 0n,
+            balance2: 0n,
+            balance3: 0n,
+            balance4: 0n,
+            balance5: 0n,
+            balance6: 0n,
+            balance7: 0n,
+            balance8: 0n,
+            balance9: 0n,
+            balance10: 0n,
+            balance11: 0n,
+            balance12: 0n,
+            balance13: 0n,
+            balance14: 0n,
+            id: 0n,
+            seq: 0n,
+            unused: 0n,
+        },
+            contract,
+            publicKey);
     }
 
     public getTonBalance(): bigint {
@@ -106,8 +103,8 @@ export class AtomicMemberRecordModel {
         });
     }
 
-    public applyDeposit(amount: bigint): AtomicMemberRecordModel {
-        this.changeBalance(DEFAULT_CURRENCIES_MAP["TON"], amount);
+    public applyDeposit(amount: bigint, currency: Currency): AtomicMemberRecordModel {
+        this.changeBalance(currency, amount);
         return this.clone(this);
     }
 
@@ -168,6 +165,38 @@ export class AtomicMemberRecordModel {
 
     private changeBalance(currency: Currency, change: bigint) {
         this.balances[currency.balanceKey] += change;
+    }
+
+    private clone(
+        member: AtomicMemberRecordModel,
+    ): AtomicMemberRecordModel {
+        const rebuildMember: AtomicMemberRecord = {
+            $$type: "AtomicMemberRecord",
+            balance0: member.balances.balance0,
+            balance1: member.balances.balance1,
+            balance2: member.balances.balance2,
+            balance3: member.balances.balance3,
+            balance4: member.balances.balance4,
+            balance5: member.balances.balance5,
+            balance6: member.balances.balance6,
+            balance7: member.balances.balance7,
+            balance8: member.balances.balance8,
+            balance9: member.balances.balance9,
+            balance10: member.balances.balance10,
+            balance11: member.balances.balance11,
+            balance12: member.balances.balance12,
+            balance13: member.balances.balance13,
+            balance14: member.balances.balance14,
+            id: member.id,
+            seq: member.seq,
+            unused: member.unused,
+        }
+
+        return new AtomicMemberRecordModel(
+            rebuildMember,
+            this.contract,
+            this.publicKey,
+        );
     }
 }
 
