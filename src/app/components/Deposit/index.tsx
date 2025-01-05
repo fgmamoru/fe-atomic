@@ -26,6 +26,7 @@ export function DexDepositTab(props: DexDepositTabProps) {
     const buttonTitle = wallet ? 'Deposit' : 'Connect Wallet';
 
     const depositEnabled = isDepositAmountButtonEnabled(model.depositAmount, wallet, model.depositErrorMessage);
+    const selectorDisabled = model.isOnlyNativeTonJettonAvailable();
 
     return (
         <>
@@ -43,6 +44,7 @@ export function DexDepositTab(props: DexDepositTabProps) {
                     cryptoName="Ton"
                     cryptoIcon="/icons/ton.svg"
                     invalid={!!model.depositErrorMessage}
+                    selectorDisabled={selectorDisabled}
                     endLabel={<div style={{
                         display: "flex",
                         alignItems: "center",

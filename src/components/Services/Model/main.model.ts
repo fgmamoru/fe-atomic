@@ -51,6 +51,11 @@ type ModelType = {
     setDepositModalOpen: (isOpen: boolean) => void
     setDepositAmountToMax: () => void
     depositErrorMessage: string
+    /**
+     * Returns true if only native Jetton available in user wallet is Ton
+     * @returns {boolean}
+     */
+    isOnlyNativeTonJettonAvailable: () => boolean
 
     _exchangeRates: Record<string, string>
 
@@ -187,6 +192,63 @@ export const useModel = create<ModelType>(((set, get) => ({
         set({ depositAmount: get().maxAmountOfTonBalanceInTon().toString() })
     },
     depositErrorMessage: '',
+
+    executeDeposit: async () => {
+        debugLog('executeDeposit')
+        try {
+            const {
+                _memberRecord,
+                isConnected,
+                setDepositAmount: setAmount,
+                depositAmountInNano: amountInNano,
+                depositAmount: amount,
+                _swapService } = get();
+
+            if (!isConnected()) return toast.error('Please connect your wallet');
+            if (!amount) return toast.error('Please enter an amount to deposit');
+            if (parseFloat(amount) === 0) return toast.error('Amount must be greater than 0');
+
+            set({ requestStatus: RequestStatus.Requested, requestType: RequestType.Deposit })
+
+            const member = _memberRecord;
+            if (member == null) {
+                toast.info('Member record not found, Joining to the network and adding your deposit!');
+                await _swapService!.sendJoinOperation(
+                    get().tonConnectUI?.account?.publicKey!,
+                    amountInNano()!,
+                    0n
+                );
+
+                return;
+            }
+
+            await _swapService!.sendDepositOperation(
+                get().tonConnectUI?.account?.publicKey!,
+                amountInNano()!,
+                0n
+            );
+
+            const updatedMember = await member.executeDeposit(amountInNano()!);
+
+            set({ _memberRecord: updatedMember });
+
+            setAmount('');
+
+            toast.success('Deposit successful');
+        } catch (error) {
+            console.error(error)
+            toast.error('Deposit failed, please try again')
+        } finally {
+            set({ requestStatus: RequestStatus.None, requestType: RequestType.None })
+        }
+    },
+
+    isOnlyNativeTonJettonAvailable: () => {
+        const { jettons } = get();
+        if (!jettons) return true;
+        if (jettons.length === 0) return true;
+        return jettons.length === 1 && jettons[0].symbol === 'TON'
+    },
 
     // unobserved state
     tonConnectUI: undefined,
@@ -770,55 +832,6 @@ export const useModel = create<ModelType>(((set, get) => ({
         return true;
     },
 
-    executeDeposit: async () => {
-        debugLog('executeDeposit')
-        try {
-            const {
-                _memberRecord,
-                isConnected,
-                setDepositAmount: setAmount,
-                depositAmountInNano: amountInNano,
-                depositAmount: amount,
-                _swapService } = get();
-
-            if (!isConnected()) return toast.error('Please connect your wallet');
-            if (!amount) return toast.error('Please enter an amount to deposit');
-            if (parseFloat(amount) === 0) return toast.error('Amount must be greater than 0');
-
-            set({ requestStatus: RequestStatus.Requested, requestType: RequestType.Deposit })
-
-            const member = _memberRecord;
-            if (member == null) {
-                toast.info('Member record not found, Joining to the network and adding your deposit!');
-                await _swapService!.sendJoinOperation(
-                    get().tonConnectUI?.account?.publicKey!,
-                    amountInNano()!,
-                    0n
-                );
-
-                return;
-            }
-
-            await _swapService!.sendDepositOperation(
-                get().tonConnectUI?.account?.publicKey!,
-                amountInNano()!,
-                0n
-            );
-
-            const updatedMember = await member.executeDeposit(amountInNano()!);
-
-            set({ _memberRecord: updatedMember });
-
-            setAmount('');
-
-            toast.success('Deposit successful');
-        } catch (error) {
-            console.error(error)
-            toast.error('Deposit failed, please try again')
-        } finally {
-            set({ requestStatus: RequestStatus.None, requestType: RequestType.None })
-        }
-    }
 })))
 export const minimumTonBalanceReserve = 200000000n
 

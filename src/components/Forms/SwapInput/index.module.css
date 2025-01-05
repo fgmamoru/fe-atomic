@@ -103,6 +103,16 @@
     background-color: #4e4e4e;
 }
 
+.SwapInputCurrencyButton:disabled {
+    background-color: #2A2A2A;
+    color: var(--color-text-secondary);
+    cursor: default;
+}
+
+.SwapInputCurrencyButton:disabled .InputSelectorArrow {
+    display: none;
+}
+
 .SwapInputCryptoLabelImg {
     width: 24px;
     height: 24px;

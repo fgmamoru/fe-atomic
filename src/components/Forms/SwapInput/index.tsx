@@ -23,16 +23,17 @@ type SwapInputProps = {
     inputMode?: "text" | "decimal" | "numeric" | "search" | "none" | "tel" | "url" | "email" | undefined;
     currencies: Set<Currency>;
     onCurrencyClick?: () => void;
-
+    selectorDisabled?: boolean;
 };
 
 const SwapInputSelector = (props: SwapInputProps) => {
     return <button className={styles.SwapInputCurrencyButton}
+        disabled={props.selectorDisabled}
         onClick={() => props.onCurrencyClick?.()}
     >
         <img className={styles.SwapInputCryptoLabelImg} src={props.cryptoIcon} alt={`${props.cryptoName} logo`} />
         <span>{props.cryptoName}</span>
-        <img src="/icons/arrow_down.svg" aria-hidden />
+        <img className={styles.InputSelectorArrow} src="/icons/arrow_down.svg" aria-hidden />
     </button>
 }
 
