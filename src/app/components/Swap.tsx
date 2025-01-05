@@ -21,7 +21,6 @@ export function DexSwapTab() {
     const [tonConnectUi] = useTonConnectUI();
     const wallet = useTonWallet();
     wallet?.account.publicKey;
-    useEffect(() => { model.setActiveTab("swap") }, []);
     const buttonTitle = wallet ? 'Swap' : 'Connect Wallet';
     const [fromModalOpen, setFromModalOpen] = useState(false);
     const [toModalOpen, setToModalOpen] = useState(false);
@@ -42,14 +41,14 @@ export function DexSwapTab() {
                     id="stake-amount"
                     type="text"
                     variant="top"
-                    value={model.activeTab === "swap" ? model.amount : ""}
-                    onChange={model.setAmount}
+                    value={model.swapAmount}
+                    onChange={model.setSwapAmount}
                     inputMode="decimal"
                     placeholder={"0.0"}
                     label="Sell"
                     cryptoName={model.selectedFromCurrency.symbol}
                     cryptoIcon={model.selectedFromCurrency.icon}
-                    invalid={!!model.errorMessage}
+                    invalid={!!model.swapErrorMessage}
                     currencies={model.currencies}
                     onCurrencyClick={() => {
                         setFromModalOpen(true)
@@ -68,7 +67,7 @@ export function DexSwapTab() {
                         <MiniButton
                             disabled={Number(model.getMaxAmountOfSelectedCurrency()) === 0}
                             onClick={() => {
-                                model.setAmount(model.getMaxAmountOfSelectedCurrency().toString())
+                                model.setSwapAmount(model.getMaxAmountOfSelectedCurrency().toString())
                             }}>Max</MiniButton>
                     </div>}
                 />
@@ -89,7 +88,7 @@ export function DexSwapTab() {
                 <SwapInput
                     min={0}
                     id="stake-you-receive"
-                    value={model.activeTab === "swap" ? model.resultAmount : ""}
+                    value={model.resultSwapAmount}
                     label="Buy"
                     cryptoName={model.selectedToCurrency.symbol}
                     cryptoIcon={model.selectedToCurrency.icon}
@@ -102,7 +101,7 @@ export function DexSwapTab() {
                 />
                 <TxSpeedBadge
                     speed={TxSpeed.normal}
-                    error={model.errorMessage}
+                    error={model.swapErrorMessage}
                 />
             </div>
             <MainButton

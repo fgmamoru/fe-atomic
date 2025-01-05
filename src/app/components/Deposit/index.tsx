@@ -16,14 +16,16 @@ type DexDepositTabProps = {
 }
 
 
+function isDepositAmountButtonEnabled(depositAmount: string, wallet: any, errorMessage: string | null) {
+    return depositAmount && parseFloat(depositAmount) && wallet && !errorMessage;
+}
+
 export function DexDepositTab(props: DexDepositTabProps) {
     const model = useModel();
     const wallet = useTonWallet();
     const buttonTitle = wallet ? 'Deposit' : 'Connect Wallet';
 
-    useEffect(() => { model.setActiveTab("deposit") }, []);
-
-    const isDepositButtonEnabled = model.amount && parseFloat(model.amount) && wallet;
+    const depositEnabled = isDepositAmountButtonEnabled(model.depositAmount, wallet, model.depositErrorMessage);
 
     return (
         <>
@@ -33,14 +35,14 @@ export function DexDepositTab(props: DexDepositTabProps) {
                     min={0}
                     id="stake-amount"
                     type="text"
-                    value={model.amount}
-                    onChange={model.setAmount}
+                    value={model.depositAmount}
+                    onChange={model.setDepositAmount}
                     inputMode="decimal"
                     placeholder={"0.0"}
                     label="Deposit"
                     cryptoName="Ton"
                     cryptoIcon="/icons/ton.svg"
-                    invalid={!!model.errorMessage}
+                    invalid={!!model.depositErrorMessage}
                     endLabel={<div style={{
                         display: "flex",
                         alignItems: "center",
@@ -54,18 +56,18 @@ export function DexDepositTab(props: DexDepositTabProps) {
                             <AnimatedNumber value={model.maxAmountOfTonBalanceInTon()} formatValue={formatCryptoAmount} duration={300} /></span>
                         <MiniButton
                             disabled={model.maxAmountOfTonBalanceInTon() === 0}
-                            onClick={() => model.setAmountToMax()}>Max</MiniButton>
+                            onClick={() => model.setDepositAmountToMax()}>Max</MiniButton>
                     </div>}
                 />
                 <TxSpeedBadge
-                    error={model.errorMessage} speed={TxSpeed.normal} />
+                    error={model.depositErrorMessage} speed={TxSpeed.normal} />
             </div>
             <MainButton
-                disabled={!isDepositButtonEnabled}
+                disabled={!depositEnabled}
                 fullWidth
                 onClick={() => {
-                    if (!isDepositButtonEnabled) return;
-                    if (model.amount && parseFloat(model.amount)) {
+                    if (!depositEnabled) return;
+                    if (model.depositAmount && parseFloat(model.depositAmount)) {
                         model.executeDeposit().then(() => {
                             props.onDepositSuccess();
                         }).catch(() => {

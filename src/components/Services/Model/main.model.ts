@@ -17,8 +17,8 @@ import { AtomicMemberRecordModel } from '@/models/AtomicMember.model'
 import { bigIntClamp } from '@/utils/math'
 import { NativeJettonModel } from '@/models/NativeJetton.model';
 import { getListOfJettonWallets } from '../atomic-api';
+import { formatInputAmount } from './utils';
 
-type ActiveTab = 'swap' | 'deposit' | 'withdraw';
 const atomicDex = AtomicDex.fromAddress(Address.parse(ATOMIC_DEX_CONTRACT_ADDRESS))
 const debugLog = debug('app:model')
 
@@ -41,11 +41,16 @@ type ModelType = {
     jettons: NativeJettonModel[]
     address?: Address
     tonBalanceInNano: bigint
-    activeTab: ActiveTab
-    amount: string
-    errorMessage: string
+    swapAmount: string
+    swapErrorMessage: string
+
+    depositAmount: string
+    depositAmountInNano: () => bigint | undefined
+    setDepositAmount: (amount: string) => void
     isDepositModalOpen: boolean,
     setDepositModalOpen: (isOpen: boolean) => void
+    setDepositAmountToMax: () => void
+    depositErrorMessage: string
 
     _exchangeRates: Record<string, string>
 
@@ -59,19 +64,18 @@ type ModelType = {
     tonConnectUI?: TonConnectUI
 
     readLastBlock: () => void
-    setActiveTab: (activeTab: ActiveTab) => void
     _maxAmountInNano: () => bigint
     getMaxAmountOfSelectedCurrency: () => number | bigint
-    setAmount: (amount: string) => void
-    setAmountToMax: () => void
+    setSwapAmount: (amount: string) => void
+    setSwapAmountToMax: () => void
     tonBalanceFormatted: () => string | undefined
     tonBalanceInUsd: () => number
-    amountInNano: () => bigint | undefined
+    swapAmountInNano: () => bigint | undefined
     getExchange(amount: string, from: Currency, to: Currency): string
     getInUsd(amount: string, from: Currency): string
 
 
-    resultAmount: string;
+    resultSwapAmount: string;
     selectedFromCurrency: Currency;
     selectedToCurrency: Currency;
     currentExchangeRate: number;
@@ -137,9 +141,9 @@ export const useModel = create<ModelType>(((set, get) => ({
     walletFees: undefined,
     wallet: undefined,
     walletState: undefined,
-    activeTab: 'swap',
-    amount: '',
-    errorMessage: '',
+    swapAmount: '',
+    depositAmount: '',
+    swapErrorMessage: '',
     _exchangeRates: {},
     _memberRecord: null,
     _selectedRoute: null,
@@ -149,16 +153,45 @@ export const useModel = create<ModelType>(((set, get) => ({
     _networkUrl: undefined,
     jettons: [],
     isDepositModalOpen: false,
+    depositAmountInNano() {
+        const amount = get().depositAmount.trim()
+        try {
+            return toNano(amount)
+        } catch {
+            return undefined
+        }
+    },
     setDepositModalOpen: (isOpen: boolean) => {
         set({
             isDepositModalOpen: isOpen,
         })
     },
 
+    setDepositAmount: (amount: string) => {
+        console.log('setAmount')
+        const { _maxAmountOfTonBalanceInNano } = get()
+        // remove non-numeric characters and replace comma with dot
+        const formatted = formatInputAmount(amount);
+        const amountInNano = toNano(formatted);
+
+        if (amountInNano > _maxAmountOfTonBalanceInNano()) {
+            set({ depositErrorMessage: `Not enough balance.` })
+        } else {
+            set({ depositErrorMessage: '' })
+        }
+        set({ depositAmount: formatted })
+
+
+    },
+    setDepositAmountToMax: () => {
+        set({ depositAmount: get().maxAmountOfTonBalanceInTon().toString() })
+    },
+    depositErrorMessage: '',
+
     // unobserved state
     tonConnectUI: undefined,
 
-    resultAmount: "",
+    resultSwapAmount: "",
     pools: {},
 
     selectedFromCurrency: DEFAULT_CURRENCIES[0],
@@ -167,9 +200,6 @@ export const useModel = create<ModelType>(((set, get) => ({
     currencies: new Set<Currency>(),
 
     _maxAmountInNano(): bigint {
-        if (get().activeTab === 'deposit') {
-            return get()._maxAmountOfTonBalanceInNano()
-        }
         const member = get()._memberRecord;
 
         if (member == null) {
@@ -222,19 +252,8 @@ export const useModel = create<ModelType>(((set, get) => ({
 
     },
 
-    setActiveTab: (activeTab: ActiveTab) => {
-        if (get().activeTab !== activeTab) {
-            set({ activeTab })
-            set({ amount: '' })
-        }
-    },
-
-    setAmountToMax() {
-        if (get().activeTab === 'deposit') {
-            set({ amount: get().maxAmountOfTonBalanceInTon().toString() })
-            return;
-        }
-        set({ amount: fromNano(get()._maxAmountInNano()) })
+    setSwapAmountToMax() {
+        set({ swapAmount: fromNano(get()._maxAmountInNano()) })
     },
 
     tonBalanceFormatted() {
@@ -255,8 +274,8 @@ export const useModel = create<ModelType>(((set, get) => ({
         return 0
     },
 
-    amountInNano() {
-        const amount = get().amount.trim()
+    swapAmountInNano() {
+        const amount = get().swapAmount.trim()
         try {
             return toNano(amount)
         } catch {
@@ -264,7 +283,7 @@ export const useModel = create<ModelType>(((set, get) => ({
         }
     },
 
-    setAmount: (amount: string) => {
+    setSwapAmount: (amount: string) => {
         console.log('setAmount')
         const { _swapService, _maxAmountInNano } = get()
         // remove non-numeric characters and replace comma with dot
@@ -278,29 +297,29 @@ export const useModel = create<ModelType>(((set, get) => ({
 
         if (amountInNano > _maxAmountInNano()) {
             set({
-                errorMessage: `Not enough balance.`,
+                swapErrorMessage: `Not enough balance.`,
             })
         } else {
             set({
-                errorMessage: '',
+                swapErrorMessage: '',
             })
         }
-        set({ amount: formatted })
+        set({ swapAmount: formatted })
 
-        const selectedRoute = router.getBestRouteFromRoutes(get()._potentialRoutes, get().amountInNano()!);
+        const selectedRoute = router.getBestRouteFromRoutes(get()._potentialRoutes, get().swapAmountInNano()!);
         console.log(`setAmount, potentialRoutes: ${get()._potentialRoutes}, selectedRoute: ${selectedRoute}`)
         set({ _selectedRoute: selectedRoute })
 
         if (selectedRoute == null) {
             set({
-                errorMessage: 'No route found',
-                amount: formatted,
+                swapErrorMessage: 'No route found',
+                swapAmount: formatted,
             })
             get()._setResultAmount(0n)
             return
         }
 
-        const resultAmount = selectedRoute.getPrice(get().amountInNano()!);
+        const resultAmount = selectedRoute.getPrice(get().swapAmountInNano()!);
 
         debug(`setAmount, amount: ${amount}, formatted: ${formatted}, amountInNano: ${amountInNano}, resultAmount: ${resultAmount}`)
         get()._setResultAmount(resultAmount)
@@ -313,7 +332,7 @@ export const useModel = create<ModelType>(((set, get) => ({
             }
             set({ selectedFromCurrency: currency })
 
-            get().setAmount(get().amount)
+            get().setSwapAmount(get().swapAmount)
             get()._getRoutes()
         } catch (error) {
             console.error(error)
@@ -328,7 +347,7 @@ export const useModel = create<ModelType>(((set, get) => ({
                 set({ selectedFromCurrency: get().selectedToCurrency })
             }
             set({ selectedToCurrency: currency })
-            get().setAmount(get().amount)
+            get().setSwapAmount(get().swapAmount)
             get()._getRoutes()
         } catch (error) {
             console.error(error)
@@ -337,12 +356,12 @@ export const useModel = create<ModelType>(((set, get) => ({
 
     _getRoutes: () => {
         console.log('_getRoutes')
-        const { selectedFromCurrency, selectedToCurrency, amount } = get()
+        const { selectedFromCurrency, selectedToCurrency, swapAmount: amount } = get()
         const routes = router.getAllRoutes(selectedFromCurrency, selectedToCurrency);
 
         console.log(`_getRoutes, routes, ${routes.map((route) => route.toString() + '\n')}`)
         set({ _potentialRoutes: routes })
-        const selectedRoute = router.getBestRouteFromRoutes(routes, get().amountInNano()!);
+        const selectedRoute = router.getBestRouteFromRoutes(routes, get().swapAmountInNano()!);
         set({ _selectedRoute: selectedRoute })
     },
 
@@ -475,9 +494,9 @@ export const useModel = create<ModelType>(((set, get) => ({
             address: undefined,
             tonBalanceInNano: 0n,
             // wallet: undefined,
-            amount: '',
+            swapAmount: '',
             // walletState: undefined,
-            errorMessage: '',
+            swapErrorMessage: '',
         })
     },
 
@@ -495,14 +514,14 @@ export const useModel = create<ModelType>(((set, get) => ({
             // get().setWaitForTransaction('wait')
             // get().beginRequest()
             debugLog('executeSwapOrder, ready to swap', get()._swapService!.executeSwap)
-            debugLog(`amount: ${get().amount}, ${get().resultAmount}`)
+            debugLog(`amount: ${get().swapAmount}, ${get().resultSwapAmount}`)
             // process
             await get()._swapService!.executeSwap(
                 {
                     from: get().selectedFromCurrency,
                     to: get().selectedToCurrency,
-                    inAmount: get().amount,
-                    outAmount: get().resultAmount,
+                    inAmount: get().swapAmount,
+                    outAmount: get().resultSwapAmount,
                     publicKey: get().tonConnectUI?.account?.publicKey!,
                     tonConnectUi: get().tonConnectUI!,
                     poolId: 0,
@@ -517,14 +536,14 @@ export const useModel = create<ModelType>(((set, get) => ({
             member.applySwap(
                 get().selectedFromCurrency,
                 get().selectedToCurrency,
-                get().amountInNano()!,
-                toNano(get().resultAmount),
+                get().swapAmountInNano()!,
+                toNano(get().resultSwapAmount),
             )
 
             set({
                 _memberRecord: member,
             })
-            get().setAmount("");
+            get().setSwapAmount("");
 
 
             const newMember = await get()._memberRecord?.poolForUpdates();
@@ -538,7 +557,7 @@ export const useModel = create<ModelType>(((set, get) => ({
             toast.success('Swap executed successfully')
         }
         catch (error) {
-            get().setAmount("");
+            get().setSwapAmount("");
 
             console.error(error)
             if (get().requestStatus === RequestStatus.WaitingForConfirmation) {
@@ -549,7 +568,7 @@ export const useModel = create<ModelType>(((set, get) => ({
             }
             else {
                 set({
-                    errorMessage: 'Swap failed, please try again',
+                    swapErrorMessage: 'Swap failed, please try again',
                 });
             }
 
@@ -582,9 +601,9 @@ export const useModel = create<ModelType>(((set, get) => ({
         // console.log('---readyToSwap')
         if (!get().isConnected()) return false;
         // console.log('readyToSwap, connected')
-        if (Number.isNaN(parseFloat(get().amount))) return false;
+        if (Number.isNaN(parseFloat(get().swapAmount))) return false;
         // console.log('readyToSwap, amount not Nan')
-        if (parseFloat(get().amount) === 0) return false;
+        if (parseFloat(get().swapAmount) === 0) return false;
         // console.log('readyToSwap, amount positive')
 
         // if (get().tonBalance === undefined) return false;
@@ -593,15 +612,14 @@ export const useModel = create<ModelType>(((set, get) => ({
     },
 
     isAtomicSpeedSwap: () => {
-        if (get().activeTab !== 'swap') return false;
         return get().readyToSwap() && get()._selectedRoute?.speed === RouteSpeed.Fast
     },
 
     getSwapInputError: () => {
-        if (get().amount === '') return '';
+        if (get().swapAmount === '') return '';
         if (!get().isConnected()) return 'Please connect your wallet';
-        if (parseFloat(get().amount) === 0) return 'Amount must be greater than 0';
-        if (Number.isNaN(parseFloat(get().amount))) return 'Amount must be a valid number';
+        if (parseFloat(get().swapAmount) === 0) return 'Amount must be greater than 0';
+        if (Number.isNaN(parseFloat(get().swapAmount))) return 'Amount must be a valid number';
 
         return '';
     },
@@ -698,7 +716,7 @@ export const useModel = create<ModelType>(((set, get) => ({
         if (tonConnectUI?.wallet) {
             set({
                 address: Address.parseRaw(get().tonConnectUI!.wallet!.account.address),
-                errorMessage: '',
+                swapErrorMessage: '',
             });
             get().onConnectWallet(get().tonConnectUI!.wallet! as ConnectedWallet);
             _initMemberRecord();
@@ -744,7 +762,7 @@ export const useModel = create<ModelType>(((set, get) => ({
 
 
         set({
-            resultAmount: formatCryptoAmount(NanoToTon(bigIntClamp(amount, 0n)))
+            resultSwapAmount: formatCryptoAmount(NanoToTon(bigIntClamp(amount, 0n)))
         })
     },
 
@@ -755,7 +773,14 @@ export const useModel = create<ModelType>(((set, get) => ({
     executeDeposit: async () => {
         debugLog('executeDeposit')
         try {
-            const { _memberRecord, isConnected, setAmount, amountInNano, amount, _swapService } = get();
+            const {
+                _memberRecord,
+                isConnected,
+                setDepositAmount: setAmount,
+                depositAmountInNano: amountInNano,
+                depositAmount: amount,
+                _swapService } = get();
+
             if (!isConnected()) return toast.error('Please connect your wallet');
             if (!amount) return toast.error('Please enter an amount to deposit');
             if (parseFloat(amount) === 0) return toast.error('Amount must be greater than 0');
