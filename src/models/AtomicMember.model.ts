@@ -46,6 +46,38 @@ export class AtomicMemberRecordModel {
         }
     }
 
+    private clone(
+        member: AtomicMemberRecordModel,
+    ): AtomicMemberRecordModel {
+        const rebuildMember: AtomicMemberRecord = {
+            $$type: "AtomicMemberRecord",
+            balance0: member.balances.balance0,
+            balance1: member.balances.balance1,
+            balance2: member.balances.balance2,
+            balance3: member.balances.balance3,
+            balance4: member.balances.balance4,
+            balance5: member.balances.balance5,
+            balance6: member.balances.balance6,
+            balance7: member.balances.balance7,
+            balance8: member.balances.balance8,
+            balance9: member.balances.balance9,
+            balance10: member.balances.balance10,
+            balance11: member.balances.balance11,
+            balance12: member.balances.balance12,
+            balance13: member.balances.balance13,
+            balance14: member.balances.balance14,
+            id: member.id,
+            seq: member.seq,
+            unused: member.unused,
+        }
+
+        return new AtomicMemberRecordModel(
+            rebuildMember,
+            this.contract,
+            this.publicKey,
+        );
+    }
+
     public getTonBalance(): bigint {
         return this.balances.balance0;
     }
@@ -74,11 +106,9 @@ export class AtomicMemberRecordModel {
         });
     }
 
-    public async executeDeposit(amount: bigint): Promise<AtomicMemberRecordModel> {
-        console.log("Executing deposit of", amount);
-        await delay(3000);
-        this.changeBalance(DEFAULT_CURRENCIES_MAP["TON"], -amount);
-        return this;
+    public applyDeposit(amount: bigint): AtomicMemberRecordModel {
+        this.changeBalance(DEFAULT_CURRENCIES_MAP["TON"], amount);
+        return this.clone(this);
     }
 
     public getPositiveBalances(): Array<[Currency, bigint]> {

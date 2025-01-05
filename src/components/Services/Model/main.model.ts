@@ -22,11 +22,6 @@ import { formatInputAmount } from './utils';
 const atomicDex = AtomicDex.fromAddress(Address.parse(ATOMIC_DEX_CONTRACT_ADDRESS))
 const debugLog = debug('app:model')
 
-// check if localStorage is defined
-if (typeof localStorage !== 'undefined') {
-    localStorage.debug = 'app:*'
-}
-
 type ModelType = {
     requestType: RequestType,
     requestStatus: RequestStatus,
@@ -115,6 +110,7 @@ type ModelType = {
     _initMemberRecord: () => void,
     _initExchangeRates: () => void,
     _initJettonWallet: () => void,
+    _initListeners: () => void,
     _maxAmountOfTonBalanceInNano: () => bigint,
     maxAmountOfTonBalanceInTon: () => number,
     _setResultAmount: (bigint: bigint) => void,
@@ -233,7 +229,13 @@ export const useModel = create<ModelType>(((set, get) => ({
                 0n
             );
 
-            const updatedMember = await member.executeDeposit(amountInNano()!);
+            // wait until the deposit is signed
+
+            while (get().requestStatus === RequestStatus.Requested) {
+                await new Promise((resolve) => setTimeout(resolve, 500));
+            }
+
+            const updatedMember = await member.applyDeposit(amountInNano()!);
 
             set({ _memberRecord: updatedMember });
 
@@ -495,6 +497,7 @@ export const useModel = create<ModelType>(((set, get) => ({
             get()._initTonProofPayloadFromBackend();
             get()._initRouting();
             get()._initAtomicWallets();
+            get()._initListeners();
         } catch (error) {
             console.error(error)
         }
@@ -822,6 +825,26 @@ export const useModel = create<ModelType>(((set, get) => ({
         const list = await getListOfJettonWallets(get().address!.toString());
 
         set({ jettons: list });
+    },
+
+    _initListeners: () => {
+        window.addEventListener(
+            "ton-connect-ui-transaction-sent-for-signature",
+            (event) => {
+                // @ts-ignore
+                console.log("Transaction init", event.detail);
+            }
+        );
+        window.addEventListener(
+            "ton-connect-ui-transaction-signing-failed",
+            (event) => {
+                set({ requestStatus: RequestStatus.Failed, requestType: RequestType.None })
+            }
+        );
+        window.addEventListener("ton-connect-ui-transaction-signed", (event) => {
+            set({ requestStatus: RequestStatus.WaitingForConfirmation })
+        });
+
     },
 
     getExchange(amount: string, from: Currency, to: Currency): string {
