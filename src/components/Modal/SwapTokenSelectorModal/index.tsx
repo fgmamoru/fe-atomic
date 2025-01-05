@@ -1,6 +1,6 @@
 import { SearchInput } from "@/components/Forms/SearchInput";
 import { RegularModal } from "../MainModal"
-import styles from './TokenSelectorModal.module.css'
+import styles from './SwapTokenSelectorModal.module.css'
 import { Currency } from "@/types";
 import { useEffect, useState } from "react";
 import { IconButton } from "@/components/Button/IconButton";
@@ -24,7 +24,7 @@ const Subtitle = (props: { children: string, icon: string }) =>
 
 
 
-export const TokenSelectorModal = (props: TokenSelectorModalProps) => {
+export const SwapTokenSelectorModal = (props: TokenSelectorModalProps) => {
     const [search, setSearch] = useState<string>('');
     const [filteredCurrencies, setFilteredCurrencies] = useState<Set<Currency>>(props.currencies);
     const model = useModel();

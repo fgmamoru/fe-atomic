@@ -6,9 +6,10 @@ import { formatCryptoAmount } from "@/utils";
 // @ts-ignore
 import AnimatedNumber from "animated-number-react";
 import { useModel } from "@/components/Services/Model";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useTonWallet } from "@tonconnect/ui-react";
 import { TxSpeed, TxSpeedBadge } from "@/components/Misc/TxSpeedBadge";
+import { DepositTokenSelectorModal } from "@/components/Modal/DepositTokenSelectorModal";
 
 type DexDepositTabProps = {
     onDepositSuccess: () => void;
@@ -24,6 +25,7 @@ export function DexDepositTab(props: DexDepositTabProps) {
     const model = useModel();
     const wallet = useTonWallet();
     const buttonTitle = wallet ? 'Deposit' : 'Connect Wallet';
+    const [isTokenSelectorModalOpen, setIsTokenSelectorModalOpen] = useState(false);
 
     const depositEnabled = isDepositAmountButtonEnabled(model.depositAmount, wallet, model.depositErrorMessage);
     const selectorDisabled = model.isOnlyNativeTonJettonAvailable();
@@ -41,10 +43,15 @@ export function DexDepositTab(props: DexDepositTabProps) {
                     inputMode="decimal"
                     placeholder={"0.0"}
                     label="Deposit"
-                    cryptoName="Ton"
-                    cryptoIcon="/icons/ton.svg"
+                    cryptoName={model.selectedDepositCurrency?.symbol}
+                    cryptoIcon={model.selectedDepositCurrency?.icon}
                     invalid={!!model.depositErrorMessage}
                     selectorDisabled={selectorDisabled}
+                    onCurrencyClick={() => {
+                        if (!selectorDisabled) {
+                            setIsTokenSelectorModalOpen(true);
+                        }
+                    }}
                     endLabel={<div style={{
                         display: "flex",
                         alignItems: "center",
@@ -55,9 +62,9 @@ export function DexDepositTab(props: DexDepositTabProps) {
                             fontWeight: 400,
                             color: "var(--color-text-secondary)",
                         }}>
-                            <AnimatedNumber value={model.maxAmountOfTonBalanceInTon()} formatValue={formatCryptoAmount} duration={300} /></span>
+                            <AnimatedNumber value={model.maxDepositAmount()} formatValue={formatCryptoAmount} duration={300} /></span>
                         <MiniButton
-                            disabled={model.maxAmountOfTonBalanceInTon() === 0}
+                            disabled={parseInt(model.maxDepositAmount()) === 0}
                             onClick={() => model.setDepositAmountToMax()}>Max</MiniButton>
                     </div>}
                 />
@@ -78,6 +85,16 @@ export function DexDepositTab(props: DexDepositTabProps) {
                     }
                 }}
             >{buttonTitle}</MainButton>
+            <DepositTokenSelectorModal isOpen={isTokenSelectorModalOpen} onClose={
+                () => {
+                    setIsTokenSelectorModalOpen(false);
+                }
+            } onCurrencyClick={
+                (currency) => {
+                    model.setDepositCurrency(currency);
+                    setIsTokenSelectorModalOpen(false);
+                }
+            } />
         </>
     )
 }

@@ -32,8 +32,6 @@ const TokenButtonComponent = (props: {
                 </span>
                 <span className={styles.TokenSelectorModalItemUSD}>{model.getInUsd(formattedBalance, props.currency)}
                     <span className={styles.TokenSelectorModalItemSymbolSmall}>USD</span>
-
-
                 </span>
             </div>
         }

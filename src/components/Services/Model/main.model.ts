@@ -8,7 +8,7 @@ import { ATOMIC_DEX_CONTRACT_ADDRESS, NETWORK } from '@/services/config.service'
 import { AtomicDex } from '@/services/AtomicDex/AtomicDex.service'
 import { getSwapCurrencies, SwapService } from '@/services/swap/swap.service'
 import debug from 'debug'
-import { DEFAULT_CURRENCIES } from '@/services/Defaults'
+import { DEFAULT_CURRENCIES, DEFAULT_CURRENCIES_MAP } from '@/services/Defaults'
 import { Route, router } from '@/services/Router'
 import { AtomicWalletModel } from '@/models/Wallet/AtomicWallet.model'
 import { toast } from "react-toastify";
@@ -50,7 +50,11 @@ type ModelType = {
     isDepositModalOpen: boolean,
     setDepositModalOpen: (isOpen: boolean) => void
     setDepositAmountToMax: () => void
+    maxDepositAmount: () => string,
+    setDepositCurrency: (currency: Currency) => void
     depositErrorMessage: string
+    selectedDepositCurrency: Currency
+
     /**
      * Returns true if only native Jetton available in user wallet is Ton
      * @returns {boolean}
@@ -192,6 +196,7 @@ export const useModel = create<ModelType>(((set, get) => ({
         set({ depositAmount: get().maxAmountOfTonBalanceInTon().toString() })
     },
     depositErrorMessage: '',
+    selectedDepositCurrency: DEFAULT_CURRENCIES_MAP['TON'],
 
     executeDeposit: async () => {
         debugLog('executeDeposit')
@@ -241,6 +246,27 @@ export const useModel = create<ModelType>(((set, get) => ({
         } finally {
             set({ requestStatus: RequestStatus.None, requestType: RequestType.None })
         }
+    },
+
+    setDepositCurrency: (currency: Currency) => {
+        console.log('setDepositCurrency')
+        set({ selectedDepositCurrency: currency })
+    },
+
+    maxDepositAmount() {
+        const { selectedDepositCurrency, jettons } = get();
+
+        if (selectedDepositCurrency == null) return '0';
+
+        if (selectedDepositCurrency.symbol === DEFAULT_CURRENCIES_MAP.TON.symbol) {
+            return get().maxAmountOfTonBalanceInTon().toString()
+        }
+
+
+        const jetton = jettons.find((jetton) => jetton.currency.symbol === selectedDepositCurrency.symbol)
+        debugLog('maxDepositAmount, jettons', jetton?.symbol, selectedDepositCurrency)
+
+        return formatNano(jetton?.balance ?? 0n)
     },
 
     isOnlyNativeTonJettonAvailable: () => {

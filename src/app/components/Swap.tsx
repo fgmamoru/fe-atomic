@@ -10,11 +10,10 @@ import { useTonConnectModal, useTonConnectUI, useTonWallet } from "@tonconnect/u
 import { useEffect, useState } from "react";
 
 import { useModel } from "@/components/Services/Model";
-import { TokenSelectorModal } from "@/components/Modal/TokenSelectorModal";
+import { SwapTokenSelectorModal } from "@/components/Modal/SwapTokenSelectorModal";
 import { WaitingTransactionModal } from "@/components/Modal/WaitingTransactionModal";
 import { TxSpeed, TxSpeedBadge } from "@/components/Misc/TxSpeedBadge";
 import { SwapSpeedModal } from "@/components/Modal/SwapSpeedModal";
-import { DepositModal } from "@/components/Modal/DepositModal";
 
 export function DexSwapTab() {
     const model = useModel();
@@ -117,7 +116,7 @@ export function DexSwapTab() {
 
 
 
-            <TokenSelectorModal
+            <SwapTokenSelectorModal
                 currencies={model.currencies}
                 isOpen={fromModalOpen}
                 onClose={() => {
@@ -128,7 +127,7 @@ export function DexSwapTab() {
                     setFromModalOpen(false)
                 }}
             />
-            <TokenSelectorModal
+            <SwapTokenSelectorModal
                 currencies={model.currencies}
                 isOpen={toModalOpen}
                 onClose={() => {
