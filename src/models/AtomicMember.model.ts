@@ -134,6 +134,8 @@ export class AtomicMemberRecordModel {
     public applySwap(currencyIn: Currency, currencyOut: Currency, amountIn: bigint, amountOut: bigint) {
         this.changeBalance(currencyIn, -amountIn);
         this.changeBalance(currencyOut, amountOut);
+
+        return this.clone(this);
     }
 
     private reset(

@@ -345,7 +345,9 @@ export const useModel = create<ModelType>(((set, get) => ({
                 return 0
             }
 
-            return balance / 1000000000n
+            const balance100x = balance / 10000000n
+
+            return Number(balance100x) / 100
         } catch (error) {
             console.error(error)
             return 0
@@ -486,15 +488,19 @@ export const useModel = create<ModelType>(((set, get) => ({
 
             const tonClient = new TonClient4({ endpoint: url });
             const atomicDexContract = tonClient.open(atomicDex);
-            const swapService = new SwapService(tonClient, tonConnectUI);
 
             set({
                 tonConnectUI,
                 tonClient,
                 inited: true,
                 _atomicDexContract: atomicDexContract,
-                _swapService: swapService,
             });
+
+            // wait 3 seconds for the contract to be opened
+            await new Promise((resolve) => setTimeout(resolve, 3000));
+
+            const swapService = new SwapService(tonClient, tonConnectUI);
+            set({ _swapService: swapService });
 
             swapService.getPoolList()
                 .then((pools) => set({ pools }))
@@ -635,7 +641,7 @@ export const useModel = create<ModelType>(((set, get) => ({
             })
 
             const member = await get()._memberRecord!;
-            member.applySwap(
+            const cloned = member.applySwap(
                 get().selectedFromCurrency,
                 get().selectedToCurrency,
                 get().swapAmountInNano()!,
@@ -643,7 +649,7 @@ export const useModel = create<ModelType>(((set, get) => ({
             )
 
             set({
-                _memberRecord: member,
+                _memberRecord: cloned,
             })
             get().setSwapAmount("");
 
