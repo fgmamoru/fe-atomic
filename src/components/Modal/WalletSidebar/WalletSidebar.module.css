@@ -97,6 +97,13 @@
     transition: background-color 0.2s;
 }
 
+
+
 .ActionButton:hover {
     background-color: var(--color-modal-backdrop-hover);
+}
+
+.ActionButton:disabled {
+    background-color: #111;
+    color: var(--color-text-secondary);
 }

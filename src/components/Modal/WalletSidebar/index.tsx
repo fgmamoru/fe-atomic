@@ -101,7 +101,7 @@ const ActionButtonsSection = () => {
                     <img src="/icons/deposit.svg" aria-hidden />
                     Deposit
                 </button>
-                <button className={styles.ActionButton}>
+                <button className={styles.ActionButton} disabled>
                     <img src="/icons/withdraw.svg" aria-hidden />
                     Withdraw
                 </button>
