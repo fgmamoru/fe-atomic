@@ -2,24 +2,28 @@ import { Currency, CurveTypes, ExpandedAtomicPool, RouteSpeed } from "@/types";
 import { calculateExpectedOut } from "@/utils";
 import debug from 'debug';
 import { toNano } from "@ton/core";
+import { DEFAULT_CURRENCIES_MAP_BY_ID } from "../Defaults";
 
 
 const defaultTxFee = 50n
 
-export class Pool implements ExpandedAtomicPool {
+export class PoolModel implements ExpandedAtomicPool {
     expandedPool: ExpandedAtomicPool;
-    $$type: "AtomicPool";
-    lpTokenSupply: bigint;
-    reserve0: bigint;
-    reserve1: bigint;
-    feeNominator: bigint;
-    feeDenominator: bigint;
-    collectedFees0: bigint;
-    collectedFees1: bigint;
-    token0: Currency;
-    token1: Currency;
-    curveType: CurveTypes;
-    contractId: string;
+    readonly $$type: "AtomicPool";
+    readonly lpTokenSupply: bigint;
+    readonly reserve0: bigint;
+    readonly reserve1: bigint;
+    readonly feeNominator: bigint;
+    readonly feeDenominator: bigint;
+    readonly collectedFees0: bigint;
+    readonly collectedFees1: bigint;
+    readonly token0: Currency;
+    readonly token1: Currency;
+    readonly curveType: CurveTypes;
+    readonly contractId: string;
+    readonly id: bigint;
+    readonly token0Id: bigint;
+    readonly token1Id: bigint;
 
     constructor(expandedPool: ExpandedAtomicPool) {
         this.expandedPool = expandedPool;
@@ -31,20 +35,26 @@ export class Pool implements ExpandedAtomicPool {
         this.feeDenominator = expandedPool.feeDenominator;
         this.collectedFees0 = expandedPool.collectedFees0;
         this.collectedFees1 = expandedPool.collectedFees1;
-        this.token0 = expandedPool.token0;
-        this.token1 = expandedPool.token1;
         this.curveType = expandedPool.curveType;
         this.contractId = expandedPool.contractId;
+        this.id = expandedPool.id;
+
+        const [token0Id, token1Id] = this.getTokenIds(this.id);
+
+        this.token0Id = token0Id;
+        this.token1Id = token1Id;
+        this.token0 = DEFAULT_CURRENCIES_MAP_BY_ID[token0Id.toString()];
+        this.token1 = DEFAULT_CURRENCIES_MAP_BY_ID[token1Id.toString()];
     }
 
 
     get Token0Symbol(): string {
-        return this.expandedPool.token0.symbol;
+        return this.token0.symbol;
     }
 
     get Token1Symbol(): string {
         try {
-            return this.expandedPool.token1.symbol;
+            return this.token1.symbol;
 
         } catch (error) {
             console.error('Token1Symbol', error, this)
@@ -53,32 +63,42 @@ export class Pool implements ExpandedAtomicPool {
     }
 
     includes(token: Currency): boolean {
-        return token === this.expandedPool.token0 || token === this.expandedPool.token1;
+        return token === this.token0 || token === this.token1;
     }
 
     getInverseCurrency(currency: Currency): Currency {
-        return currency === this.expandedPool.token0 ? this.expandedPool.token1 : this.expandedPool.token0;
+        return currency === this.token0 ? this.token1 : this.token0;
     }
 
     toString(): string {
         return `$[id:${this.contractId}[${this.Token0Symbol}-${this.Token1Symbol}]]`;
     }
+
     toStringInverse(): string {
         return `[id:${this.contractId}[${this.Token1Symbol}-${this.Token0Symbol}]]`;
     }
+
     toStringFrom(token: Currency): string {
-        return token === this.expandedPool.token0 ? this.toString() : this.toStringInverse();
+        return token === this.token0 ? this.toString() : this.toStringInverse();
+    }
+
+    /**
+     * obtains the token ids of the pool from the poolID
+     * where let poolId = (tokenId0 << 4) | tokenId1;
+     */
+    private getTokenIds(poolId: bigint): [bigint, bigint] {
+        return [poolId >> 4n, poolId & 15n];
     }
 }
 
 export class Route {
-    pools: Pool[];
+    pools: PoolModel[];
     path: Currency[];
     input: Currency;
     output: Currency;
     debugLog: debug.Debugger;
 
-    constructor(pools: Pool[], path: Currency[]) {
+    constructor(pools: PoolModel[], path: Currency[]) {
         this.pools = pools;
         this.input = path[0];
         this.output = path[path.length - 1];
@@ -136,7 +156,7 @@ export class Route {
  * Uniswap inspired router for routing transactions
  */
 class Router {
-    private pools: Pool[];
+    private pools: PoolModel[];
     defaultMaximumHops: number;
     debugLog: debug.Debugger;
 
@@ -149,7 +169,7 @@ class Router {
 
     public addPool(pool: ExpandedAtomicPool): void {
         this.pools.push(
-            new Pool(pool)
+            new PoolModel(pool)
         );
     }
 
@@ -159,8 +179,8 @@ class Router {
     public getAllTokens(): Set<Currency> {
         const tokens = new Set<Currency>();
         this.pools.forEach(pool => {
-            tokens.add(pool.expandedPool.token0);
-            tokens.add(pool.expandedPool.token1);
+            tokens.add(pool.token0);
+            tokens.add(pool.token1);
         });
         return tokens;
     }
@@ -188,7 +208,7 @@ class Router {
         tokenIn: Currency,
         tokenOut: Currency,
         maximumHops: number = this.defaultMaximumHops,
-        currentPools: Pool[] = [],
+        currentPools: PoolModel[] = [],
         id?: string
     ): Route[] {
         if (id) { id = `${id}:${Math.random().toString(36).substring(4)}` }

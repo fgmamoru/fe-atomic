@@ -145,9 +145,8 @@ export type Currency = {
 }
 
 export type AtomicPoolCurrencyMapItem = {
-    token0: Currency;
-    token1: Currency;
     curveType: CurveTypes;
+    id: bigint;
 }
 
 export type AtomicPoolContract = {

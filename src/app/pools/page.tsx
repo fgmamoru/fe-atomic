@@ -1,11 +1,10 @@
 'use client'
 import { useModel } from "@/components/Services/Model";
-import { Pool } from "@/services/Router";
-import { ExpandedAtomicPool } from "@/types";
 import DataTable, { TableColumn } from 'react-data-table-component';
 import { fromNano } from "@ton/core";
+import { PoolModel } from "@/services/Router";
 
-const columns: TableColumn<ExpandedAtomicPool>[] = [{
+const columns: TableColumn<PoolModel>[] = [{
     name: 'From / To',
     selector: (row) => `${row.token0.symbol} / ${row.token1.symbol}`,
 }, {

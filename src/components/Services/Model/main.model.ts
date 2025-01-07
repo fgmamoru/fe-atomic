@@ -2,14 +2,14 @@ import { getHttpV4Endpoint, Network } from '@orbs-network/ton-access'
 import { Address, fromNano, OpenedContract, toNano, TonClient4 } from '@ton/ton'
 import { ConnectedWallet, TonConnectUI } from '@tonconnect/ui'
 import { create } from 'zustand';
-import { Currency, ExpandedAtomicPool, RouteSpeed, RequestStatus, UnstakeType, RequestType } from '@/types'
-import { formatCryptoAmount, formatCryptoAmountAbbr, formatPercent } from '@/utils'
+import { Currency, RouteSpeed, RequestStatus, RequestType } from '@/types'
+import { formatCryptoAmount, formatCryptoAmountAbbr } from '@/utils'
 import { ATOMIC_DEX_CONTRACT_ADDRESS, NETWORK } from '@/services/config.service'
 import { AtomicDex } from '@/services/AtomicDex/AtomicDex.service'
 import { getSwapCurrencies, SwapService } from '@/services/swap/swap.service'
 import debug from 'debug'
 import { DEFAULT_CURRENCIES, DEFAULT_CURRENCIES_MAP } from '@/services/Defaults'
-import { Route, router } from '@/services/Router'
+import { PoolModel, Route, router } from '@/services/Router'
 import { AtomicWalletModel } from '@/models/Wallet/AtomicWallet.model'
 import { toast } from "react-toastify";
 import * as axios from 'axios';
@@ -97,7 +97,7 @@ type ModelType = {
 
     readyToSwap: () => boolean
     isAtomicSpeedSwap: () => boolean
-    pools: Record<string, ExpandedAtomicPool>,
+    pools: Record<string, PoolModel>,
     isSwapFromTonWallet: () => boolean
     _swapService?: SwapService
     _fetchTonProofPayloadFromBackend: () => Promise<string>

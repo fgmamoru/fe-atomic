@@ -1,4 +1,4 @@
-import { Currency, CurveTypes, ExpandedAtomicPool } from "@/types";
+import { Currency } from "@/types";
 
 export const DEFAULT_CURRENCIES: Currency[] = [{
     name: 'TonCoin',
@@ -43,72 +43,9 @@ export const DEFAULT_CURRENCIES_MAP: Record<string, Currency> = DEFAULT_CURRENCI
     return acc;
 }, {})
 
-
-export const DEFAULT_POOLS: Array<ExpandedAtomicPool> = [{
-    $$type: 'AtomicPool',
-    collectedFees0: 0n,
-    collectedFees1: 0n,
-    curveType: CurveTypes.Unbalanced,
-    feeDenominator: 1n,
-    feeNominator: 1n,
-    lpTokenSupply: 0n,
-    reserve0: 10_000_000n * 1000000000n,
-    reserve1: 10_000_000n * 1000000000n,
-    token0: DEFAULT_CURRENCIES[0],
-    token1: DEFAULT_CURRENCIES[1],
-    contractId: '1',
-}, {
-    $$type: 'AtomicPool',
-    collectedFees0: 0n,
-    collectedFees1: 0n,
-    curveType: CurveTypes.Unbalanced,
-    feeDenominator: 1n,
-    feeNominator: 1n,
-    lpTokenSupply: 0n,
-    reserve0: 10_000_000n * 1000000000n,
-    reserve1: 10_000_000n * 1000000000n,
-    token0: DEFAULT_CURRENCIES[0],
-    token1: DEFAULT_CURRENCIES[2],
-    contractId: '1',
-}, {
-    $$type: 'AtomicPool',
-    collectedFees0: 0n,
-    collectedFees1: 0n,
-    curveType: CurveTypes.Unbalanced,
-    feeDenominator: 1n,
-    feeNominator: 1n,
-    lpTokenSupply: 0n,
-    reserve0: 10_000_000n * 1000000000n,
-    reserve1: 10_000_000n * 1000000000n,
-    token0: DEFAULT_CURRENCIES[0],
-    token1: DEFAULT_CURRENCIES[3],
-    contractId: '1',
-}, {
-    $$type: 'AtomicPool',
-    collectedFees0: 0n,
-    collectedFees1: 0n,
-    curveType: CurveTypes.Unbalanced,
-    feeDenominator: 1n,
-    feeNominator: 1n,
-    lpTokenSupply: 0n,
-    reserve0: 10_000_000n * 1000000000n,
-    reserve1: 10_000_000n * 1000000000n,
-    token0: DEFAULT_CURRENCIES[0],
-    token1: DEFAULT_CURRENCIES[4],
-    contractId: '2',
-}, {
-    $$type: 'AtomicPool',
-    collectedFees0: 0n,
-    collectedFees1: 0n,
-    curveType: CurveTypes.Unbalanced,
-    feeDenominator: 1n,
-    feeNominator: 1n,
-    lpTokenSupply: 0n,
-    reserve0: 10_000_000n * 1000000000n,
-    reserve1: 10_000_000n * 1000000000n,
-    token0: DEFAULT_CURRENCIES[0],
-    token1: DEFAULT_CURRENCIES[5],
-    contractId: '2',
-}]
+export const DEFAULT_CURRENCIES_MAP_BY_ID: Record<string, Currency> = DEFAULT_CURRENCIES.reduce((acc: Record<string, Currency>, currency: Currency) => {
+    acc[currency.id.toString()] = currency;
+    return acc;
+}, {})
 
 export const TON_TX_VALID_UNTIL = 5 * 60;

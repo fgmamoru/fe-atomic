@@ -1,16 +1,17 @@
 import { sha256, signVerify } from '@ton/crypto';
 
-import { Address, Builder, Dictionary, OpenedContract, Sender, TonClient, TonClient4, beginCell, toNano } from "@ton/ton";
+import { Address, Builder, Dictionary, OpenedContract, Sender, TonClient, TonClient4, toNano } from "@ton/ton";
 import { ATOMIC_DEX_CONTRACT_ADDRESS, NETWORK } from "../config.service";
 import { AtomicDex, AtomicPool, MultiSwapBackend, SwapOrder } from "../AtomicDex/AtomicDex.service";
-import { AtomicPoolCurrencyMapItem, Currency, CurveTypes, ExpandedAtomicPool } from "@/types";
-import { SandboxContract, TreasuryContract } from '@ton/sandbox';
+import { Currency, CurveTypes, ExpandedAtomicPool } from "@/types";
+import { SandboxContract } from '@ton/sandbox';
 import debug from 'debug';
 import { CHAIN, TonConnectUI } from '@tonconnect/ui-react';
 import { calculateExpectedOut } from '@/utils';
 import { DEFAULT_CURRENCIES_MAP, TON_TX_VALID_UNTIL } from '../Defaults';
 import { AtomicWalletModel } from '@/models/Wallet/AtomicWallet.model';
 import { AtomicMemberRecordModel } from '@/models/AtomicMember.model';
+import { PoolModel } from '../Router';
 
 const debugLog = debug('app:swap')
 
@@ -34,35 +35,39 @@ const replaceCurrenciesInMap = (map: Record<string, { token0: string, token1: st
     return newMap;
 }
 
-const atomicPoolCurrencyMapping: Record<string, {
-    token0: Currency,
-    token1: Currency
-}> = replaceCurrenciesInMap({
-    "1": {
-        token0: "TON",
-        token1: "USDT",
-    },
-    "2": {
-        token0: "NOT",
-        token1: "USDT",
-    },
-    "3": {
-        token0: "DOGS",
-        token1: "USDT",
-    },
-    "4": {
-        token0: "NOT",
-        token1: "USDT",
-    },
-    "5": {
-        token0: "NOT",
-        token1: "TON",
-    },
-    "6": {
-        token0: "DOGS",
-        token1: "TON",
-    },
-})
+// const atomicPoolCurrencyMapping: Record<string, {
+//     token0: Currency,
+//     token1: Currency
+// }> = replaceCurrenciesInMap({
+//     "1": {
+//         token0: "TON",
+//         token1: "USDT",
+//     },
+//     "2": {
+//         token0: "TON",
+//         token1: "USDT",
+//     },
+//     "3": {
+//         token0: "USDT",
+//         token1: "NOT",
+//     },
+//     "4": {
+//         token0: "USDT",
+//         token1: "DOGS",
+//     },
+//     "5": {
+//         token0: "TON",
+//         token1: "NOT",
+//     },
+//     "6": {
+//         token0: "TON",
+//         token1: "DOGS",
+//     },
+//     "7": {
+//         token0: "TON",
+//         token1: "CATS",
+//     },
+// })
 
 export class SwapService {
     private readonly atomicDex: AtomicDex;
@@ -83,38 +88,41 @@ export class SwapService {
         this.tonConnectUI = tonConnectUI;
     }
 
-    public async getPoolList(): Promise<Record<string, ExpandedAtomicPool>> {
+    public async getPoolList(): Promise<Record<string, PoolModel>> {
         const log = debugLog.extend('#getPoolList')
         debugLog("Getting pool list");
 
         // @ts-ignore
-        const pools: Dictionary<number, AtomicPool> = await this.orbsClientContract.getAtomicPools()
+        const pools: Dictionary<bigint, AtomicPool> = await this.orbsClientContract.getAtomicPools()
 
 
         const poolKeys = pools.keys();
 
+        debugLog("Pool keys", poolKeys);
+
         const expandedPools = poolKeys.map((poolKey) => {
             const atomicPool = pools.get(poolKey);
 
-            const mappedPool = atomicPoolCurrencyMapping[poolKey];
+            // const mappedPool = atomicPoolCurrencyMapping[poolKey.toString()];
 
             return {
                 ...atomicPool!,
-                ...mappedPool,
+                // ...mappedPool,
                 curveType: atomicPool?.curveType ? CurveTypes.Balanced : CurveTypes.Unbalanced,
+                id: poolKey,
             };
         });
 
-        const map: Record<string, ExpandedAtomicPool> = {};
+        const map: Record<string, PoolModel> = {};
 
 
 
         expandedPools.forEach((pool, index) => {
-            map[index] = {
+            map[index.toString()] = new PoolModel({
                 ...pool,
                 $$type: "AtomicPool",
                 contractId: (this.contractAddress),
-            };
+            });
         });
 
         this.pools = map;
@@ -423,7 +431,7 @@ export class SwapService {
     }
 }
 
-export const getSwapCurrencies = (map: Record<string, ExpandedAtomicPool>): Set<Currency> => {
+export const getSwapCurrencies = (map: Record<string, PoolModel>): Set<Currency> => {
     const currencies = new Set<Currency>();
     Object.values(map).forEach(pool => {
         currencies.add(pool.token0);
