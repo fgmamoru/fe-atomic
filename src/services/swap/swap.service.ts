@@ -7,8 +7,8 @@ import { AtomicPoolCurrencyMapItem, Currency, CurveTypes, ExpandedAtomicPool } f
 import { SandboxContract, TreasuryContract } from '@ton/sandbox';
 import debug from 'debug';
 import { CHAIN, TonConnectUI } from '@tonconnect/ui-react';
-import { calculateExpectedOut, getTonTxValidUntil } from '@/utils';
-import { DEFAULT_CURRENCIES_MAP, DEFAULT_POOLS, TON_TX_VALID_UNTIL } from '../Defaults';
+import { calculateExpectedOut } from '@/utils';
+import { DEFAULT_CURRENCIES_MAP, TON_TX_VALID_UNTIL } from '../Defaults';
 import { AtomicWalletModel } from '@/models/Wallet/AtomicWallet.model';
 import { AtomicMemberRecordModel } from '@/models/AtomicMember.model';
 
@@ -43,24 +43,24 @@ const atomicPoolCurrencyMapping: Record<string, {
         token1: "USDT",
     },
     "2": {
-        token0: "TON",
+        token0: "NOT",
         token1: "USDT",
     },
     "3": {
-        token0: "TON",
-        token1: "ETH",
-    },
-    "4": {
-        token0: "TON",
-        token1: "BTC",
-    },
-    "5": {
-        token0: "ETH",
+        token0: "DOGS",
         token1: "USDT",
     },
+    "4": {
+        token0: "NOT",
+        token1: "USDT",
+    },
+    "5": {
+        token0: "NOT",
+        token1: "TON",
+    },
     "6": {
-        token0: "ETH",
-        token1: "BTC",
+        token0: "DOGS",
+        token1: "TON",
     },
 })
 
@@ -145,20 +145,7 @@ export class SwapService {
     public async getPoolList(): Promise<Record<string, ExpandedAtomicPool>> {
         const log = debugLog.extend('#getPoolList')
         console.log("Getting pool list");
-        // const map: Record<string, ExpandedAtomicPool> = {}
-        // for (const pool in DEFAULT_POOLS) {
-        //     map[pool] = {
-        //         ...DEFAULT_POOLS[pool],
-        //         $$type: "AtomicPool",
-        //         contractId: (this.contractAddress),
-        //     }
-        // }
 
-        // console.log("Pools", map);
-
-        // this.pools = map;
-
-        // return map;
         // @ts-ignore
         const pools: Dictionary<number, AtomicPool> = await this.orbsClientContract.getAtomicPools()
 

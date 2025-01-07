@@ -1,5 +1,4 @@
 import { Currency, CurveTypes, ExpandedAtomicPool, RouteSpeed } from "@/types";
-import { DEFAULT_POOLS } from "../Defaults";
 import { calculateExpectedOut } from "@/utils";
 import debug from 'debug';
 import { toNano } from "@ton/core";
@@ -44,7 +43,13 @@ export class Pool implements ExpandedAtomicPool {
     }
 
     get Token1Symbol(): string {
-        return this.expandedPool.token1.symbol;
+        try {
+            return this.expandedPool.token1.symbol;
+
+        } catch (error) {
+            console.error('Token1Symbol', error, this)
+            throw error
+        }
     }
 
     includes(token: Currency): boolean {
@@ -270,8 +275,3 @@ class Router {
 }
 
 export const router = new Router();
-
-DEFAULT_POOLS.forEach(pool => {
-    router.addPool(pool);
-});
-

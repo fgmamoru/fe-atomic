@@ -36,11 +36,11 @@ const SwapSpeedModalComponent = (props: SwapSpeedModal) => {
                         fullWidth
                         onClick={props.onDepositClick}
                     >Deposit and Swap wih high speeds</MainButton>
-                    <MainButton
+                    {/* <MainButton
                         fullWidth
                         variant="secondary"
                         onClick={props.onSwapClick}
-                    >Swap with slow speed (soon)</MainButton>
+                    >Swap with slow speed (soon)</MainButton> */}
                 </div>
 
             </RegularModal>

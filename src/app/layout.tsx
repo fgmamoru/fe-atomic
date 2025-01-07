@@ -22,9 +22,9 @@ export default function RootLayout({
 }: {
     children: React.ReactNode
 }) {
-    // if (typeof localStorage !== 'undefined') {
-    //     localStorage.debug = 'app:*'
-    // }
+    if (typeof localStorage !== 'undefined') {
+        localStorage.debug = 'app:*'
+    }
     const { isDepositModalOpen, setDepositModalOpen } = useModel();
 
     return (

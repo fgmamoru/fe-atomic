@@ -508,11 +508,12 @@ export const useModel = create<ModelType>(((set, get) => ({
                     const { pools } = get();
                     const currencies = getSwapCurrencies(pools);
                     set({ currencies: currencies });
+                    get()._initRouting();
                 })
 
             get()._initWallet();
             get()._initTonProofPayloadFromBackend();
-            get()._initRouting();
+
             get()._initAtomicWallets();
             get()._initListeners();
         } catch (error) {
@@ -763,6 +764,10 @@ export const useModel = create<ModelType>(((set, get) => ({
     },
 
     _initRouting: () => {
+        const { pools } = get();
+
+        Object.values(pools).map((pool) => router.addPool(pool));
+
         get()._getRoutes()
     },
 
