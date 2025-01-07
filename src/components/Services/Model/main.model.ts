@@ -237,6 +237,16 @@ export const useModel = create<ModelType>(((set, get) => ({
                 await new Promise((resolve) => setTimeout(resolve, 500));
             }
 
+            if (get().requestStatus === RequestStatus.Failed) {
+                toast.error('Deposit failed, please try again');
+                return;
+            }
+
+            if (get().requestStatus === RequestStatus.SignFailed) {
+                toast.error('Deposit signing failed, please try again');
+                return;
+            }
+
             if (member) {
                 const updatedMember = await member.applyDeposit(amountInNano()!, selectedDepositCurrency);
                 set({ _memberRecord: updatedMember });
@@ -254,6 +264,13 @@ export const useModel = create<ModelType>(((set, get) => ({
             toast.success('Deposit successful');
 
         } catch (error) {
+            // if type is UserRejectsError then the user rejected the transaction
+            console.log(error, (error as Error)?.name)
+            if ((error as Error)?.message.includes('UserRejectsError')) {
+                toast.info('User rejected the transaction');
+                return;
+            }
+
             console.error(error)
             toast.error('Deposit failed, please try again')
         } finally {
@@ -567,19 +584,6 @@ export const useModel = create<ModelType>(((set, get) => ({
         ) {
             console.log('onConnectWallet, handling proof', wallet.connectItems.tonProof.proof)
             get()._initMemberRecord();
-
-            fetch('/api/check-proof', {
-                body: JSON.stringify({
-                    address: wallet.account.address,
-                    network: get().network === 'mainnet' ? '-239' : 'c-3',
-                    proof: {
-                        ...wallet.connectItems.tonProof.proof,
-                        state_init: "..."
-                    }
-                }),
-                method: 'POST',
-            })
-                .then((response) => response.json())
         }
 
         try {
@@ -850,20 +854,25 @@ export const useModel = create<ModelType>(((set, get) => ({
     },
 
     _initListeners: () => {
+        const log = debug('app:model:listeners')
         window.addEventListener(
             "ton-connect-ui-transaction-sent-for-signature",
             (event) => {
                 // @ts-ignore
-                console.log("Transaction init", event.detail);
+                log("Transaction init", event.detail);
             }
         );
         window.addEventListener(
             "ton-connect-ui-transaction-signing-failed",
             (event) => {
-                set({ requestStatus: RequestStatus.Failed, requestType: RequestType.None })
+                // @ts-ignore
+                log("Transaction signing failed", event.detail);
+                set({ requestStatus: RequestStatus.SignFailed, requestType: RequestType.None })
             }
         );
         window.addEventListener("ton-connect-ui-transaction-signed", (event) => {
+            // @ts-ignore
+            log("Transaction signed", event.detail);
             set({ requestStatus: RequestStatus.WaitingForConfirmation })
         });
 
@@ -902,7 +911,6 @@ export const useModel = create<ModelType>(((set, get) => ({
     isSwapFromTonWallet: () => {
         return true;
     },
-
 })))
 export const minimumTonBalanceReserve = 200000000n
 

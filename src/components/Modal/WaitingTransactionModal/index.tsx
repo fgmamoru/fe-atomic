@@ -1,16 +1,17 @@
 import { RegularModal } from "../MainModal";
 import { Loader } from "@/components/Misc/Loader";
-import { RequestStatus } from "@/types";
+import { RequestStatus, RequestType } from "@/types";
 
 export type WaitingTransactionModalProps = {
     status: RequestStatus;
+    type: RequestType;
 };
 
 export const WaitingTransactionModal = (props: WaitingTransactionModalProps) => {
     return (
         <RegularModal
             isOpen={
-                props.status === RequestStatus.Requested
+                props.status === RequestStatus.Requested && props.type !== RequestType.Deposit
             }
         >
             <Loader />

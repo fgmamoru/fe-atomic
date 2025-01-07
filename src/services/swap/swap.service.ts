@@ -81,47 +81,6 @@ export class SwapService {
         this.contract = client.open(this.atomicDex);
         this.orbsClientContract = orbsClient.open(this.atomicDex);
         this.tonConnectUI = tonConnectUI;
-        tonConnectUI.sendTransaction;
-        // test hash 
-        // const testSeq = 0n;
-        // const testQueryId = 0n;
-        // const testOrders = [
-        //     {
-        //         '$$type': 'SwapOrder' as const,
-        //         atomicWallet0: 0n,
-        //         atomicWallet1: 1n,
-        //         expectedIn: 1000000000n,
-        //         expectedOut: 99698n
-        //     },
-        //     {
-        //         '$$type': 'SwapOrder' as const,
-        //         atomicWallet0: 1n,
-        //         atomicWallet1: 2n,
-        //         expectedIn: 99698n,
-        //         expectedOut: 9698n
-        //     }
-        // ]
-        // const testValidUntil = 1734378563n;
-
-        // this.calculateMultiSwapHash(0n, {
-        //     orders: testOrders,
-        //     validUntil: testValidUntil
-        // }).then(async (hash) => {
-        //     console.log("Test hash Hex", hash.toString('hex'));
-        //     const signature = await this.signHash(hash);
-        //     console.log("Test signature", signature.toString('hex'));
-        //     const bagOfCell = beginCell().store(storeMultiSwapBackend({
-        //         $$type: 'MultiSwapBackend' as const,
-        //         orders: this.getMultiSwapOrdersSlice(testOrders),
-        //         publicKey: 95507943845683944373555265613060783373093350692587861269939143848871139327873n,
-        //         queryId: testQueryId,
-        //         signature: new Builder().storeBuffer(signature, 64).endCell().asSlice(),
-        //         validUntil: testValidUntil,
-        //     })).endCell();
-
-        //     console.log('bagOfCell', bagOfCell.toBoc().toString('hex'));
-
-        // })
     }
 
     public async getPoolList(): Promise<Record<string, ExpandedAtomicPool>> {
@@ -302,7 +261,7 @@ export class SwapService {
     async sendDepositOperation(publicKey: string, tonAmount: bigint, walletId: bigint,) {
         const publicKeyBigInt = BigInt(`0x${publicKey}`);
 
-        this.contract.send(
+        await this.contract.send(
             this.getSender(),
             {
                 value: tonAmount,
@@ -319,7 +278,7 @@ export class SwapService {
     async sendJoinOperation(publicKey: string, tonAmount: bigint, walletId: bigint,) {
         const publicKeyBigInt = BigInt(`0x${publicKey}`);
 
-        this.contract.send(
+        await this.contract.send(
             this.getSender(),
             {
                 value: tonAmount,

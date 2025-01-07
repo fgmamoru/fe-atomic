@@ -88,7 +88,7 @@ const DepositedTokensSection = () => {
 }
 
 const ActionButtonsSection = () => {
-    const { setDepositModalOpen } = useModel();
+    const { setDepositModalOpen, tonBalanceInNano } = useModel();
 
 
     return (
@@ -97,6 +97,7 @@ const ActionButtonsSection = () => {
                 <button
                     className={styles.ActionButton}
                     onClick={() => setDepositModalOpen(true)}
+                    disabled={tonBalanceInNano === 0n || !tonBalanceInNano}
                 >
                     <img src="/icons/deposit.svg" aria-hidden />
                     Deposit

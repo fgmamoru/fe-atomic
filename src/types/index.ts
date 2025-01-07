@@ -175,6 +175,7 @@ export enum RequestStatus {
     WaitingForConfirmation,
     Confirmed,
     Failed,
+    SignFailed
 }
 
 export enum RequestType {

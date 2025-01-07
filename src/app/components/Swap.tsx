@@ -142,6 +142,7 @@ export function DexSwapTab() {
             />
             <WaitingTransactionModal
                 status={model.requestStatus}
+                type={model.requestType}
             />
             <SwapSpeedModal
                 isOpen={swapSpeedModalOpen}
