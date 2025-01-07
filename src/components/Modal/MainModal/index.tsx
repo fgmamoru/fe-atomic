@@ -77,8 +77,10 @@ export function RegularModal(props: {
     children: React.ReactNode;
     isOpen?: boolean;
     onClose?: () => void;
+    className?: string;
 }): JSX.Element {
     const className = clsx(style.RegularModal, style.modal);
+    const panelClassName = clsx(style.panel, props.className);
     return (
         <Dialog
             className={className}
@@ -86,7 +88,7 @@ export function RegularModal(props: {
             onClose={() => props.onClose?.()}
         >
             <div className={style.backdrop} />
-            <Dialog.Panel className={style.panel}>{props.children}</Dialog.Panel>
+            <Dialog.Panel className={panelClassName}>{props.children}</Dialog.Panel>
         </Dialog>
     );
 }

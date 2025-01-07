@@ -1,0 +1,53 @@
+.TokenSelectorModalHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--color-background-border);
+    width: 100%;
+}
+
+.TokenSelectorModalHeaderText {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--color-background-border);
+    border-radius: var(--border-radius-half);
+    padding-left: 8px;
+    padding-right: 8px;
+    box-sizing: border-box;
+}
+
+.SubModal {
+    max-width: 600px !important;
+}
+
+.SubModalImage {
+    width: 40px;
+    height: 40px;
+    margin-right: 8px;
+}
+
+.SubModalItem {
+    display: flex;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--color-background-border);
+    width: 100%;
+}
+
+.SubModalItemName,
+.SubModalItemSymbol {
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 15.2px;
+    letter-spacing: 0.15000000596046448px;
+    text-align: left;
+    text-underline-position: from-font;
+    text-decoration-skip-ink: none;
+
+}
+
+.SubModalItemSymbol {
+    color: var(--color-text-secondary);
+}

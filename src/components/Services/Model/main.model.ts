@@ -713,7 +713,7 @@ export const useModel = create<ModelType>(((set, get) => ({
         // console.log('readyToSwap, amount not Nan')
         if (parseFloat(get().swapAmount) === 0) return false;
         // console.log('readyToSwap, amount positive')
-
+        if (get().swapErrorMessage !== '') return false;
         // if (get().tonBalance === undefined) return false;
 
         return true;

@@ -14,6 +14,7 @@ import { SwapTokenSelectorModal } from "@/components/Modal/SwapTokenSelectorModa
 import { WaitingTransactionModal } from "@/components/Modal/WaitingTransactionModal";
 import { TxSpeed, TxSpeedBadge } from "@/components/Misc/TxSpeedBadge";
 import { SwapSpeedModal } from "@/components/Modal/SwapSpeedModal";
+import { toast } from "react-toastify";
 
 export function DexSwapTab() {
     const model = useModel();
@@ -106,8 +107,10 @@ export function DexSwapTab() {
             <MainButton
                 disabled={!model.readyToSwap()}
                 onClick={() => {
+                    return setSwapSpeedModalOpen(true);
                     if (!model.isConnected()) return open();
-                    if (model.isSwapFromTonWallet()) return setSwapSpeedModalOpen(true);
+                    // if (model.isSwapFromTonWallet()) return setSwapSpeedModalOpen(true);
+                    if (!model._memberRecord?.havePositiveBalances()) return setSwapSpeedModalOpen(true);
                     model.executeSwapOrder();
                 }}
                 fullWidth
@@ -148,8 +151,9 @@ export function DexSwapTab() {
                     setDepositModalOpen(true)
                 }}
                 onSwapClick={() => {
-                    model.executeSwapOrder()
-                    setSwapSpeedModalOpen(false)
+                    toast.error("Slow Swap is not available yet")
+                    // model.executeSwapOrder()
+                    // setSwapSpeedModalOpen(false)
                 }}
             />
         </>
