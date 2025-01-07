@@ -70,7 +70,6 @@ export class SwapService {
     private readonly contractAddress: string;
     private pools?: Record<string, ExpandedAtomicPool>;
     private orbsClientContract: OpenedContract<AtomicDex>;
-    private sender: Sender;
 
     constructor(private readonly orbsClient: TonClient4, private readonly tonConnectUI: TonConnectUI) {
         this.contractAddress = ATOMIC_DEX_CONTRACT_ADDRESS;
@@ -83,23 +82,6 @@ export class SwapService {
         this.orbsClientContract = orbsClient.open(this.atomicDex);
         this.tonConnectUI = tonConnectUI;
         tonConnectUI.sendTransaction;
-
-
-        this.sender = {
-            address: Address.parse(tonConnectUI.account?.address || ""),
-            send: async (message) => {
-                await tonConnectUI.sendTransaction({
-                    messages: [{
-                        address: this.contractAddress,
-                        amount: message.value.toString(),
-                        payload: message.body?.toBoc().toString('base64'),
-                    }],
-                    validUntil: TON_TX_VALID_UNTIL,
-                    from: tonConnectUI.account?.address || "",
-                    network: NETWORK === "testnet" ? CHAIN.TESTNET : CHAIN.MAINNET,
-                })
-            }
-        }
         // test hash 
         // const testSeq = 0n;
         // const testQueryId = 0n;
@@ -321,7 +303,7 @@ export class SwapService {
         const publicKeyBigInt = BigInt(`0x${publicKey}`);
 
         this.contract.send(
-            this.sender,
+            this.getSender(),
             {
                 value: tonAmount,
             },
@@ -338,7 +320,7 @@ export class SwapService {
         const publicKeyBigInt = BigInt(`0x${publicKey}`);
 
         this.contract.send(
-            this.sender,
+            this.getSender(),
             {
                 value: tonAmount,
             },
@@ -467,6 +449,24 @@ export class SwapService {
 
     }
 
+    private getSender(): Sender {
+
+        return {
+            address: Address.parse(this.tonConnectUI.account?.address || ""),
+            send: async (message) => {
+                await this.tonConnectUI.sendTransaction({
+                    messages: [{
+                        address: this.contractAddress,
+                        amount: message.value.toString(),
+                        payload: message.body?.toBoc().toString('base64'),
+                    }],
+                    validUntil: TON_TX_VALID_UNTIL,
+                    from: this.tonConnectUI.account?.address || "",
+                    network: NETWORK === "testnet" ? CHAIN.TESTNET : CHAIN.MAINNET,
+                })
+            }
+        }
+    }
 }
 
 export const getSwapCurrencies = (map: Record<string, ExpandedAtomicPool>): Set<Currency> => {
