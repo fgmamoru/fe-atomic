@@ -77,7 +77,9 @@ export const Navbar = () => {
                                 </Link>
                             </div>
                             <Link className={styles.NavbarItem} href="/">Dex</Link>
-
+                            <ShowInDebug>
+                                <Link className={styles.NavbarItem} href="/pools">Pools</Link>
+                            </ShowInDebug>
                         </div>
                         <div className={clsx(styles.NavbarEnd, styles.NavbarEndMobile)}>
                             <div className={styles.NavbarBadgeZoneWrapper} style={{ display: !isConnected() ? "none" : "" }}>
