@@ -107,7 +107,6 @@ export function DexSwapTab() {
             <MainButton
                 disabled={!model.readyToSwap()}
                 onClick={() => {
-                    return setSwapSpeedModalOpen(true);
                     if (!model.isConnected()) return open();
                     // if (model.isSwapFromTonWallet()) return setSwapSpeedModalOpen(true);
                     if (!model._memberRecord?.havePositiveBalances()) return setSwapSpeedModalOpen(true);
