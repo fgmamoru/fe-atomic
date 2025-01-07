@@ -44,7 +44,7 @@ export function DexSwapTab() {
                     value={model.swapAmount}
                     onChange={model.setSwapAmount}
                     inputMode="decimal"
-                    placeholder={"0.0"}
+                    placeholder={"0.00"}
                     label="Sell"
                     cryptoName={model.selectedFromCurrency.symbol}
                     cryptoIcon={model.selectedFromCurrency.icon}
@@ -97,7 +97,7 @@ export function DexSwapTab() {
                     currencies={model.currencies}
                     onCurrencyClick={() => setToModalOpen(true)}
                     variant="bottom"
-                    placeholder="0.0"
+                    placeholder="0.00"
                 />
                 <TxSpeedBadge
                     speed={TxSpeed.normal}
