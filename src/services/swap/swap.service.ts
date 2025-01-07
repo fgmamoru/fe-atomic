@@ -73,7 +73,7 @@ export class SwapService {
 
     constructor(private readonly orbsClient: TonClient4, private readonly tonConnectUI: TonConnectUI) {
         this.contractAddress = ATOMIC_DEX_CONTRACT_ADDRESS;
-        console.log("Contract address", this.contractAddress);
+        debugLog("Contract address", this.contractAddress);
         this.atomicDex = AtomicDex.fromAddress(Address.parse(this.contractAddress));
         const client = new TonClient({
             endpoint: "https://testnet.toncenter.com/api/v2/jsonRPC",
@@ -85,7 +85,7 @@ export class SwapService {
 
     public async getPoolList(): Promise<Record<string, ExpandedAtomicPool>> {
         const log = debugLog.extend('#getPoolList')
-        console.log("Getting pool list");
+        debugLog("Getting pool list");
 
         // @ts-ignore
         const pools: Dictionary<number, AtomicPool> = await this.orbsClientContract.getAtomicPools()
@@ -119,7 +119,7 @@ export class SwapService {
 
         this.pools = map;
 
-        console.log("Pools", map);
+        debugLog("Pools", map);
 
         return map;
     }
@@ -138,7 +138,7 @@ export class SwapService {
             mappedWallets[key.toString()] = new AtomicWalletModel(wallet!);
         });
 
-        console.log("Atomic wallets", mappedWallets,);
+        debugLog("Atomic wallets", mappedWallets,);
 
         return mappedWallets;
     }
@@ -148,14 +148,14 @@ export class SwapService {
         tonConnectUi: TonConnectUI,
 
     }): Promise<any> {
-        console.log(`#Executing swap, from ${params.from.symbol} to ${params.to.symbol} inAmount ${params.inAmount} outAmount ${params.outAmount} poolId ${params.poolId} publicKey ${params.publicKey}`);
+        debugLog(`#Executing swap, from ${params.from.symbol} to ${params.to.symbol} inAmount ${params.inAmount} outAmount ${params.outAmount} poolId ${params.poolId} publicKey ${params.publicKey}`);
         const { from, to, inAmount, outAmount } = params;
 
         // get member
 
         const member = await this.getMember(params.publicKey);
         const queryId = this.getQueryId();
-        console.log("Member", member);
+        debugLog("Member", member);
         // if member is not found, create it in the swap operation, otherwise use the seq.
         const seq = member ? member.seq : 0n;
 
@@ -171,29 +171,29 @@ export class SwapService {
             expectedOut: toNano(outAmount)
         }];
 
-        console.log("Orders", orders);
+        debugLog("Orders", orders);
 
         // get hash to sign
         const hashToSign = await this.getHashToSign(seq, {
             orders,
             validUntil,
         })
-        console.log(seq, {
+        debugLog(seq, {
 
         })
-        console.log("Hash to sign", hashToSign);
-        console.log("Hash to sign length", hashToSign.length);
+        debugLog("Hash to sign", hashToSign);
+        debugLog("Hash to sign length", hashToSign.length);
 
         // sign hash
         const signature = await this.signHash(hashToSign);
-        console.log("Signature", signature);
-        console.log("Signature length", signature.length);
+        debugLog("Signature", signature);
+        debugLog("Signature length", signature.length);
         const isValid = this.verifySignature(signature, hashToSign);
-        console.log("Is valid", isValid);
+        debugLog("Is valid", isValid);
 
         // send swap operation
-        console.log("Sending swap operation");
-        console.log(`PUBLIC KEY ${params.publicKey}, ${BigInt(`0x${params.publicKey}`)}`);
+        debugLog("Sending swap operation");
+        debugLog(`PUBLIC KEY ${params.publicKey}, ${BigInt(`0x${params.publicKey}`)}`);
 
         const op: MultiSwapBackend = {
             $$type: 'MultiSwapBackend' as const,
@@ -206,14 +206,9 @@ export class SwapService {
             validUntil: validUntil,
         }
 
-        console.log("Operation", op);
+        debugLog("Operation", op);
 
-        const r = await this.contract.sendExternal(
-            op
-        );
-        console.log("Swap operation sent", r);
-
-        return r;
+        await this.contract.sendExternal(op);
     }
 
     public async getHashToSign(
@@ -297,9 +292,9 @@ export class SwapService {
 
     public async getMember(publicKey: string): Promise<AtomicMemberRecordModel | null> {
         try {
-            console.log("Getting member", `0x${publicKey}`);
+            debugLog("Getting member", `0x${publicKey}`);
             const publicKeyBigInt = BigInt(`0x${publicKey}`);
-            console.log("Public key", publicKeyBigInt);
+            debugLog("Public key", publicKeyBigInt);
             // when using toncenter client it doesnt work...
             const member = await this.orbsClientContract.getAtomicMemberRecord(
                 publicKeyBigInt
@@ -364,7 +359,7 @@ export class SwapService {
         fromWallet: bigint,
         toWallet: bigint,
     ): bigint {
-        console.log(`Calculating expected out of ${expectedIn} from ${fromWallet} to ${toWallet} pool ${poolId}`);
+        debugLog(`Calculating expected out of ${expectedIn} from ${fromWallet} to ${toWallet} pool ${poolId}`);
         const pool = this.getAtomicPool(poolId);
         return calculateExpectedOut(
             expectedIn,
@@ -374,7 +369,7 @@ export class SwapService {
     }
 
     private getAtomicPool(poolId: number): ExpandedAtomicPool {
-        console.log("#getAtomicPool", poolId);
+        debugLog("#getAtomicPool", poolId);
         return this.pools![poolId] || this.pools!["0"];
     }
 
