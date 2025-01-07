@@ -99,7 +99,7 @@ export class Route {
             // result = intermediateResult - defaultTxFee;
         }
 
-        return result - toNano(0.1)
+        return result - toNano(0.001)
     }
 
     /**
