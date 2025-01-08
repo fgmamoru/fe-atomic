@@ -6,7 +6,7 @@ import { DEFAULT_CURRENCIES_MAP_BY_ID } from "../Defaults";
 import { SwapOrder } from "../AtomicDex/AtomicDex.service";
 
 
-const defaultTxFee = 50n
+const defaultTxFee = 40n
 
 export class PoolModel implements ExpandedAtomicPool {
     expandedPool: ExpandedAtomicPool;
