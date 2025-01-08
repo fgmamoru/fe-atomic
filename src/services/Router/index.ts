@@ -3,6 +3,7 @@ import { calculateExpectedOut } from "@/utils";
 import debug from 'debug';
 import { toNano } from "@ton/core";
 import { DEFAULT_CURRENCIES_MAP_BY_ID } from "../Defaults";
+import { SwapOrder } from "../AtomicDex/AtomicDex.service";
 
 
 const defaultTxFee = 50n
@@ -111,17 +112,17 @@ export class Route {
     public getPrice(
         inputAmount: bigint,
     ): bigint {
-        let result: bigint = inputAmount;
+        let currentAmount: bigint = inputAmount;
         let currentCurrency: Currency = this.input;
         for (const pool of this.pools) {
-            const intermediateResult = calculateExpectedOut(result, pool, currentCurrency)
+            const intermediateResult = calculateExpectedOut(currentAmount, pool, currentCurrency)
             console.log('intermediateResult', intermediateResult)
             currentCurrency = pool.getInverseCurrency(currentCurrency);
-            result = intermediateResult;
-            result = intermediateResult - defaultTxFee;
+            currentAmount = intermediateResult;
+            currentAmount = intermediateResult - defaultTxFee;
         }
 
-        return result - toNano(0.001)
+        return currentAmount - toNano(0.001)
     }
 
     /**
@@ -152,6 +153,31 @@ export class Route {
         }
         return RouteSpeed.Fast;
     }
+
+    getSwapOrders(
+        inputAmount: bigint,
+    ): SwapOrder[] {
+        let result: SwapOrder[] = [];
+        let currentCurrency: Currency = this.input;
+        let currentAmount: bigint = inputAmount;
+
+        for (const pool of this.pools) {
+            const intermediateResult = calculateExpectedOut(currentAmount, pool, currentCurrency)
+
+            const swapOrder: SwapOrder = {
+                $$type: "SwapOrder" as const,
+                atomicWallet0: currentCurrency.id,
+                atomicWallet1: pool.getInverseCurrency(currentCurrency).id,
+                expectedIn: currentAmount,
+                expectedOut: intermediateResult,
+            };
+            result.push(swapOrder);
+            currentCurrency = pool.getInverseCurrency(currentCurrency);
+            currentAmount = intermediateResult - defaultTxFee
+
+        }
+        return result;
+    }
 }
 
 /**
@@ -165,7 +191,7 @@ class Router {
     constructor(
     ) {
         this.pools = [];
-        this.defaultMaximumHops = 0;
+        this.defaultMaximumHops = 1;
         this.debugLog = debug('app:Router');
     }
 

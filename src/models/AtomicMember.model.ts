@@ -118,6 +118,7 @@ export class AtomicMemberRecordModel {
 
     public getPortfolioValueInUsd(exchangeRates: Record<string, string>): number {
         let total = 0;
+
         for (const [currency, balance] of this.positiveBalances) {
             const rate = exchangeRates[`${currency.symbol}USDT`];
             if (rate && balance > 0) {

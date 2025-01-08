@@ -3,6 +3,7 @@ import { useModel } from "@/components/Services/Model";
 import DataTable, { TableColumn } from 'react-data-table-component';
 import { fromNano } from "@ton/core";
 import { PoolModel } from "@/services/Router";
+import { formatCryptoAmount } from "@/utils";
 
 const columns: TableColumn<PoolModel>[] = [{
     name: 'From / To',
@@ -17,7 +18,7 @@ const columns: TableColumn<PoolModel>[] = [{
 // }, 
 {
     name: 'Reserves',
-    selector: (row) => `${fromNano(row.reserve0.toString())} / ${fromNano(row.reserve1.toString())}`,
+    selector: (row) => `${formatCryptoAmount(parseFloat(fromNano(row.reserve0.toString())))} / ${formatCryptoAmount(parseFloat(fromNano(row.reserve1.toString())))}`,
 },
 ]
 

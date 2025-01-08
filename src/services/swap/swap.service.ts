@@ -10,7 +10,7 @@ import { CHAIN, TonConnectUI } from '@tonconnect/ui-react';
 import { DEFAULT_CURRENCIES_MAP, TON_TX_VALID_UNTIL } from '../Defaults';
 import { AtomicWalletModel } from '@/models/Wallet/AtomicWallet.model';
 import { AtomicMemberRecordModel } from '@/models/AtomicMember.model';
-import { PoolModel } from '../Router';
+import { PoolModel, Route } from '../Router';
 
 const debugLog = debug('app:swap')
 
@@ -151,12 +151,14 @@ export class SwapService {
     }
 
     public async executeSwap(params: {
-        from: Currency, to: Currency, inAmount: string, outAmount: string, poolId: number, publicKey: string,
+        route: Route,
+        amountIn: bigint,
+        poolId: number,
+        publicKey: string,
         tonConnectUi: TonConnectUI,
-
     }): Promise<any> {
-        debugLog(`#Executing swap, from ${params.from.symbol} to ${params.to.symbol} inAmount ${params.inAmount} outAmount ${params.outAmount} poolId ${params.poolId} publicKey ${params.publicKey}`);
-        const { from, to, inAmount, outAmount } = params;
+        debugLog(`#Executing swap, from ${params.route.toString()}`);
+        const orders = params.route.getSwapOrders(params.amountIn);
 
         // get member
 
@@ -170,13 +172,6 @@ export class SwapService {
         const po = this.getQueryId();
         const validUntil = this.getValidUntil();
 
-        const orders = [{
-            $$type: "SwapOrder" as const,
-            atomicWallet0: BigInt(from.id),
-            atomicWallet1: BigInt(to.id),
-            expectedIn: toNano(inAmount),
-            expectedOut: toNano(outAmount)
-        }];
 
         debugLog("Orders", orders);
 

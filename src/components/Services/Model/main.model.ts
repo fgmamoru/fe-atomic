@@ -75,6 +75,8 @@ type ModelType = {
     tonBalanceFormatted: () => string | undefined
     tonBalanceInUsd: () => number
     swapAmountInNano: () => bigint | undefined
+    _resultSwapAmountInNano: bigint | undefined
+
     getExchange(amount: string, from: Currency, to: Currency): string
     getInUsd(amount: string, from: Currency): string
 
@@ -310,6 +312,7 @@ export const useModel = create<ModelType>(((set, get) => ({
     tonConnectUI: undefined,
 
     resultSwapAmount: "",
+    _resultSwapAmountInNano: undefined,
     pools: {},
 
     selectedFromCurrency: DEFAULT_CURRENCIES[0],
@@ -628,15 +631,12 @@ export const useModel = create<ModelType>(((set, get) => ({
             set({ requestStatus: RequestStatus.Requested, requestType: RequestType.Swap })
             // get().setWaitForTransaction('wait')
             // get().beginRequest()
-            debugLog('executeSwapOrder, ready to swap', get()._swapService!.executeSwap)
             debugLog(`amount: ${get().swapAmount}, ${get().resultSwapAmount}`)
             // process
             await get()._swapService!.executeSwap(
                 {
-                    from: get().selectedFromCurrency,
-                    to: get().selectedToCurrency,
-                    inAmount: get().swapAmount,
-                    outAmount: get().resultSwapAmount,
+                    amountIn: get().swapAmountInNano()!,
+                    route: get()._selectedRoute!,
                     publicKey: get().tonConnectUI?.account?.publicKey!,
                     tonConnectUi: get().tonConnectUI!,
                     poolId: 0,
@@ -652,7 +652,7 @@ export const useModel = create<ModelType>(((set, get) => ({
                 get().selectedFromCurrency,
                 get().selectedToCurrency,
                 get().swapAmountInNano()!,
-                toNano(get().resultSwapAmount),
+                toNano(get()._resultSwapAmountInNano!),
             )
 
             set({
@@ -668,7 +668,6 @@ export const useModel = create<ModelType>(((set, get) => ({
                 _memberRecord: newMember,
             })
 
-            console.log('executeSwapOrder, swap executed')
             toast.success('Swap executed successfully')
         }
         catch (error) {
@@ -887,6 +886,9 @@ export const useModel = create<ModelType>(((set, get) => ({
     },
 
     getInUsd(amount: string, from: Currency): string {
+        if (from.symbol === 'USDT') return amount;
+        if (from.symbol === 'CATS') return 0.00.toFixed(2);
+
         const rate = get()._exchangeRates[`${from.symbol}USDT`];
         return formatCryptoAmountAbbr(parseFloat(amount) * parseFloat(rate))
     },
@@ -906,7 +908,8 @@ export const useModel = create<ModelType>(((set, get) => ({
 
 
         set({
-            resultSwapAmount: formatCryptoAmount(NanoToTon(bigIntClamp(amount, 0n)))
+            resultSwapAmount: formatCryptoAmount(NanoToTon(bigIntClamp(amount, 0n))),
+            _resultSwapAmountInNano: amount,
         })
     },
 
