@@ -475,13 +475,15 @@ export const useModel = create<ModelType>(((set, get) => ({
     },
 
     _getRoutes: () => {
-        console.log('_getRoutes')
         const { selectedFromCurrency, selectedToCurrency, swapAmount: amount } = get()
+        console.log('_getRoutes from ', selectedFromCurrency?.symbol, ' to ', selectedToCurrency?.symbol, ' amount ', amount)
+
         const routes = router.getAllRoutes(selectedFromCurrency, selectedToCurrency);
 
         console.log(`_getRoutes, routes, ${routes.map((route) => route.toString() + '\n')}`)
         set({ _potentialRoutes: routes })
         const selectedRoute = router.getBestRouteFromRoutes(routes, get().swapAmountInNano()!);
+        console.log(`_getRoutes, selectedRoute, ${selectedRoute} ${selectedRoute?.getPrice(get().swapAmountInNano()!)}`)
         set({ _selectedRoute: selectedRoute })
     },
 

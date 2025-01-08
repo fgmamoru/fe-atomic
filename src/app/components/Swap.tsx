@@ -118,7 +118,7 @@ export function DexSwapTab() {
 
 
 
-            {/* <SwapTokenSelectorModal
+            <SwapTokenSelectorModal
                 currencies={model.currencies}
                 isOpen={fromModalOpen}
                 onClose={() => {
@@ -139,7 +139,7 @@ export function DexSwapTab() {
                     model.setToCurrency(currency)
                     setToModalOpen(false)
                 }}
-            /> */}
+            />
             <WaitingTransactionModal
                 status={model.requestStatus}
                 type={model.requestType}

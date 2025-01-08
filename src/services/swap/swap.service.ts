@@ -3,11 +3,10 @@ import { sha256, signVerify } from '@ton/crypto';
 import { Address, Builder, Dictionary, OpenedContract, Sender, TonClient, TonClient4, toNano } from "@ton/ton";
 import { ATOMIC_DEX_CONTRACT_ADDRESS, NETWORK } from "../config.service";
 import { AtomicDex, AtomicPool, MultiSwapBackend, SwapOrder } from "../AtomicDex/AtomicDex.service";
-import { Currency, CurveTypes, ExpandedAtomicPool } from "@/types";
+import { Currency, CurveTypes } from "@/types";
 import { SandboxContract } from '@ton/sandbox';
 import debug from 'debug';
 import { CHAIN, TonConnectUI } from '@tonconnect/ui-react';
-import { calculateExpectedOut } from '@/utils';
 import { DEFAULT_CURRENCIES_MAP, TON_TX_VALID_UNTIL } from '../Defaults';
 import { AtomicWalletModel } from '@/models/Wallet/AtomicWallet.model';
 import { AtomicMemberRecordModel } from '@/models/AtomicMember.model';
@@ -73,7 +72,7 @@ export class SwapService {
     private readonly atomicDex: AtomicDex;
     private readonly contract: OpenedContract<AtomicDex>;
     private readonly contractAddress: string;
-    private pools?: Record<string, ExpandedAtomicPool>;
+    private pools?: Record<string, PoolModel>;
     private orbsClientContract: OpenedContract<AtomicDex>;
 
     constructor(private readonly orbsClient: TonClient4, private readonly tonConnectUI: TonConnectUI) {
@@ -359,26 +358,6 @@ export class SwapService {
 
     private getQueryId(): bigint {
         return BigInt(Math.floor(Math.random() * 1000000));
-    }
-
-    public calculateExpectedOut(
-        expectedIn: bigint,
-        poolId: number,
-        fromWallet: bigint,
-        toWallet: bigint,
-    ): bigint {
-        debugLog(`Calculating expected out of ${expectedIn} from ${fromWallet} to ${toWallet} pool ${poolId}`);
-        const pool = this.getAtomicPool(poolId);
-        return calculateExpectedOut(
-            expectedIn,
-            pool,
-            fromWallet,
-        )
-    }
-
-    private getAtomicPool(poolId: number): ExpandedAtomicPool {
-        debugLog("#getAtomicPool", poolId);
-        return this.pools![poolId] || this.pools!["0"];
     }
 
     private verifySignature(signature: Buffer, hash: Buffer) {

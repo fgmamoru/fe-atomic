@@ -71,11 +71,13 @@ export class PoolModel implements ExpandedAtomicPool {
     }
 
     toString(): string {
-        return `$[id:${this.contractId}[${this.Token0Symbol}-${this.Token1Symbol}]]`;
+        // return `$[id:${this.contractId}[${this.Token0Symbol}-${this.Token1Symbol}]]`;
+        return `[[${this.Token0Symbol}-${this.Token1Symbol}]]`;
     }
 
     toStringInverse(): string {
-        return `[id:${this.contractId}[${this.Token1Symbol}-${this.Token0Symbol}]]`;
+        // return `[id:${this.contractId}[${this.Token1Symbol}-${this.Token0Symbol}]]`;
+        return `[[${this.Token1Symbol}-${this.Token0Symbol}]]`;
     }
 
     toStringFrom(token: Currency): string {
@@ -112,11 +114,11 @@ export class Route {
         let result: bigint = inputAmount;
         let currentCurrency: Currency = this.input;
         for (const pool of this.pools) {
-
-            const intermediateResult = calculateExpectedOut(result, pool, currentCurrency.id)
+            const intermediateResult = calculateExpectedOut(result, pool, currentCurrency)
+            console.log('intermediateResult', intermediateResult)
             currentCurrency = pool.getInverseCurrency(currentCurrency);
             result = intermediateResult;
-            // result = intermediateResult - defaultTxFee;
+            result = intermediateResult - defaultTxFee;
         }
 
         return result - toNano(0.001)
@@ -163,7 +165,7 @@ class Router {
     constructor(
     ) {
         this.pools = [];
-        this.defaultMaximumHops = 2;
+        this.defaultMaximumHops = 0;
         this.debugLog = debug('app:Router');
     }
 

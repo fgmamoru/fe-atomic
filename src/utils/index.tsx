@@ -1,5 +1,6 @@
 import { TON_TX_VALID_UNTIL } from "@/services/Defaults";
-import { CurveTypes, ExpandedAtomicPool } from "@/types";
+import { PoolModel } from "@/services/Router";
+import { Currency, CurveTypes, ExpandedAtomicPool } from "@/types";
 import debug from 'debug';
 
 const debugLog = debug('app:utils');
@@ -74,19 +75,18 @@ export const isMobileDevice = () => {
 
 export function calculateExpectedOut(
     expectedIn: bigint,
-    pool: ExpandedAtomicPool,
-    fromWallet: bigint,
+    pool: PoolModel,
+    fromCurrency: Currency,
     // toWallet: bigint,
 ): bigint {
-    const log = debugLog.extend('calculateExpectedOut')
+    const log = debugLog.extend(`calculateExpectedOut:${pool.toString()}:${fromCurrency}:${expectedIn}`);
 
-    log(`calculateExpectedOut ${expectedIn}, ${pool}, ${fromWallet}`);
+    log(`calculateExpectedOut ${expectedIn}, ${pool}, ${fromCurrency}`);
     try {
         const poolReserve0 = pool.reserve0;
         const poolReserve1 = pool.reserve1;
-        let origAtomicWallet0 = fromWallet;
         // let origAtomicWallet1 = toWallet;
-        let atomicWallet0 = origAtomicWallet0;
+        const currency0: Currency = pool.token0;
         // let atomicWallet1 = origAtomicWallet1;
 
         // if (atomicWallet0 > atomicWallet1) {
@@ -117,13 +117,15 @@ export function calculateExpectedOut(
 
             let amountWithFee = expectedIn * pool.feeNominator / pool.feeDenominator; // Deduct fee
 
-            if (origAtomicWallet0 === atomicWallet0) {
+            if (fromCurrency === currency0) {
+                log(`unbalanced orig wallet 0`);
                 fees0 = expectedIn - amountWithFee;
                 newReserve0 = pool.reserve0 + expectedIn;
                 newReserve1 = pool.reserve1 - (pool.reserve1 * amountWithFee) / (pool.reserve0 + amountWithFee);
 
                 outputAmount = pool.reserve1 - newReserve1;
             } else {
+                log(`unbalanced orig wallet 1`);
                 fees1 = expectedIn - amountWithFee;
                 newReserve1 = pool.reserve1 + expectedIn;
                 newReserve0 = pool.reserve0 - (pool.reserve0 * amountWithFee) / (pool.reserve1 + amountWithFee);
@@ -133,7 +135,8 @@ export function calculateExpectedOut(
         } else {
             let amountWithFee = expectedIn * pool.feeNominator / pool.feeDenominator;
 
-            if (origAtomicWallet0 === atomicWallet0) {
+            if (fromCurrency === currency0) {
+                log(`balanced orig wallet 0`);
                 log(`orig wallet 0`);
                 fees0 = expectedIn - amountWithFee;
                 log(`fees0 ${fees0}`);
@@ -147,6 +150,7 @@ export function calculateExpectedOut(
                 log(`outputAmount ${pool.reserve1 - newReserve1}`);
                 outputAmount = pool.reserve1 - newReserve1;
             } else {
+                log(`balanced orig wallet 1`);
                 log(`orig wallet 1`);
                 debugLog(`amountWithFee ${amountWithFee}`);
                 fees1 = expectedIn - amountWithFee;
