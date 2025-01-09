@@ -12,7 +12,7 @@ const debugLog = debug("app:be:check-proof");
 const DOMAIN = process.env.DOMAIN!;
 debug.enable("app:be:*");
 const SHARED_SECRET = process.env.SHARED_SECRET!;
-const PAYLOAD_TTL = parseInt(process.env.PAYLOAD_TTL!) || 3600;
+const PAYLOAD_TTL = parseInt(process.env.PAYLOAD_TTL!) || 3600 * 1000;
 const PROOF_TTL = parseInt(process.env.PROOF_TTL!);
 const AUTH_PRIVATE_KEY = process.env.AUTH_PRIVATE_KEY!;
 const AUTH_PUBLIC_KEY = process.env.AUTH_PUBLIC_KEY!;

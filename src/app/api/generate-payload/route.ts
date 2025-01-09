@@ -4,7 +4,7 @@ import { NextResponse } from "next/server";
 const DOMAIN = process.env.DOMAIN!;
 const SHARED_SECRET = process.env.SHARED_SECRET!;
 // from config or 1h
-const PAYLOAD_TTL = parseInt(process.env.PAYLOAD_TTL!) || 3600;
+const PAYLOAD_TTL = parseInt(process.env.PAYLOAD_TTL!) || 3600 * 1000;
 const PROOF_TTL = parseInt(process.env.PROOF_TTL!);
 
 // A faulty API route to test Sentry's error monitoring

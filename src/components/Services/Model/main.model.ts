@@ -549,7 +549,7 @@ export const useModel = create<ModelType>(((set, get) => ({
             get()._initWallet();
             get()._initTonProofPayloadFromBackend();
             // reload proof every 20 minutes
-            setInterval(() => get()._initTonProofPayloadFromBackend(), 20 * 60 * 1000);
+            setInterval(() => get()._initTonProofPayloadFromBackend(), 60 * 1000);
 
             get()._initAtomicWallets();
             get()._initListeners();
