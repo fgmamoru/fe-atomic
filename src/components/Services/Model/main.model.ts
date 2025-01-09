@@ -71,6 +71,7 @@ type ModelType = {
     _maxAmountInNano: () => bigint
     getMaxAmountOfSelectedCurrency: () => number | bigint
     setSwapAmount: (amount: string) => void
+    reloadSwapAmount: () => void
     setSwapAmountToMax: () => void
     tonBalanceFormatted: () => string | undefined
     tonBalanceInUsd: () => number
@@ -406,6 +407,12 @@ export const useModel = create<ModelType>(((set, get) => ({
         }
     },
 
+    reloadSwapAmount() {
+        const amount = get().swapAmount
+        set({ swapAmount: '' })
+        get().setSwapAmount(amount)
+    },
+
     setSwapAmount: (amount: string) => {
         console.log('setAmount')
         const { _swapService, _maxAmountInNano } = get()
@@ -457,6 +464,7 @@ export const useModel = create<ModelType>(((set, get) => ({
 
             get().setSwapAmount(get().swapAmount)
             get()._getRoutes()
+            get().reloadSwapAmount()
         } catch (error) {
             console.error(error)
         }
@@ -531,6 +539,7 @@ export const useModel = create<ModelType>(((set, get) => ({
                     const currencies = getSwapCurrencies(pools);
                     set({ currencies: currencies });
                     get()._initRouting();
+                    get().reloadSwapAmount();
                 })
 
             get()._initWallet();
