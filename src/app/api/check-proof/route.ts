@@ -10,7 +10,7 @@ import debug from "debug";
 
 const debugLog = debug("app:be:check-proof");
 const DOMAIN = process.env.DOMAIN!;
-debug.enable("app:be:check-proof");
+debug.enable("app:be:*");
 const SHARED_SECRET = process.env.SHARED_SECRET!;
 const PAYLOAD_TTL = parseInt(process.env.PAYLOAD_TTL!) || 3600;
 const PROOF_TTL = parseInt(process.env.PROOF_TTL!);
