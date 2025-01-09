@@ -10,8 +10,9 @@ import debug from "debug";
 
 const debugLog = debug("app:be:check-proof");
 const DOMAIN = process.env.DOMAIN!;
+debug.enable("app:be:check-proof");
 const SHARED_SECRET = process.env.SHARED_SECRET!;
-const PAYLOAD_TTL = parseInt(process.env.PAYLOAD_TTL!);
+const PAYLOAD_TTL = parseInt(process.env.PAYLOAD_TTL!) || 3600;
 const PROOF_TTL = parseInt(process.env.PROOF_TTL!);
 const AUTH_PRIVATE_KEY = process.env.AUTH_PRIVATE_KEY!;
 const AUTH_PUBLIC_KEY = process.env.AUTH_PUBLIC_KEY!;
@@ -180,7 +181,15 @@ export async function POST(request: NextRequest) {
 
     const signature = generateSignature(getMessageToSign(proof.payload, address));
 
-    return NextResponse.json({ token, signature });
+    const result = {
+        token,
+        signature,
+        ttl: now + PAYLOAD_TTL,
+    }
+
+    debugLog("POST /api/check-proof result", result);
+
+    return NextResponse.json(result);
 }
 
 function generateSignature(message: string) {

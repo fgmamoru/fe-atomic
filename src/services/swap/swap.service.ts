@@ -156,6 +156,7 @@ export class SwapService {
         poolId: number,
         publicKey: string,
         tonConnectUi: TonConnectUI,
+        authToken: string,
     }): Promise<any> {
         debugLog(`#Executing swap, from ${params.route.toString()}`);
         const orders = params.route.getSwapOrders(params.amountIn);
@@ -187,7 +188,7 @@ export class SwapService {
         debugLog("Hash to sign length", hashToSign.length);
 
         // sign hash
-        const signature = await this.signHash(hashToSign);
+        const signature = await this.signHash(hashToSign, params.authToken);
         debugLog("Signature", signature);
         debugLog("Signature length", signature.length);
         const isValid = this.verifySignature(signature, hashToSign);
@@ -370,11 +371,12 @@ export class SwapService {
         return sha256(this.calculateMultiSwapSlice(seq, swap));
     }
 
-    private async signHash(hash: Buffer) {
+    private async signHash(hash: Buffer, authToken: string) {
         const request = await fetch("/api/sign-swap", {
             method: "POST",
             body: JSON.stringify({
-                hash: hash.toString("hex")
+                hash: hash.toString("hex"),
+                jwt: authToken,
             })
         })
 

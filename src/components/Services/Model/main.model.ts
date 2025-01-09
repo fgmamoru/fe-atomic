@@ -117,6 +117,8 @@ type ModelType = {
     _maxAmountOfTonBalanceInNano: () => bigint,
     maxAmountOfTonBalanceInTon: () => number,
     _setResultAmount: (bigint: bigint) => void,
+    _authoken: string | null,
+    _authTokenTTL: number | null,
 };
 
 function NanoToTon(amount: bigint | number): number {
@@ -161,6 +163,8 @@ export const useModel = create<ModelType>(((set, get) => ({
     _networkUrl: undefined,
     jettons: [],
     isDepositModalOpen: false,
+    _authoken: null,
+    _authTokenTTL: null,
 
     depositAmountInNano() {
         const amount = get().depositAmount.trim()
@@ -610,12 +614,19 @@ export const useModel = create<ModelType>(((set, get) => ({
                     state_init: ""
                 },
             }).then(
-                res => {
+                (res) => {
                     debugLog('onConnectWallet, check-proof response', res.data)
+                    const data: { token: string, ttl: number } = res.data;
+                    set({
+                        _authoken: data.token,
+                        _authTokenTTL: data.ttl * 1000,
+                    })
                 }
             ).catch(
                 error => {
-                    console.error('onConnectWallet, check-proof ERROR', error)
+                    toast.error("Authentication Error, please try again")
+                    // disconnect tonUi
+                    get().tonConnectUI?.disconnect();
                 }
             )
         }
@@ -645,6 +656,9 @@ export const useModel = create<ModelType>(((set, get) => ({
             swapAmount: '',
             // walletState: undefined,
             swapErrorMessage: '',
+            _memberRecord: null,
+            _authoken: null,
+            _authTokenTTL: null,
         })
     },
 
@@ -670,6 +684,7 @@ export const useModel = create<ModelType>(((set, get) => ({
                     publicKey: get().tonConnectUI?.account?.publicKey!,
                     tonConnectUi: get().tonConnectUI!,
                     poolId: 0,
+                    authToken: get()._authoken!,
                 }
             );
 
