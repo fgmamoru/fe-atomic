@@ -114,10 +114,11 @@ type ModelType = {
     _initExchangeRates: () => void,
     _initJettonWallet: () => void,
     _initListeners: () => void,
+    _initAuthTokenChecker: () => void,
     _maxAmountOfTonBalanceInNano: () => bigint,
     maxAmountOfTonBalanceInTon: () => number,
     _setResultAmount: (bigint: bigint) => void,
-    _authoken: string | null,
+    _authToken: string | null,
     _authTokenTTL: number | null,
 };
 
@@ -163,9 +164,8 @@ export const useModel = create<ModelType>(((set, get) => ({
     _networkUrl: undefined,
     jettons: [],
     isDepositModalOpen: false,
-    _authoken: null,
+    _authToken: null,
     _authTokenTTL: null,
-
     depositAmountInNano() {
         const amount = get().depositAmount.trim()
         try {
@@ -618,9 +618,10 @@ export const useModel = create<ModelType>(((set, get) => ({
                     debugLog('onConnectWallet, check-proof response', res.data)
                     const data: { token: string, ttl: number } = res.data;
                     set({
-                        _authoken: data.token,
+                        _authToken: data.token,
                         _authTokenTTL: data.ttl * 1000,
                     })
+                    saveAuthToken(data.token, data.ttl * 1000)
                 }
             ).catch(
                 error => {
@@ -629,12 +630,20 @@ export const useModel = create<ModelType>(((set, get) => ({
                     get().tonConnectUI?.disconnect();
                 }
             )
+        } else {
+            const { token, ttl } = loadAuthToken();
+
+            set({
+                _authToken: token,
+                _authTokenTTL: ttl,
+            })
         }
 
         try {
             set({
                 address: Address.parseRaw(wallet.account.address),
             })
+            get()._initAuthTokenChecker();
             get().readLastBlock();
             get().loadTonBalance();
             get()._initMemberRecord();
@@ -657,9 +666,10 @@ export const useModel = create<ModelType>(((set, get) => ({
             // walletState: undefined,
             swapErrorMessage: '',
             _memberRecord: null,
-            _authoken: null,
+            _authToken: null,
             _authTokenTTL: null,
         })
+        saveAuthToken(null, null)
     },
 
     isConnected() {
@@ -684,7 +694,7 @@ export const useModel = create<ModelType>(((set, get) => ({
                     publicKey: get().tonConnectUI?.account?.publicKey!,
                     tonConnectUi: get().tonConnectUI!,
                     poolId: 0,
-                    authToken: get()._authoken!,
+                    authToken: get()._authToken!,
                 }
             );
 
@@ -961,10 +971,67 @@ export const useModel = create<ModelType>(((set, get) => ({
     isSwapFromTonWallet: () => {
         return true;
     },
+
+    _initAuthTokenChecker: () => {
+
+        const checkerFn = () => {
+
+            const { _authTokenTTL, _authToken: _authoken, tonConnectUI } = get();
+            if (_authoken == null && _authTokenTTL) {
+                set({
+                    _authTokenTTL: null,
+                })
+                tonConnectUI!.disconnect();
+            }
+            if (_authoken == null && _authoken) {
+                set({
+                    _authToken: null,
+                })
+                tonConnectUI!.disconnect();
+            }
+
+            // if (_authoken == null && tonConnectUI?.account?.address && _authStatus !== AuthStatus.Authenticating) {
+            //     tonConnectUI.disconnect();
+            // }
+
+            if (_authTokenTTL == null) return;
+
+            if (Date.now() > _authTokenTTL) {
+                set({
+                    _authToken: null,
+                    _authTokenTTL: null,
+                })
+                tonConnectUI!.disconnect();
+            }
+        }
+        setInterval(checkerFn, 1000 * 30)
+        checkerFn();
+    },
+
 })))
 export const minimumTonBalanceReserve = 200000000n
 
 function maxAmountToStake(tonBalance: bigint): bigint {
     tonBalance -= minimumTonBalanceReserve
     return tonBalance > 0n ? tonBalance : 0n
+}
+
+function loadAuthToken(): { token: string | null, ttl: number | null } {
+    const token = localStorage.getItem('authToken');
+    const ttl = localStorage.getItem('authTokenTTL');
+
+    return {
+        token,
+        ttl: Number(ttl),
+    }
+}
+
+function saveAuthToken(token: string | null, ttl: number | null) {
+    if (token == null) {
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('authTokenTTL');
+        return;
+    }
+    localStorage.setItem('authToken', token!);
+    localStorage.setItem('authTokenTTL', ttl!.toString());
 }
