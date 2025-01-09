@@ -544,6 +544,8 @@ export const useModel = create<ModelType>(((set, get) => ({
 
             get()._initWallet();
             get()._initTonProofPayloadFromBackend();
+            // reload proof every 20 minutes
+            setInterval(() => get()._initTonProofPayloadFromBackend(), 20 * 60 * 1000);
 
             get()._initAtomicWallets();
             get()._initListeners();
@@ -597,7 +599,25 @@ export const useModel = create<ModelType>(((set, get) => ({
             "proof" in wallet.connectItems.tonProof
         ) {
             console.log('onConnectWallet, handling proof', wallet.connectItems.tonProof.proof)
+            const proof = wallet.connectItems.tonProof.proof;
             get()._initMemberRecord();
+
+            const request = axios.default.post('/api/check-proof', {
+                network: "-3", // -3 testnet, -239 for mainnet
+                address: wallet.account.address,
+                proof: {
+                    ...proof,
+                    state_init: ""
+                },
+            }).then(
+                res => {
+                    debugLog('onConnectWallet, check-proof response', res.data)
+                }
+            ).catch(
+                error => {
+                    console.error('onConnectWallet, check-proof ERROR', error)
+                }
+            )
         }
 
         try {
@@ -761,7 +781,6 @@ export const useModel = create<ModelType>(((set, get) => ({
     _initTonProofPayloadFromBackend: async () => {
         console.log('_initTonProofPayloadFromBackend')
         try {
-
             get().tonConnectUI!.setConnectRequestParameters({
                 state: "loading"
             })
@@ -776,6 +795,7 @@ export const useModel = create<ModelType>(((set, get) => ({
             console.error(error)
             get().tonConnectUI!.setConnectRequestParameters(null)
         }
+
     },
 
     _initRouting: () => {

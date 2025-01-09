@@ -1,8 +1,8 @@
 import { sign } from "@ton/crypto";
 import { NextRequest, NextResponse } from "next/server";
 
-const AUTH_PRIVATE_KEY = process.env.AUTH_PRIVATE_KEY!;
-const privKey = Buffer.from(AUTH_PRIVATE_KEY, 'hex');
+const SIGN_PRIVATE_KEY = process.env.SIGN_PRIVATE_KEY!;
+const privKey = Buffer.from(SIGN_PRIVATE_KEY, 'hex');
 
 
 

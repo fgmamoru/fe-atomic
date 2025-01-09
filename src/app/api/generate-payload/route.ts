@@ -3,7 +3,8 @@ import { NextResponse } from "next/server";
 
 const DOMAIN = process.env.DOMAIN!;
 const SHARED_SECRET = process.env.SHARED_SECRET!;
-const PAYLOAD_TTL = parseInt(process.env.PAYLOAD_TTL!);
+// from config or 1h
+const PAYLOAD_TTL = parseInt(process.env.PAYLOAD_TTL!) || 3600;
 const PROOF_TTL = parseInt(process.env.PROOF_TTL!);
 
 
