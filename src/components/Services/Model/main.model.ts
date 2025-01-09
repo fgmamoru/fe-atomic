@@ -444,7 +444,7 @@ export const useModel = create<ModelType>(((set, get) => ({
         console.log(`setAmount, potentialRoutes: ${get()._potentialRoutes}, selectedRoute: ${selectedRoute}`)
         set({ _selectedRoute: selectedRoute })
 
-        if (selectedRoute == null) {
+        if (selectedRoute == null && get().swapAmountInNano() !== 0n && Object.values(get().pools).length > 0) {
             set({
                 swapErrorMessage: 'No route found',
                 swapAmount: formatted,
@@ -453,7 +453,7 @@ export const useModel = create<ModelType>(((set, get) => ({
             return
         }
 
-        const resultAmount = selectedRoute.getPrice(get().swapAmountInNano()!);
+        const resultAmount = selectedRoute!.getPrice(get().swapAmountInNano()!);
 
         debug(`setAmount, amount: ${amount}, formatted: ${formatted}, amountInNano: ${amountInNano}, resultAmount: ${resultAmount}`)
         get()._setResultAmount(resultAmount)
@@ -856,6 +856,7 @@ export const useModel = create<ModelType>(((set, get) => ({
             set({
                 _memberRecord,
             });
+            get().reloadSwapAmount();
         } catch (error) {
             console.error(error)
         }
