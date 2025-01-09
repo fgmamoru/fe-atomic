@@ -608,6 +608,7 @@ export const useModel = create<ModelType>(((set, get) => ({
             get().loadTonBalance();
             get()._initMemberRecord();
             get()._initJettonWallet();
+            get().reloadSwapAmount();
         } catch (error) {
             console.error(error)
         }
