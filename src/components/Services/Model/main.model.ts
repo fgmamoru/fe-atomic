@@ -420,7 +420,7 @@ export const useModel = create<ModelType>(((set, get) => ({
 
     setSwapAmount: (amount: string) => {
         console.log('setAmount')
-        const { _swapService, _maxAmountInNano } = get()
+        const { _swapService, _maxAmountInNano, tonConnectUI } = get()
         // remove non-numeric characters and replace comma with dot
         const formatted = amount
             .replace(/[^0-9.,]/g, '')
@@ -430,9 +430,13 @@ export const useModel = create<ModelType>(((set, get) => ({
 
         const amountInNano = toNano(formatted);
 
-        if (amountInNano > _maxAmountInNano()) {
+        if (amountInNano > _maxAmountInNano() && tonConnectUI?.account?.address) {
             set({
                 swapErrorMessage: `Not enough balance.`,
+            })
+        } else if (amountInNano > _maxAmountInNano() && !tonConnectUI?.account?.address) {
+            set({
+                swapErrorMessage: 'Please connect your wallet',
             })
         } else {
             set({
