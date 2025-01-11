@@ -1,0 +1,1 @@
+export const LOADING_ROUTES = 'Loading swap routes';

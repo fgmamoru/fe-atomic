@@ -1,6 +1,7 @@
 import clsx from 'clsx';
 import styles from './index.module.css';
 import { memo } from 'react';
+import { LOADING_ROUTES } from '@/services/Constants';
 
 export enum TxSpeed {
     normal,
@@ -17,7 +18,8 @@ export const TxSpeedBadgeComponent = (props: TxSpeedBadgeProps) => {
         styles.TxSpeedBadge,
         props.speed === TxSpeed.fast && styles.fast,
         props.speed === TxSpeed.normal && styles.normal,
-        props.error && styles.error
+        props.error && styles.error,
+        props.error === LOADING_ROUTES && styles.warning,
     )
     if (!props.speed && !props.error) {
         return null;

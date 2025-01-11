@@ -18,6 +18,7 @@ import { bigIntClamp } from '@/utils/math'
 import { NativeJettonModel } from '@/models/NativeJetton.model';
 import { getListOfJettonWallets } from '../atomic-api';
 import { formatInputAmount } from './utils';
+import { LOADING_ROUTES } from '@/services/Constants';
 
 const atomicDex = AtomicDex.fromAddress(Address.parse(ATOMIC_DEX_CONTRACT_ADDRESS))
 const debugLog = debug('app:model')
@@ -451,6 +452,13 @@ export const useModel = create<ModelType>(((set, get) => ({
             })
             get()._setResultAmount(0n)
             return
+        }
+        if (selectedRoute == null && get().swapAmountInNano() !== 0n && Object.values(get().pools).length === 0) {
+            set({
+                swapErrorMessage: LOADING_ROUTES,
+            })
+            get()._setResultAmount(0n);
+            return;
         }
 
         const resultAmount = selectedRoute!.getPrice(get().swapAmountInNano()!);
