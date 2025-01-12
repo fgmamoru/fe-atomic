@@ -4,10 +4,6 @@
     overflow: hidden;
 } */
 
-.inactive {
-    transition: opacity 0.5s;
-    opacity: 0 !important;
-}
 
 .active {
     transition: opacity 0.5s;
@@ -87,4 +83,11 @@
         opacity: 0;
         transform: translateY(-2500px);
     }
+}
+
+
+.inactive {
+    transition: opacity 0.5s;
+    opacity: 0 !important;
+    animation: none !important;
 }
