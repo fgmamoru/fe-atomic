@@ -17,8 +17,8 @@ import { AtomicMemberRecordModel } from '@/models/AtomicMember.model'
 import { bigIntClamp } from '@/utils/math'
 import { NativeJettonModel } from '@/models/NativeJetton.model';
 import { getListOfJettonWallets } from '../atomic-api';
-import { formatInputAmount } from './utils';
-import { LOADING_ROUTES } from '@/services/Constants';
+import { formatInputAmount, getJwtExpiration, isJwtExpired } from './utils';
+import { LOADING_ROUTES, PLEASE_CONNECT_WALLET } from '@/services/Constants';
 
 const atomicDex = AtomicDex.fromAddress(Address.parse(ATOMIC_DEX_CONTRACT_ADDRESS))
 const debugLog = debug('app:model')
@@ -120,7 +120,6 @@ type ModelType = {
     maxAmountOfTonBalanceInTon: () => number,
     _setResultAmount: (bigint: bigint) => void,
     _authToken: string | null,
-    _authTokenTTL: number | null,
 };
 
 function NanoToTon(amount: bigint | number): number {
@@ -166,7 +165,6 @@ export const useModel = create<ModelType>(((set, get) => ({
     jettons: [],
     isDepositModalOpen: false,
     _authToken: null,
-    _authTokenTTL: null,
     depositAmountInNano() {
         const amount = get().depositAmount.trim()
         try {
@@ -436,7 +434,7 @@ export const useModel = create<ModelType>(((set, get) => ({
             })
         } else if (amountInNano > _maxAmountInNano() && !tonConnectUI?.account?.address) {
             set({
-                swapErrorMessage: 'Please connect your wallet',
+                swapErrorMessage: PLEASE_CONNECT_WALLET,
             })
         } else {
             set({
@@ -628,12 +626,11 @@ export const useModel = create<ModelType>(((set, get) => ({
             }).then(
                 (res) => {
                     debugLog('onConnectWallet, check-proof response', res.data)
-                    const data: { token: string, ttl: number } = res.data;
+                    const data: { token: string } = res.data;
                     set({
                         _authToken: data.token,
-                        _authTokenTTL: data.ttl * 1000,
                     })
-                    saveAuthToken(data.token, data.ttl * 1000)
+                    saveAuthToken(data.token)
                 }
             ).catch(
                 error => {
@@ -643,11 +640,10 @@ export const useModel = create<ModelType>(((set, get) => ({
                 }
             )
         } else {
-            const { token, ttl } = loadAuthToken();
+            const { token } = loadAuthToken();
 
             set({
                 _authToken: token,
-                _authTokenTTL: ttl,
             })
         }
 
@@ -679,9 +675,8 @@ export const useModel = create<ModelType>(((set, get) => ({
             swapErrorMessage: '',
             _memberRecord: null,
             _authToken: null,
-            _authTokenTTL: null,
         })
-        saveAuthToken(null, null)
+        saveAuthToken(null)
     },
 
     isConnected() {
@@ -986,35 +981,20 @@ export const useModel = create<ModelType>(((set, get) => ({
     },
 
     _initAuthTokenChecker: () => {
-
+        const log = debug('app:model:authTokenChecker')
         const checkerFn = () => {
 
-            const { _authTokenTTL, _authToken: _authoken, tonConnectUI } = get();
-            if (_authoken == null && _authTokenTTL) {
-                set({
-                    _authTokenTTL: null,
-                })
-                tonConnectUI!.disconnect();
-            }
-            if (_authoken == null && _authoken) {
-                set({
-                    _authToken: null,
-                })
-                tonConnectUI!.disconnect();
-            }
+            const { _authToken, tonConnectUI } = get();
+            if (!_authToken) return;
+            const isExpired = isJwtExpired(_authToken);
 
-            // if (_authoken == null && tonConnectUI?.account?.address && _authStatus !== AuthStatus.Authenticating) {
-            //     tonConnectUI.disconnect();
-            // }
-
-            if (_authTokenTTL == null) return;
-
-            if (Date.now() > _authTokenTTL) {
-                set({
-                    _authToken: null,
-                    _authTokenTTL: null,
-                })
-                tonConnectUI!.disconnect();
+            if (isExpired) {
+                saveAuthToken(null);
+                set({ _authToken: null });
+                tonConnectUI?.disconnect();
+                log('Auth token expired, disconnecting wallet')
+            } else {
+                log(`Auth token is still valid ${new Date(getJwtExpiration(_authToken) * 1000)}`)
             }
         }
         setInterval(checkerFn, 1000 * 30)
@@ -1029,22 +1009,18 @@ function maxAmountToStake(tonBalance: bigint): bigint {
     return tonBalance > 0n ? tonBalance : 0n
 }
 
-function loadAuthToken(): { token: string | null, ttl: number | null } {
+function loadAuthToken(): { token: string | null } {
     const token = localStorage.getItem('authToken');
-    const ttl = localStorage.getItem('authTokenTTL');
 
     return {
         token,
-        ttl: Number(ttl),
     }
 }
 
-function saveAuthToken(token: string | null, ttl: number | null) {
+function saveAuthToken(token: string | null) {
     if (token == null) {
         localStorage.removeItem('authToken');
-        localStorage.removeItem('authTokenTTL');
         return;
     }
     localStorage.setItem('authToken', token!);
-    localStorage.setItem('authTokenTTL', ttl!.toString());
 }

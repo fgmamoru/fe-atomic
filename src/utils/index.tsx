@@ -12,6 +12,7 @@ const formatter = new Intl.NumberFormat(undefined, {
     // style: 'currency',
     // currency: 'USD',
     minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
 })
 
 const percentFormatter = new Intl.NumberFormat(undefined, {

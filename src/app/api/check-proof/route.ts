@@ -184,7 +184,6 @@ export async function POST(request: NextRequest) {
     const result = {
         token,
         signature,
-        ttl: now + PAYLOAD_TTL,
     }
 
     debugLog("POST /api/check-proof result", result);
