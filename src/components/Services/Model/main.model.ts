@@ -714,7 +714,7 @@ export const useModel = create<ModelType>(((set, get) => ({
                 get().selectedFromCurrency,
                 get().selectedToCurrency,
                 get().swapAmountInNano()!,
-                toNano(get()._resultSwapAmountInNano!),
+                get()._resultSwapAmountInNano!,
             )
 
             set({
