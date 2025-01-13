@@ -494,6 +494,7 @@ export const useModel = create<ModelType>(((set, get) => ({
             set({ selectedToCurrency: currency })
             get().setSwapAmount(get().swapAmount)
             get()._getRoutes()
+            get().reloadSwapAmount()
         } catch (error) {
             console.error(error)
         }

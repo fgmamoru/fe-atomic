@@ -12,8 +12,11 @@ export class PoolModel implements ExpandedAtomicPool {
     expandedPool: ExpandedAtomicPool;
     readonly $$type: "AtomicPool";
     readonly lpTokenSupply: bigint;
-    readonly reserve0: bigint;
-    readonly reserve1: bigint;
+    // readonly reserve0: bigint;
+    // readonly reserve1: bigint;
+    reserve0: bigint;
+    reserve1: bigint;
+
     readonly feeNominator: bigint;
     readonly feeDenominator: bigint;
     readonly collectedFees0: bigint;
