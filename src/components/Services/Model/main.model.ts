@@ -19,7 +19,6 @@ import { NativeJettonModel } from '@/models/NativeJetton.model';
 import { getListOfJettonWallets } from '../atomic-api';
 import { formatInputAmount, getJwtExpiration, isJwtExpired } from './utils';
 import { LOADING_ROUTES, PLEASE_CONNECT_WALLET } from '@/services/Constants';
-import { request } from 'http';
 
 const atomicDex = AtomicDex.fromAddress(Address.parse(ATOMIC_DEX_CONTRACT_ADDRESS))
 const debugLog = debug('app:model')
@@ -121,6 +120,9 @@ type ModelType = {
     maxAmountOfTonBalanceInTon: () => number,
     _setResultAmount: (bigint: bigint) => void,
     _authToken: string | null,
+
+    isSidebarOpen: boolean,
+    setSidebarOpen: (isOpen: boolean) => void,
 };
 
 function NanoToTon(amount: bigint | number): number {
@@ -163,6 +165,10 @@ export const useModel = create<ModelType>(((set, get) => ({
     _potentialRoutes: [],
     _atomicWallets: {},
     _networkUrl: undefined,
+    isSidebarOpen: false,
+    setSidebarOpen: (isOpen: boolean) => {
+        set({ isSidebarOpen: isOpen })
+    },
     jettons: [],
     isDepositModalOpen: false,
     _authToken: null,
@@ -180,8 +186,8 @@ export const useModel = create<ModelType>(((set, get) => ({
         })
     },
 
+
     setDepositAmount: (amount: string) => {
-        console.log('setAmount')
         const { _maxAmountOfTonBalanceInNano } = get()
         // remove non-numeric characters and replace comma with dot
         const formatted = formatInputAmount(amount);
@@ -625,6 +631,7 @@ export const useModel = create<ModelType>(((set, get) => ({
             console.log('onConnectWallet, handling proof', wallet.connectItems.tonProof.proof)
             const proof = wallet.connectItems.tonProof.proof;
             get()._initMemberRecord();
+            get().setSidebarOpen(true);
 
             const request = axios.default.post('/api/check-proof', {
                 network: "-3", // -3 testnet, -239 for mainnet
@@ -675,7 +682,7 @@ export const useModel = create<ModelType>(((set, get) => ({
     },
 
     onDisconnectWallet: () => {
-        console.log('onDisconnectWallet')
+        get().setSidebarOpen(false);
         set({
             address: undefined,
             tonBalanceInNano: 0n,

@@ -1,0 +1,29 @@
+.NavbarCloseButton {
+    background-color: var(--color-bg-graph);
+    border: none;
+    border-radius: var(--border-radius-half);
+    color: var(--color-text);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 48px;
+    height: 42px;
+    cursor: pointer;
+    user-select: none;
+}
+
+.NavbarCloseButton:hover {
+    background-color: var(--button-flat-default-bg-hover);
+}
+
+.Img {
+    transition: transform 0.5s;
+}
+
+.Open {
+    transform: rotate(0deg);
+}
+
+.Closed {
+    transform: rotate(180deg);
+}

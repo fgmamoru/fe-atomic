@@ -2,14 +2,12 @@
 
 import { Navbar } from "@/components/Navbar";
 import "./globals.css";
-import { TonConnectButton, TonConnectUIProvider, useTonAddress, useTonConnectUI } from '@tonconnect/ui-react';
+import { TonConnectUIProvider, useTonConnectUI } from '@tonconnect/ui-react';
 import { useModel } from "@/components/Services/Model";
 import { useEffect } from "react";
 import { messages } from "@/services/i18n";
-import { Footer } from "@/components/Footer/Footer";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "@/components/Services/atomic-api";
-import { API_SCHEME, HOST } from "@/services/config.service";
 import { Stars } from "@/components/Misc/Stars";
 import { ToastContainer } from "react-toastify";
 import 'react-toastify/dist/ReactToastify.css';
@@ -62,7 +60,7 @@ export default function RootLayout({
 }
 
 function Content({ children }: { children: React.ReactNode }) {
-    const address = useTonAddress();
+    const { isSidebarOpen } = useModel();
 
     return <div style={{ display: 'flex' }}>
         <div style={{ width: '100%' }}>
@@ -71,19 +69,12 @@ function Content({ children }: { children: React.ReactNode }) {
                 {children}
             </WrapperLayout>
         </div>
-
-        {
-            address && <NoSsr>
-                <div>
-                    <WalletSidebar
-                        onClose={() => true}
-                        isOpen={true}
-                    />
-                </div>
-
-            </NoSsr>
-        }
-
+        <NoSsr>
+            <WalletSidebar
+                onClose={() => { }}
+                isOpen={isSidebarOpen}
+            />
+        </NoSsr>
     </div>
 
 }
@@ -91,8 +82,6 @@ function Content({ children }: { children: React.ReactNode }) {
 function WrapperLayout({ children }: { children: React.ReactNode }) {
     const model = useModel();
     const [tonConnectUi] = useTonConnectUI();
-
-
 
     useEffect(() => {
         if (!tonConnectUi) return;

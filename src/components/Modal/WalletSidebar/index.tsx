@@ -159,9 +159,7 @@ const TokensInYourWalletSection = () => {
 export const WalletSidebar = ({ isOpen, onClose }: WalletSidebarProps) => {
     const address = useTonAddress();
     const { _memberRecord, _exchangeRates } = useModel();
-
-
-
+    if (!isOpen) { return null }
 
     return (
         <Sidebar onClose={onClose} isOpen={isOpen} clickOutsideToClose>

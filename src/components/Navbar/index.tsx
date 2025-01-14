@@ -5,13 +5,13 @@ import styles from './index.module.css'
 import { NavbarBalance } from './NavbarBalance';
 import clsx from 'clsx';
 import { Menu } from '@headlessui/react';
-import { TonConnectButton, useTonConnectModal } from '@tonconnect/ui-react';
+import { useTonConnectModal } from '@tonconnect/ui-react';
 import { MainButton } from '../Button/MainButton';
 import { useModel } from '../Services/Model';
-import { Suspense, useState } from 'react';
+import { useState } from 'react';
 import dynamic from 'next/dynamic';
-import { WalletSidebar } from '../Modal/WalletSidebar';
 import NoSsr from '../Misc/NoSsr';
+import { NavbarCloseButton } from './NavbarCloseButton';
 
 type BurgerMenuItemProps = {
     href: string;
@@ -59,9 +59,8 @@ function BurgerMenu() {
 }
 
 export const Navbar = () => {
-    const { open, state } = useTonConnectModal();
-    const { isConnected } = useModel();
-    const [isModalOpen, setIsModalOpen] = useState(false);
+    const { open } = useTonConnectModal();
+    const { isConnected, setSidebarOpen, isSidebarOpen } = useModel();
 
     return (
         <>
@@ -82,31 +81,20 @@ export const Navbar = () => {
                             </ShowInDebug>
                         </div>
                         <div className={clsx(styles.NavbarEnd, styles.NavbarEndMobile)}>
-                            <div className={styles.NavbarBadgeZoneWrapper} style={{ display: !isConnected() ? "none" : "" }}>
 
-                                {/* <NavbarBalance />
-                                <div style={{ position: 'relative' }} className={clsx({ isConnected: isConnected() })}>
-                                    {isConnected() && <img className={styles.NavbarWalletIcon} aria-hidden="true" src="/icons/wallet.svg" alt="" />}
-                                    <TonConnectButton />
-                                </div> */}
+                            <div className={styles.NavbarBadgeZoneWrapper} style={{ display: !isConnected() ? "none" : "" }}>
+                                <NavbarCloseButton
+                                    onClick={() => {
+                                        setSidebarOpen(!isSidebarOpen);
+                                    }}
+                                    isClosed={!isSidebarOpen}
+                                />
                             </div>
-                            <ShowInDebug>
-                                <div style={{ fontSize: '7px', textAlign: 'center', color: 'var(--color-text-debug)' }}>Modal State: <br /> {state?.status}</div>
-                            </ShowInDebug>
                             <div className={styles.NavbarBadgeZoneWrapper} style={{ display: !isConnected() ? "" : "none" }}>
                                 <MainButton onClick={open}>Connect Wallet</MainButton>
                             </div>
 
-                            {/* <div className={styles.BurgerMenuButton}>
-                                <MainButton
-                                    square={true}
-                                    onClick={() => setIsModalOpen(true)}
-                                    variant='secondary'>
-                                    <img src="/icons/menu.svg" />
-                                </MainButton>
-                            </div> */}
                         </div>
-                        {/* <TonConnectButton /> */}
                     </NoSsr>
 
                 </div>
