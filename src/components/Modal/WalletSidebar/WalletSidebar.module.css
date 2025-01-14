@@ -107,3 +107,8 @@
     background-color: #111;
     color: var(--color-text-secondary);
 }
+
+.DepositedSectionEmptyLink {
+    color: var(--color-text-primary);
+    text-decoration: underline;
+}

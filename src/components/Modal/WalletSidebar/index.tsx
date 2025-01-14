@@ -5,9 +5,11 @@ import { formatAddress, formatUSD } from "@/utils";
 import { IconButton } from "@/components/Button/IconButton";
 import { useModel } from "@/components/Services/Model";
 import { TokenButton } from "@/components/Button/TokenButton";
-import { Currency } from "@/types";
 import { NativeJettonModel } from "@/models/NativeJetton.model";
 import { DEFAULT_CURRENCIES_MAP } from "@/services/Defaults";
+import { SwapSpeedModal } from "../SwapSpeedModal";
+import { useState } from "react";
+import { toast } from "react-toastify";
 
 export type WalletSidebarProps = {
     isOpen: boolean;
@@ -54,7 +56,8 @@ const TotalPortfolioSection = (props: { totalPortfolio: number, changeAmount: nu
 }
 
 const DepositedTokensSection = () => {
-    const { _memberRecord } = useModel();
+    const { _memberRecord, setDepositModalOpen } = useModel();
+    const [swapSpeedModalOpen, setSwapSpeedModalOpen] = useState(false);
 
     if (!_memberRecord?.havePositiveBalances()) {
         return (
@@ -64,8 +67,23 @@ const DepositedTokensSection = () => {
 
                 <div className={styles.DepositedSectionEmpty}>
                     Currently you don&apos;t have any tokens deposited.<br />
-                    Depositing unlocks high swap speed.
+                    <span
+                        onClick={() => setSwapSpeedModalOpen(true)}
+                        className={styles.DepositedSectionEmptyLink}>Depositing</span>
+                    {' '}unlocks high swap speed.
                 </div>
+                <SwapSpeedModal
+                    isOpen={swapSpeedModalOpen}
+                    onDepositClick={() => {
+                        setSwapSpeedModalOpen(false)
+                        setDepositModalOpen(true)
+                    }}
+                    onSwapClick={() => {
+                        toast.error("Slow Swap is not available yet")
+                        // model.executeSwapOrder()
+                        // setSwapSpeedModalOpen(false)
+                    }}
+                />
             </section>
         )
     }

@@ -427,7 +427,7 @@ export const useModel = create<ModelType>(((set, get) => ({
 
     setSwapAmount: (amount: string) => {
         console.log('setAmount')
-        const { _swapService, _maxAmountInNano, tonConnectUI } = get()
+        const { _swapService, _maxAmountInNano, tonConnectUI, _memberRecord } = get()
         // remove non-numeric characters and replace comma with dot
         const formatted = amount
             .replace(/[^0-9.,]/g, '')
@@ -437,7 +437,7 @@ export const useModel = create<ModelType>(((set, get) => ({
 
         const amountInNano = toNano(formatted);
 
-        if (amountInNano > _maxAmountInNano() && tonConnectUI?.account?.address) {
+        if (amountInNano > _maxAmountInNano() && tonConnectUI?.account?.address && _memberRecord) {
             set({
                 swapErrorMessage: `Not enough balance.`,
             })
@@ -798,7 +798,7 @@ export const useModel = create<ModelType>(((set, get) => ({
     },
 
     isAtomicSpeedSwap: () => {
-        return get().readyToSwap() && get()._selectedRoute?.speed === RouteSpeed.Fast
+        return get().readyToSwap() && get()._selectedRoute?.speed === RouteSpeed.Fast && !!get()._memberRecord?.havePositiveBalances()
     },
 
     getSwapInputError: () => {

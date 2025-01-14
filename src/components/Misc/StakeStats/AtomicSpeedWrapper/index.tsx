@@ -1,7 +1,6 @@
 import clsx from 'clsx';
 import styles from './index.module.css';
 
-
 export const AtomicSpeedCardWrapper = (props: { active: boolean, children: React.ReactNode }) => {
     const className = clsx(
         styles.AtomicSpeedCardWrapper,

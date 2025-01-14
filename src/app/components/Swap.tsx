@@ -25,7 +25,6 @@ export function DexSwapTab() {
     const [fromModalOpen, setFromModalOpen] = useState(false);
     const [toModalOpen, setToModalOpen] = useState(false);
     const [swapSpeedModalOpen, setSwapSpeedModalOpen] = useState(false);
-    const [depositModalOpen, setDepositModalOpen] = useState(false);
     const { open } = useTonConnectModal();
 
     useEffect(() => {
@@ -148,7 +147,7 @@ export function DexSwapTab() {
                 isOpen={swapSpeedModalOpen}
                 onDepositClick={() => {
                     setSwapSpeedModalOpen(false)
-                    setDepositModalOpen(true)
+                    model.setDepositModalOpen(true)
                 }}
                 onSwapClick={() => {
                     toast.error("Slow Swap is not available yet")
