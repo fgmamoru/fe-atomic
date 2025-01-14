@@ -12,9 +12,7 @@ import { AtomicWalletModel } from '@/models/Wallet/AtomicWallet.model';
 import { AtomicMemberRecordModel } from '@/models/AtomicMember.model';
 import { PoolModel, Route } from '../Router';
 
-const debugLog = debug('app:swap')
-
-
+const debugLog = debug('app:swap');
 const replaceCurrenciesInMap = (map: Record<string, { token0: string, token1: string }>): Record<string, {
     token0: Currency,
     token1: Currency
@@ -33,40 +31,6 @@ const replaceCurrenciesInMap = (map: Record<string, { token0: string, token1: st
 
     return newMap;
 }
-
-// const atomicPoolCurrencyMapping: Record<string, {
-//     token0: Currency,
-//     token1: Currency
-// }> = replaceCurrenciesInMap({
-//     "1": {
-//         token0: "TON",
-//         token1: "USDT",
-//     },
-//     "2": {
-//         token0: "TON",
-//         token1: "USDT",
-//     },
-//     "3": {
-//         token0: "USDT",
-//         token1: "NOT",
-//     },
-//     "4": {
-//         token0: "USDT",
-//         token1: "DOGS",
-//     },
-//     "5": {
-//         token0: "TON",
-//         token1: "NOT",
-//     },
-//     "6": {
-//         token0: "TON",
-//         token1: "DOGS",
-//     },
-//     "7": {
-//         token0: "TON",
-//         token1: "CATS",
-//     },
-// })
 
 export class SwapService {
     private readonly atomicDex: AtomicDex;
@@ -133,8 +97,6 @@ export class SwapService {
 
     public async getAtomicWallets(): Promise<Record<string, AtomicWalletModel>> {
         const log = debugLog.extend('#getAtomicWallets')
-
-
         const wallets = await this.contract.getAtomicWallets();
         const walletKeys = wallets.keys();
 
@@ -262,7 +224,7 @@ export class SwapService {
         await this.contract.send(
             this.getSender(),
             {
-                value: tonAmount,
+                value: toNano(0.05),
             },
             {
                 $$type: 'DepositNotification' as const,
