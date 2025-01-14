@@ -261,17 +261,13 @@ export const useModel = create<ModelType>(((set, get) => ({
                 const updatedPool = await member.poolForUpdates(true);
                 set({ _memberRecord: updatedPool });
 
-                // const updatedMember = await member.applyDeposit(amountInNano()!, selectedDepositCurrency);
-                // set({ _memberRecord: updatedMember });
-
             } else {
                 const placeholderMember = AtomicMemberRecordModel.createPlaceholder(
                     get()._atomicDexContract!,
                     BigInt(`0x${get().tonConnectUI?.account?.publicKey!}`)
                 );
-
-                const updatedMember = await placeholderMember.applyDeposit(amountInNano()!, selectedDepositCurrency);
-                set({ _memberRecord: updatedMember });
+                const updatedPool = await placeholderMember.poolForUpdates(true);
+                set({ _memberRecord: updatedPool });
             }
             set({ requestStatus: RequestStatus.Confirmed })
 

@@ -95,6 +95,12 @@ export class AtomicMemberRecordModel {
         return new Promise((resolve, reject) => {
             const pool = () => {
                 this.contract.getAtomicMemberRecord(this.publicKey).then((member) => {
+                    if (!member) {
+                        this.debugLog("Member not found, retrying");
+                        setTimeout(pool, 2000);
+                        return;
+                    }
+
                     this.debugLog("Pooling for updates in balances", member);
 
                     if (this.seq !== member!.seq) {
