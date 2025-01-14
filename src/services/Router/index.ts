@@ -194,7 +194,7 @@ class Router {
     constructor(
     ) {
         this.pools = [];
-        this.defaultMaximumHops = 0;
+        this.defaultMaximumHops = 2;
         this.debugLog = debug('app:Router');
     }
 
