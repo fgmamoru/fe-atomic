@@ -47,11 +47,11 @@ export default function RootLayout({
 
             <body>
                 <TonConnectUIProvider manifestUrl="https://fe-atomic.vercel.app/tonconnect.json">
+                    <DepositModal isOpen={isDepositModalOpen} onClose={() => setDepositModalOpen(false)} />
 
                     <Content>
                         {children}
                     </Content>
-                    <DepositModal isOpen={isDepositModalOpen} onClose={() => setDepositModalOpen(false)} />
 
                     <ToastContainer />
                 </TonConnectUIProvider>

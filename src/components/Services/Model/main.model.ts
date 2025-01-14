@@ -19,6 +19,7 @@ import { NativeJettonModel } from '@/models/NativeJetton.model';
 import { getListOfJettonWallets } from '../atomic-api';
 import { formatInputAmount, getJwtExpiration, isJwtExpired } from './utils';
 import { LOADING_ROUTES, PLEASE_CONNECT_WALLET } from '@/services/Constants';
+import { request } from 'http';
 
 const atomicDex = AtomicDex.fromAddress(Address.parse(ATOMIC_DEX_CONTRACT_ADDRESS))
 const debugLog = debug('app:model')
@@ -243,6 +244,8 @@ export const useModel = create<ModelType>(((set, get) => ({
                 await new Promise((resolve) => setTimeout(resolve, 500));
             }
 
+
+
             if (get().requestStatus === RequestStatus.Failed) {
                 toast.error('Deposit failed, please try again');
                 return;
@@ -253,9 +256,14 @@ export const useModel = create<ModelType>(((set, get) => ({
                 return;
             }
 
+            set({ requestStatus: RequestStatus.WaitingForConfirmation })
             if (member) {
-                const updatedMember = await member.applyDeposit(amountInNano()!, selectedDepositCurrency);
-                set({ _memberRecord: updatedMember });
+                const updatedPool = await member.poolForUpdates(true);
+                set({ _memberRecord: updatedPool });
+
+                // const updatedMember = await member.applyDeposit(amountInNano()!, selectedDepositCurrency);
+                // set({ _memberRecord: updatedMember });
+
             } else {
                 const placeholderMember = AtomicMemberRecordModel.createPlaceholder(
                     get()._atomicDexContract!,
@@ -265,6 +273,9 @@ export const useModel = create<ModelType>(((set, get) => ({
                 const updatedMember = await placeholderMember.applyDeposit(amountInNano()!, selectedDepositCurrency);
                 set({ _memberRecord: updatedMember });
             }
+            set({ requestStatus: RequestStatus.Confirmed })
+
+
 
             setAmount('');
             toast.success('Deposit successful');

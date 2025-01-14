@@ -11,7 +11,7 @@ export const WaitingTransactionModal = (props: WaitingTransactionModalProps) => 
     return (
         <RegularModal
             isOpen={
-                props.status === RequestStatus.Requested && props.type !== RequestType.Deposit
+                (props.status === RequestStatus.Requested || props.status === RequestStatus.WaitingForConfirmation)
             }
         >
             <Loader />

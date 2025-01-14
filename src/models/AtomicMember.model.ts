@@ -2,19 +2,24 @@ import { AtomicDex, AtomicMemberRecord } from "@/services/AtomicDex/AtomicDex.se
 import { DEFAULT_CURRENCIES, DEFAULT_CURRENCIES_MAP } from "@/services/Defaults";
 import { Currency, CurrencyBalanceKeyName } from "@/types";
 import { OpenedContract } from "@ton/core";
+import debug from "debug";
+
+type BalanceMap = Record<CurrencyBalanceKeyName, bigint> & { balance0: bigint; balance1: bigint; balance2: bigint; balance3: bigint; balance4: bigint; balance5: bigint; balance6: bigint; balance7: bigint; balance8: bigint; balance9: bigint; balance10: bigint; balance11: bigint; balance12: bigint; balance13: bigint; balance14: bigint; };
 
 export class AtomicMemberRecordModel {
     $$type: "AtomicMemberRecord";
     id: bigint;
     seq: bigint;
     unused: bigint;
-    private balances: Record<CurrencyBalanceKeyName, bigint> & { balance0: bigint; balance1: bigint; balance2: bigint; balance3: bigint; balance4: bigint; balance5: bigint; balance6: bigint; balance7: bigint; balance8: bigint; balance9: bigint; balance10: bigint; balance11: bigint; balance12: bigint; balance13: bigint; balance14: bigint; };
+    private balances: BalanceMap;
     private positiveBalances: Map<Currency, bigint> = new Map();
+    private readonly debugLog: debug.Debugger;
 
     constructor(
         member: AtomicMemberRecord,
         private readonly contract: OpenedContract<AtomicDex>,
         private readonly publicKey: bigint) {
+        this.debugLog = debug("app:AtomicMemberRecordModel");
         this.$$type = "AtomicMemberRecord";
         this.id = member.id;
         this.seq = member.seq;
@@ -86,12 +91,19 @@ export class AtomicMemberRecordModel {
     /**
      * Starts pooling for updates in balances until it founds a change
      */
-    public poolForUpdates(): Promise<AtomicMemberRecordModel> {
+    public poolForUpdates(checkBalance = false): Promise<AtomicMemberRecordModel> {
         return new Promise((resolve, reject) => {
             const pool = () => {
                 this.contract.getAtomicMemberRecord(this.publicKey).then((member) => {
+                    this.debugLog("Pooling for updates in balances", member);
+
                     if (this.seq !== member!.seq) {
+                        this.debugLog("Seq changed, updating balances");
                         this.reset(member!)
+                        resolve(new AtomicMemberRecordModel(member!, this.contract, this.publicKey));
+                    } else if (checkBalance && this.balanceChanged(member!)) {
+                        this.debugLog("Balance changed, updating balances");
+                        this.reset(member!);
                         resolve(new AtomicMemberRecordModel(member!, this.contract, this.publicKey));
                     } else {
                         setTimeout(pool, 2000);
@@ -200,6 +212,19 @@ export class AtomicMemberRecordModel {
             this.contract,
             this.publicKey,
         );
+    }
+
+    private balanceChanged(
+        balance: BalanceMap,
+    ): boolean {
+        for (const currency of DEFAULT_CURRENCIES) {
+            this.debugLog("Checking balance", currency.balanceKey, balance[currency.balanceKey], this.balances[currency.balanceKey]);
+            if (balance[currency.balanceKey] !== this.balances[currency.balanceKey]) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }
 
