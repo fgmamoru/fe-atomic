@@ -224,7 +224,8 @@ export class SwapService {
         await this.contract.send(
             this.getSender(),
             {
-                value: toNano(0.05),
+                value: tonAmount,
+                // value: toNano(0.05),
             },
             {
                 $$type: 'DepositNotification' as const,
