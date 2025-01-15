@@ -1,6 +1,7 @@
 import { AtomicDex, AtomicMemberRecord } from "@/services/AtomicDex/AtomicDex.service";
 import { DEFAULT_CURRENCIES, DEFAULT_CURRENCIES_MAP } from "@/services/Defaults";
 import { Currency, CurrencyBalanceKeyName } from "@/types";
+import { TimeoutError } from "@/types/errors";
 import { OpenedContract } from "@ton/core";
 import debug from "debug";
 
@@ -91,10 +92,20 @@ export class AtomicMemberRecordModel {
     /**
      * Starts pooling for updates in balances until it founds a change
      */
-    public poolForUpdates(checkBalance = false): Promise<AtomicMemberRecordModel> {
+    public poolForUpdates(checkBalance = false, timeoutMs: number = 100000): Promise<AtomicMemberRecordModel> {
+        const start = Date.now();
         return new Promise((resolve, reject) => {
             const pool = () => {
                 this.contract.getAtomicMemberRecord(this.publicKey).then((member) => {
+
+                    if (Date.now() - start > timeoutMs) {
+                        this.debugLog("Timeout reached");
+                        reject(
+                            new TimeoutError("Timeout reached")
+                        );
+                        return;
+                    }
+
                     if (!member) {
                         this.debugLog("Member not found, retrying");
                         setTimeout(pool, 2000);
@@ -127,7 +138,7 @@ export class AtomicMemberRecordModel {
     }
 
     public getPositiveBalances(): Array<[Currency, bigint]> {
-        return Array.from(this.positiveBalances.entries());
+        return Array.from(this.positiveBalances.entries()).filter(([currency, balance]) => balance > 0n);
     }
 
     public havePositiveBalances(): boolean {

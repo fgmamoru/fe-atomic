@@ -19,9 +19,12 @@ import { NativeJettonModel } from '@/models/NativeJetton.model';
 import { getListOfJettonWallets } from '../atomic-api';
 import { formatInputAmount, getJwtExpiration, isJwtExpired } from './utils';
 import { LOADING_ROUTES, PLEASE_CONNECT_WALLET } from '@/services/Constants';
+import { useTonAddress } from '@tonconnect/ui-react';
+import { TimeoutError } from '@/types/errors';
 
 const atomicDex = AtomicDex.fromAddress(Address.parse(ATOMIC_DEX_CONTRACT_ADDRESS))
 const debugLog = debug('app:model')
+const DEPOSIT_TIMEOUT = 40 * 1000;
 
 type ModelType = {
     requestType: RequestType,
@@ -264,7 +267,7 @@ export const useModel = create<ModelType>(((set, get) => ({
 
             set({ requestStatus: RequestStatus.WaitingForConfirmation })
             if (member) {
-                const updatedPool = await member.poolForUpdates(true);
+                const updatedPool = await member.poolForUpdates(true, DEPOSIT_TIMEOUT);
                 set({ _memberRecord: updatedPool });
 
             } else {
@@ -272,7 +275,7 @@ export const useModel = create<ModelType>(((set, get) => ({
                     get()._atomicDexContract!,
                     BigInt(`0x${get().tonConnectUI?.account?.publicKey!}`)
                 );
-                const updatedPool = await placeholderMember.poolForUpdates(true);
+                const updatedPool = await placeholderMember.poolForUpdates(true, DEPOSIT_TIMEOUT);
                 set({ _memberRecord: updatedPool });
             }
             set({ requestStatus: RequestStatus.Confirmed })
@@ -283,6 +286,11 @@ export const useModel = create<ModelType>(((set, get) => ({
             toast.success('Deposit successful');
 
         } catch (error) {
+            if (error instanceof TimeoutError) {
+                toast.error('Deposit confirmation timed out, please reload and try again');
+                return;
+            }
+
             // if type is UserRejectsError then the user rejected the transaction
             console.log(error, (error as Error)?.name)
             if ((error as Error)?.message.includes('UserRejectsError')) {
@@ -1020,6 +1028,9 @@ export const useModel = create<ModelType>(((set, get) => ({
 
 })))
 export const minimumTonBalanceReserve = 200000000n
+
+export const useIsConnected = (): boolean => !!useTonAddress()
+
 
 function maxAmountToStake(tonBalance: bigint): bigint {
     tonBalance -= minimumTonBalanceReserve

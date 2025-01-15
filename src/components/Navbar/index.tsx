@@ -2,13 +2,11 @@
 
 import Link from 'next/link';
 import styles from './index.module.css'
-import { NavbarBalance } from './NavbarBalance';
 import clsx from 'clsx';
 import { Menu } from '@headlessui/react';
 import { useTonConnectModal } from '@tonconnect/ui-react';
 import { MainButton } from '../Button/MainButton';
-import { useModel } from '../Services/Model';
-import { useState } from 'react';
+import { useIsConnected, useModel } from '../Services/Model';
 import dynamic from 'next/dynamic';
 import NoSsr from '../Misc/NoSsr';
 import { NavbarCloseButton } from './NavbarCloseButton';
@@ -60,7 +58,8 @@ function BurgerMenu() {
 
 export const Navbar = () => {
     const { open } = useTonConnectModal();
-    const { isConnected, setSidebarOpen, isSidebarOpen } = useModel();
+    const isConnected = useIsConnected();
+    const { setSidebarOpen, isSidebarOpen } = useModel();
 
     return (
         <>
@@ -82,7 +81,7 @@ export const Navbar = () => {
                         </div>
                         <div className={clsx(styles.NavbarEnd, styles.NavbarEndMobile)}>
 
-                            <div className={styles.NavbarBadgeZoneWrapper} style={{ display: !isConnected() ? "none" : "" }}>
+                            <div className={styles.NavbarBadgeZoneWrapper} style={{ display: !isConnected ? "none" : "" }}>
                                 <NavbarCloseButton
                                     onClick={() => {
                                         setSidebarOpen(!isSidebarOpen);
@@ -90,7 +89,7 @@ export const Navbar = () => {
                                     isClosed={!isSidebarOpen}
                                 />
                             </div>
-                            <div className={styles.NavbarBadgeZoneWrapper} style={{ display: !isConnected() ? "" : "none" }}>
+                            <div className={styles.NavbarBadgeZoneWrapper} style={{ display: !isConnected ? "" : "none" }}>
                                 <MainButton onClick={open}>Connect Wallet</MainButton>
                             </div>
 

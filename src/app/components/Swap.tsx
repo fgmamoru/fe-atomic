@@ -9,7 +9,7 @@ import AnimatedNumber from "animated-number-react";
 import { useTonConnectModal, useTonConnectUI, useTonWallet } from "@tonconnect/ui-react";
 import { useEffect, useState } from "react";
 
-import { useModel } from "@/components/Services/Model";
+import { useIsConnected, useModel } from "@/components/Services/Model";
 import { SwapTokenSelectorModal } from "@/components/Modal/SwapTokenSelectorModal";
 import { WaitingTransactionModal } from "@/components/Modal/WaitingTransactionModal";
 import { TxSpeed, TxSpeedBadge } from "@/components/Misc/TxSpeedBadge";
@@ -26,6 +26,7 @@ export function DexSwapTab() {
     const [toModalOpen, setToModalOpen] = useState(false);
     const [swapSpeedModalOpen, setSwapSpeedModalOpen] = useState(false);
     const { open } = useTonConnectModal();
+    const isConnected = useIsConnected();
 
     useEffect(() => {
         if (!tonConnectUi) return;
@@ -104,9 +105,9 @@ export function DexSwapTab() {
                 />
             </div>
             <MainButton
-                disabled={!model.readyToSwap() && model.isConnected()}
+                disabled={!model.readyToSwap() && isConnected}
                 onClick={() => {
-                    if (!model.isConnected()) return open();
+                    if (!isConnected) return open();
                     // if (model.isSwapFromTonWallet()) return setSwapSpeedModalOpen(true);
                     if (!model._memberRecord?.havePositiveBalances()) return setSwapSpeedModalOpen(true);
                     model.executeSwapOrder();

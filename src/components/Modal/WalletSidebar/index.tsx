@@ -91,7 +91,7 @@ const DepositedTokensSection = () => {
     return (
         <section>
             <h2 className={styles.SectionSubtitle}>
-                <img src="/icons/mini-coins.svg" aria-hidden /> Deposited Tokens</h2>
+                <img src="/icons/mini-coins.svg" aria-hidden />Deposited Tokens</h2>
             {
                 _memberRecord.getPositiveBalances().map(([currency, balance]) => {
                     return (<TokenButton
