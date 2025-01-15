@@ -19,7 +19,7 @@ export const TxSpeedBadgeComponent = (props: TxSpeedBadgeProps) => {
         props.speed === TxSpeed.fast && styles.fast,
         props.speed === TxSpeed.normal && styles.normal,
         props.error && styles.error,
-        props.error === LOADING_ROUTES || props.error === PLEASE_CONNECT_WALLET && styles.warning,
+        (props.error === LOADING_ROUTES || props.error === PLEASE_CONNECT_WALLET) && styles.warning,
     )
     if (!props.speed && !props.error) {
         return null;

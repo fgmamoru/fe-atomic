@@ -6,7 +6,6 @@ import { DEFAULT_CURRENCIES_MAP_BY_ID } from "../Defaults";
 import { SwapOrder } from "../AtomicDex/AtomicDex.service";
 
 
-const defaultTxFee = 40n
 
 export class PoolModel implements ExpandedAtomicPool {
     expandedPool: ExpandedAtomicPool;
@@ -122,10 +121,10 @@ export class Route {
             console.log('intermediateResult', intermediateResult)
             currentCurrency = pool.getInverseCurrency(currentCurrency);
             currentAmount = intermediateResult;
-            currentAmount = intermediateResult - defaultTxFee;
+            currentAmount = intermediateResult;
         }
 
-        return currentAmount - toNano(0.001)
+        return currentAmount
     }
 
     /**
@@ -176,7 +175,7 @@ export class Route {
             };
             result.push(swapOrder);
             currentCurrency = pool.getInverseCurrency(currentCurrency);
-            currentAmount = intermediateResult - defaultTxFee
+            currentAmount = intermediateResult;
 
         }
         return result;
