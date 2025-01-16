@@ -162,7 +162,7 @@ export function calculateExpectedOut(
             }
         }
         log(`outputAmount ${outputAmount}`);
-        return outputAmount;
+        return outputAmount - 100n;
     } catch (error) {
         console.error(error);
         return 0n

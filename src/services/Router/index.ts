@@ -197,10 +197,15 @@ class Router {
         this.debugLog = debug('app:Router');
     }
 
-    public addPool(pool: ExpandedAtomicPool): void {
-        this.pools.push(
-            new PoolModel(pool)
-        );
+    public upsertPools(pool: ExpandedAtomicPool): void {
+        const model = new PoolModel(pool)
+
+        const existingPool = this.pools.find(p => p.id === model.id);
+        if (existingPool) {
+            this.pools[this.pools.indexOf(existingPool)] = model;
+        } else {
+            this.pools.push(model);
+        }
     }
 
     /**

@@ -119,6 +119,7 @@ type ModelType = {
     _initJettonWallet: () => void,
     _initListeners: () => void,
     _initAuthTokenChecker: () => void,
+    _initRefreshPools: () => void,
     _maxAmountOfTonBalanceInNano: () => bigint,
     maxAmountOfTonBalanceInTon: () => number,
     _setResultAmount: (bigint: bigint) => void,
@@ -292,7 +293,7 @@ export const useModel = create<ModelType>(((set, get) => ({
             }
 
             // if type is UserRejectsError then the user rejected the transaction
-            console.log(error, (error as Error)?.name)
+            debugLog(error, (error as Error)?.name)
             if ((error as Error)?.message.includes('UserRejectsError')) {
                 toast.info('User rejected the transaction');
                 return;
@@ -306,7 +307,7 @@ export const useModel = create<ModelType>(((set, get) => ({
     },
 
     setDepositCurrency: (currency: Currency) => {
-        console.log('setDepositCurrency')
+        debugLog('setDepositCurrency')
         set({ selectedDepositCurrency: currency })
     },
 
@@ -440,7 +441,7 @@ export const useModel = create<ModelType>(((set, get) => ({
     },
 
     setSwapAmount: (amount: string) => {
-        console.log('setAmount')
+        debugLog('setAmount')
         const { _swapService, _maxAmountInNano, tonConnectUI, _memberRecord } = get()
         // remove non-numeric characters and replace comma with dot
         const formatted = amount
@@ -467,7 +468,7 @@ export const useModel = create<ModelType>(((set, get) => ({
         set({ swapAmount: formatted })
 
         const selectedRoute = router.getBestRouteFromRoutes(get()._potentialRoutes, get().swapAmountInNano()!);
-        console.log(`setAmount, potentialRoutes: ${get()._potentialRoutes}, selectedRoute: ${selectedRoute}`)
+        debugLog(`setAmount, potentialRoutes: ${get()._potentialRoutes}, selectedRoute: ${selectedRoute}`)
         set({ _selectedRoute: selectedRoute })
 
         if (selectedRoute == null && get().swapAmountInNano() !== 0n && Object.values(get().pools).length > 0) {
@@ -525,14 +526,14 @@ export const useModel = create<ModelType>(((set, get) => ({
 
     _getRoutes: () => {
         const { selectedFromCurrency, selectedToCurrency, swapAmount: amount } = get()
-        console.log('_getRoutes from ', selectedFromCurrency?.symbol, ' to ', selectedToCurrency?.symbol, ' amount ', amount)
+        debugLog('_getRoutes from ', selectedFromCurrency?.symbol, ' to ', selectedToCurrency?.symbol, ' amount ', amount)
 
         const routes = router.getAllRoutes(selectedFromCurrency, selectedToCurrency);
 
-        console.log(`_getRoutes, routes, ${routes.map((route) => route.toString() + '\n')}`)
+        debugLog(`_getRoutes, routes, ${routes.map((route) => route.toString() + '\n')}`)
         set({ _potentialRoutes: routes })
         const selectedRoute = router.getBestRouteFromRoutes(routes, get().swapAmountInNano()!);
-        console.log(`_getRoutes, selectedRoute, ${selectedRoute} ${selectedRoute?.getPrice(get().swapAmountInNano()!)}`)
+        debugLog(`_getRoutes, selectedRoute, ${selectedRoute} ${selectedRoute?.getPrice(get().swapAmountInNano()!)}`)
         set({ _selectedRoute: selectedRoute })
     },
 
@@ -545,7 +546,7 @@ export const useModel = create<ModelType>(((set, get) => ({
 
         try {
             if (get().inited) return;
-            console.log('init')
+            debugLog('init')
 
             set({ inited: true });
             const url = await getHttpV4Endpoint({
@@ -570,16 +571,8 @@ export const useModel = create<ModelType>(((set, get) => ({
             const swapService = new SwapService(tonClient, tonConnectUI);
             set({ _swapService: swapService });
 
-            swapService.getPoolList()
-                .then((pools) => set({ pools }))
-                .then(() => {
-                    const { pools } = get();
-                    const currencies = getSwapCurrencies(pools);
-                    set({ currencies: currencies });
-                    get()._initRouting();
-                    get().reloadSwapAmount();
-                })
 
+            get()._initRefreshPools();
             get()._initWallet();
             get()._initTonProofPayloadFromBackend();
             // reload proof every 20 minutes
@@ -594,7 +587,7 @@ export const useModel = create<ModelType>(((set, get) => ({
     },
 
     readLastBlock: async () => {
-        console.log('readLastBlock')
+        debugLog('readLastBlock')
         const tonClient = get().tonClient!
         const address = get().address
 
@@ -609,7 +602,7 @@ export const useModel = create<ModelType>(((set, get) => ({
     },
 
     loadTonBalance: async () => {
-        console.log('loadTonBalance')
+        debugLog('loadTonBalance')
         const tonClient = get().tonClient
         const address = get().address
         if (tonClient == null || address == null) {
@@ -636,7 +629,7 @@ export const useModel = create<ModelType>(((set, get) => ({
             wallet.connectItems?.tonProof &&
             "proof" in wallet.connectItems.tonProof
         ) {
-            console.log('onConnectWallet, handling proof', wallet.connectItems.tonProof.proof)
+            debugLog('onConnectWallet, handling proof', wallet.connectItems.tonProof.proof)
             const proof = wallet.connectItems.tonProof.proof;
             get()._initMemberRecord();
             get().setSidebarOpen(true);
@@ -645,8 +638,8 @@ export const useModel = create<ModelType>(((set, get) => ({
                 network: "-3", // -3 testnet, -239 for mainnet
                 address: wallet.account.address,
                 proof: {
+                    state_init: "",
                     ...proof,
-                    state_init: ""
                 },
             }).then(
                 (res) => {
@@ -711,13 +704,26 @@ export const useModel = create<ModelType>(((set, get) => ({
 
     executeSwapOrder: async () => {
         debugLog('executeSwapOrder')
-        try {
+        const getPools = () => {
+            return get()._swapService?.getPoolList()
+                .then((pools) => {
+                    set({ pools })
+                    const currencies = getSwapCurrencies(pools);
+                    set({ currencies: currencies });
+                    get()._initRouting();
+                })
+                .catch((error) => {
+                    console.error(error)
+                })
+        }
 
+        try {
+            await getPools();
             if (!get().readyToSwap()) return;
             set({ requestStatus: RequestStatus.Requested, requestType: RequestType.Swap })
             // get().setWaitForTransaction('wait')
             // get().beginRequest()
-            debugLog(`amount: ${get().swapAmount}, ${get().resultSwapAmount}`)
+            debugLog(`amount: ${get().swapAmount}, ${get().resultSwapAmount}`);
             // process
             await get()._swapService!.executeSwap(
                 {
@@ -799,13 +805,13 @@ export const useModel = create<ModelType>(((set, get) => ({
     },
 
     readyToSwap: () => {
-        // console.log('---readyToSwap')
+        // debugLog('---readyToSwap')
         if (!get().isConnected()) return false;
-        // console.log('readyToSwap, connected')
+        // debugLog('readyToSwap, connected')
         if (Number.isNaN(parseFloat(get().swapAmount))) return false;
-        // console.log('readyToSwap, amount not Nan')
+        // debugLog('readyToSwap, amount not Nan')
         if (parseFloat(get().swapAmount) === 0) return false;
-        // console.log('readyToSwap, amount positive')
+        // debugLog('readyToSwap, amount positive')
         if (get().swapErrorMessage !== '') return false;
         // if (get().tonBalance === undefined) return false;
 
@@ -836,14 +842,14 @@ export const useModel = create<ModelType>(((set, get) => ({
     },
 
     _initTonProofPayloadFromBackend: async () => {
-        console.log('_initTonProofPayloadFromBackend')
+        debugLog('_initTonProofPayloadFromBackend')
         try {
             get().tonConnectUI!.setConnectRequestParameters({
                 state: "loading"
             })
             const proof = await get()._fetchTonProofPayloadFromBackend();
 
-            console.log("_initTonProofPayloadFromBackend, proof", proof)
+            debugLog("_initTonProofPayloadFromBackend, proof", proof)
             get().tonConnectUI!.setConnectRequestParameters({
                 state: "ready",
                 value: { tonProof: proof },
@@ -858,7 +864,7 @@ export const useModel = create<ModelType>(((set, get) => ({
     _initRouting: () => {
         const { pools } = get();
 
-        Object.values(pools).map((pool) => router.addPool(pool));
+        Object.values(pools).map((pool) => router.upsertPools(pool));
 
         get()._getRoutes()
     },
@@ -879,11 +885,11 @@ export const useModel = create<ModelType>(((set, get) => ({
 
     _initMemberRecord: async () => {
         try {
-            console.log('_initMemberRecord: getting member record')
+            debugLog('_initMemberRecord: getting member record')
             const { _swapService } = get();
             const _memberRecord = await _swapService!.getMember(get().tonConnectUI?.account?.publicKey!);
 
-            console.log('memberRecord', _memberRecord);
+            debugLog('memberRecord', _memberRecord);
 
             set({
                 _memberRecord,
@@ -1026,6 +1032,22 @@ export const useModel = create<ModelType>(((set, get) => ({
         checkerFn();
     },
 
+    _initRefreshPools: () => {
+        const getPools = () => {
+            get()._swapService?.getPoolList()
+                .then((pools) => {
+                    set({ pools })
+                    const currencies = getSwapCurrencies(pools);
+                    set({ currencies: currencies });
+                    get()._initRouting();
+                })
+                .catch((error) => {
+                    console.error(error)
+                })
+        }
+        setInterval(getPools, 1000 * 60)
+        getPools();
+    },
 })))
 export const minimumTonBalanceReserve = 200000000n
 
