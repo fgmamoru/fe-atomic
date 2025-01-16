@@ -557,6 +557,9 @@ export const useModel = create<ModelType>(((set, get) => ({
 
             const tonClient = new TonClient4({ endpoint: url });
             const atomicDexContract = tonClient.open(atomicDex);
+            if (tonConnectUI.wallet) {
+                get().setSidebarOpen(true)
+            }
 
             set({
                 tonConnectUI,
