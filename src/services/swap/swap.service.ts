@@ -1,6 +1,6 @@
 import { sha256, signVerify } from '@ton/crypto';
 
-import { Address, Builder, Dictionary, OpenedContract, Sender, TonClient, TonClient4, toNano } from "@ton/ton";
+import { Address, Builder, Dictionary, OpenedContract, Sender, TonClient, TonClient4 } from "@ton/ton";
 import { ATOMIC_DEX_CONTRACT_ADDRESS, NETWORK } from "../config.service";
 import { AtomicDex, AtomicPool, MultiSwapBackend, SwapOrder } from "../AtomicDex/AtomicDex.service";
 import { Currency, CurveTypes } from "@/types";
@@ -13,30 +13,11 @@ import { AtomicMemberRecordModel } from '@/models/AtomicMember.model';
 import { PoolModel, Route } from '../Router';
 
 const debugLog = debug('app:swap');
-const replaceCurrenciesInMap = (map: Record<string, { token0: string, token1: string }>): Record<string, {
-    token0: Currency,
-    token1: Currency
-}> => {
-    const newMap: Record<string, {
-        token0: Currency,
-        token1: Currency
-    }> = {};
-
-    Object.keys(map).forEach(key => {
-        newMap[key] = {
-            token0: DEFAULT_CURRENCIES_MAP[map[key].token0],
-            token1: DEFAULT_CURRENCIES_MAP[map[key].token1],
-        }
-    });
-
-    return newMap;
-}
 
 export class SwapService {
     private readonly atomicDex: AtomicDex;
     private readonly contract: OpenedContract<AtomicDex>;
     private readonly contractAddress: string;
-    private pools?: Record<string, PoolModel>;
     private orbsClientContract: OpenedContract<AtomicDex>;
 
     constructor(private readonly orbsClient: TonClient4, private readonly tonConnectUI: TonConnectUI) {
@@ -87,8 +68,6 @@ export class SwapService {
                 contractId: (this.contractAddress),
             });
         });
-
-        this.pools = map;
 
         debugLog("Pools", map);
 

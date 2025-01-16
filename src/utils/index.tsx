@@ -84,28 +84,7 @@ export function calculateExpectedOut(
 
     log(`calculateExpectedOut ${expectedIn}, ${pool}, ${fromCurrency}`);
     try {
-        const poolReserve0 = pool.reserve0;
-        const poolReserve1 = pool.reserve1;
-        // let origAtomicWallet1 = toWallet;
         const currency0: Currency = pool.token0;
-        // let atomicWallet1 = origAtomicWallet1;
-
-        // if (atomicWallet0 > atomicWallet1) {
-        //     atomicWallet0 = atomicWallet1;
-        //     atomicWallet1 = atomicWallet0;
-        // }
-
-        // let poolId = atomicWallet0 << 4 | atomicWallet1;
-
-        // let pool = self.atomicPools.get(poolId);
-
-        let atomicWallet0balance: bigint = pool.reserve0;
-        let atomicWallet1balance: bigint = pool.reserve1;
-
-        // if (atomicWallet0balance < expectedIn) {
-        //     throw new Error("Not enough balance");
-        // }
-
         let newReserve0 = 0n;
         let newReserve1 = 0n;
         let fees0 = 0n;
@@ -162,7 +141,7 @@ export function calculateExpectedOut(
             }
         }
         log(`outputAmount ${outputAmount}`);
-        return outputAmount - 100n;
+        return outputAmount - (outputAmount / 100n); // 1 slippage
     } catch (error) {
         console.error(error);
         return 0n
