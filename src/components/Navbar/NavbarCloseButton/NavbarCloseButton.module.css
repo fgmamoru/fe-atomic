@@ -27,3 +27,17 @@
 .Closed {
     transform: rotate(180deg);
 }
+
+/*
+    Make button top down on small screen
+*/
+@media screen and (max-width: 768px) {
+    .Open {
+        transform: rotate(90deg);
+    }
+
+    .Closed {
+        transform: rotate(-90deg);
+    }
+
+}

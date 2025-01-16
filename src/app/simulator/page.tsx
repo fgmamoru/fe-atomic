@@ -16,6 +16,9 @@ export default function SimulatorPage() {
     const [selectedDirection, setSelectedDirection] = useState<Direction>(Direction.normal);
     const [customReserve0, setCustomReserve0] = useState<bigint>(0n);
     const [customReserve1, setCustomReserve1] = useState<bigint>(0n);
+    const [customFeeNominator, setCustomFeeNominator] = useState<bigint>(0n);
+    const [customFeeDenominator, setCustomFeeDenominator] = useState<bigint>(0n);
+
     const [amount, setAmount] = useState<number>(0);
 
     useEffect(() => {
@@ -26,6 +29,11 @@ export default function SimulatorPage() {
     if (selectedPool) {
         selectedPool.reserve0 = customReserve0 || selectedPool.reserve0;
         selectedPool.reserve1 = customReserve1 || selectedPool.reserve1;
+    }
+
+    if (selectedPool) {
+        selectedPool.feeNominator = customFeeNominator || selectedPool.feeNominator;
+        selectedPool.feeDenominator = customFeeDenominator || selectedPool.feeDenominator;
     }
 
     return (
@@ -52,6 +60,10 @@ export default function SimulatorPage() {
                 <h2>Override Reserves</h2>
                 <input type="number" onChange={(e) => setCustomReserve0(BigInt(parseFloat(e.target.value)))} />
                 <input type="number" onChange={(e) => setCustomReserve1(BigInt(parseFloat(e.target.value)))} />
+
+                <h2>Override Fees</h2>
+                <input type="number" onChange={(e) => setCustomFeeNominator(BigInt(parseFloat(e.target.value)))} />
+                <input type="number" onChange={(e) => setCustomFeeDenominator(BigInt(parseFloat(e.target.value)))} />
 
                 <h2>Enter Amount</h2>
                 <input type="number" onChange={(e) => setAmount(parseFloat(e.target.value))} />

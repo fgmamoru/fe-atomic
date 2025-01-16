@@ -15,8 +15,8 @@ export class PoolModel implements ExpandedAtomicPool {
     reserve0: bigint;
     reserve1: bigint;
 
-    readonly feeNominator: bigint;
-    readonly feeDenominator: bigint;
+    feeNominator: bigint;
+    feeDenominator: bigint;
     readonly collectedFees0: bigint;
     readonly collectedFees1: bigint;
     readonly token0: Currency;

@@ -19,6 +19,10 @@
 @media screen and (max-width: 768px) {
     .SidebarPanel {
         position: fixed;
+        margin-top: 102px;
+        max-width: none;
+        width: calc(100vw - 64px - 16px);
+        height: calc(100vh - 102px - 16px - 48px);
     }
 
 }
