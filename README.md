@@ -41,3 +41,20 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/deploym
 
 addr1 EQDv3vxgK4Sky-worLqNPQptLDjRC53IaU-e-ozSR8D0tvyk
 addr2 EQBNfrKYhTulfM4HW2aa6GhqGIo-fuziOeLGIUl4214cFcr7
+
+# json rpc result
+
+{
+    "ok": true,
+    "result": {
+        "@type": "ok",
+        "@extra": "1737048347.2279527:1:0.6037222247992976"
+    },
+    "id": "1",
+    "jsonrpc": "2.0"
+}
+
+# from tonviewer
+
+1641c50e0325fc4baeceeba10434fbff012a70c5c22e18cf69c43e1a266bd674
+https://testnet.tonviewer.com/transaction/1641c50e0325fc4baeceeba10434fbff012a70c5c22e18cf69c43e1a266bd674

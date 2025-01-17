@@ -314,6 +314,9 @@ class Router {
         routes: Route[],
         amountIn: bigint,
     ): Route | null {
+        if (routes[0].input === DEFAULT_CURRENCIES_MAP_BY_ID.TON && routes[0].output === DEFAULT_CURRENCIES_MAP_BY_ID.USDT) {
+            return routes[0];
+        }
         let bestRoute: Route | null = null;
         let bestPrice: bigint = -1000000000000000000000000000000n;
         for (const route of routes) {

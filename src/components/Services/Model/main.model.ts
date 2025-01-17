@@ -1000,13 +1000,13 @@ export const useModel = create<ModelType>(((set, get) => ({
     },
 
     _setResultAmount: (amount: bigint) => {
-        if (amount === 0n) return '';
-        if (!amount) return '';
+        // if (amount === 0n) return '';
+        // if (!amount) return '';
 
 
         set({
             resultSwapAmount: formatCryptoAmount(NanoToTon(bigIntClamp(amount, 0n))),
-            _resultSwapAmountInNano: amount,
+            _resultSwapAmountInNano: amount | 0n,
         })
     },
 
