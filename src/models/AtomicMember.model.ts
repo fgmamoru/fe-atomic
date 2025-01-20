@@ -150,7 +150,14 @@ export class AtomicMemberRecordModel {
 
         for (const [currency, balance] of this.positiveBalances) {
             const rate = exchangeRates[`${currency.symbol}USDT`];
-            if (rate && balance > 0) {
+            if (!balance) {
+                continue;
+            }
+            if (currency === DEFAULT_CURRENCIES_MAP.USDT) {
+                total += parseFloat(balance.toString()) / 1e9;
+            }
+
+            if (rate) {
                 total += parseFloat(rate) * parseFloat(balance.toString()) / 1e9;
             }
         }
