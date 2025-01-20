@@ -625,49 +625,6 @@ export const useModel = create<ModelType>(((set, get) => ({
 
 
     onConnectWallet: (wallet: ConnectedWallet) => {
-        // const { tonConnectUI, _initMemberRecord } = get();
-        // tonConnectUI?.getWallets();
-
-        if (
-            wallet.connectItems?.tonProof &&
-            "proof" in wallet.connectItems.tonProof
-        ) {
-            debugLog('onConnectWallet, handling proof', wallet.connectItems.tonProof.proof)
-            const proof = wallet.connectItems.tonProof.proof;
-            get()._initMemberRecord();
-            get().setSidebarOpen(true);
-
-            const request = axios.default.post('/api/check-proof', {
-                network: "-3", // -3 testnet, -239 for mainnet
-                address: wallet.account.address,
-                proof: {
-                    state_init: "",
-                    ...proof,
-                },
-            }).then(
-                (res) => {
-                    debugLog('onConnectWallet, check-proof response', res.data)
-                    const data: { token: string } = res.data;
-                    set({
-                        _authToken: data.token,
-                    })
-                    saveAuthToken(data.token)
-                }
-            ).catch(
-                error => {
-                    toast.error("Authentication Error, please try again")
-                    // disconnect tonUi
-                    get().tonConnectUI?.disconnect();
-                }
-            )
-        } else {
-            const { token } = loadAuthToken();
-
-            set({
-                _authToken: token,
-            })
-        }
-
         try {
             set({
                 address: Address.parseRaw(wallet.account.address),
@@ -682,7 +639,41 @@ export const useModel = create<ModelType>(((set, get) => ({
             console.error(error)
         }
 
+        if (
+            !(wallet.connectItems?.tonProof &&
+                "proof" in wallet.connectItems.tonProof)
+        ) {
+            const { token } = loadAuthToken();
+            set({ _authToken: token })
+            return;
+        }
 
+
+        debugLog('onConnectWallet, handling proof', wallet.connectItems.tonProof!.proof)
+        const proof = wallet.connectItems.tonProof.proof;
+        get().setSidebarOpen(true);
+
+        const request = axios.default.post('/api/check-proof', {
+            network: "-3", // -3 testnet, -239 for mainnet
+            address: wallet.account.address,
+            proof: {
+                state_init: "",
+                ...proof,
+            },
+        }).then(
+            (res) => {
+                debugLog('onConnectWallet, check-proof response', res.data)
+                const data: { token: string } = res.data;
+                set({ _authToken: data.token })
+                saveAuthToken(data.token)
+            }
+        ).catch(
+            error => {
+                toast.error("Authentication Error, please try again")
+                // disconnect tonUi
+                get().tonConnectUI?.disconnect();
+            }
+        )
     },
 
     onDisconnectWallet: () => {
