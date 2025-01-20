@@ -18,6 +18,8 @@ export type WalletSidebarProps = {
 
 const WalletSection = (props: { address: string }) => {
     const [tonConnectUi] = useTonConnectUI();
+    const model = useModel();
+
     return (
         <div style={{ display: "flex", justifyContent: "space-between" }}>
             <div style={{ display: "flex", alignItems: "center" }}>
@@ -33,6 +35,7 @@ const WalletSection = (props: { address: string }) => {
                 alt="Logout"
                 icon="/icons/logout.svg"
                 onClick={() => {
+                    model.onDisconnectWallet();
                     tonConnectUi.disconnect();
                 }}
             />

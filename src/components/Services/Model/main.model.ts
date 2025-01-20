@@ -690,9 +690,6 @@ export const useModel = create<ModelType>(((set, get) => ({
         set({
             address: undefined,
             tonBalanceInNano: 0n,
-            // wallet: undefined,
-            swapAmount: '',
-            // walletState: undefined,
             swapErrorMessage: '',
             _memberRecord: null,
             _authToken: null,
