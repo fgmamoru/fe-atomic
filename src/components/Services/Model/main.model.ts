@@ -207,7 +207,13 @@ export const useModel = create<ModelType>(((set, get) => ({
 
     },
     setDepositAmountToMax: () => {
-        set({ depositAmount: get().maxAmountOfTonBalanceInTon().toString() })
+        const { maxAmountOfTonBalanceInTon, selectedDepositCurrency, maxDepositAmount } = get()
+
+        if (selectedDepositCurrency === DEFAULT_CURRENCIES_MAP.TON) {
+            set({ depositAmount: maxAmountOfTonBalanceInTon().toString() })
+        } else {
+            set({ depositAmount: maxDepositAmount() })
+        }
     },
     depositErrorMessage: '',
     selectedDepositCurrency: DEFAULT_CURRENCIES_MAP['TON'],

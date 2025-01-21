@@ -47,11 +47,7 @@ export function DexDepositTab(props: DexDepositTabProps) {
                     cryptoIcon={model.selectedDepositCurrency?.icon}
                     invalid={!!model.depositErrorMessage}
                     selectorDisabled={selectorDisabled}
-                    onCurrencyClick={() => {
-                        if (!selectorDisabled) {
-                            setIsTokenSelectorModalOpen(true);
-                        }
-                    }}
+                    onCurrencyClick={() => setIsTokenSelectorModalOpen(true)}
                     endLabel={<div style={{
                         display: "flex",
                         alignItems: "center",
