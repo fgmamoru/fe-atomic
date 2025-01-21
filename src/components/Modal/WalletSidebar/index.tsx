@@ -10,6 +10,7 @@ import { DEFAULT_CURRENCIES_MAP } from "@/services/Defaults";
 import { SwapSpeedModal } from "../SwapSpeedModal";
 import { useState } from "react";
 import { toast } from "react-toastify";
+import { RandomAvatar } from "@/components/Misc/BoringAvatars";
 
 export type WalletSidebarProps = {
     isOpen: boolean;
@@ -23,9 +24,15 @@ const WalletSection = (props: { address: string }) => {
     return (
         <div style={{ display: "flex", justifyContent: "space-between" }}>
             <div style={{ display: "flex", alignItems: "center" }}>
-                <div className={styles.WalletAvatar}>
+                <RandomAvatar
+                    name={props.address}
+                    size={40}
+                    title={props.address}
+                    square={false}
+                    className={styles.WalletAvatar}
+                >
 
-                </div>
+                </RandomAvatar>
                 <div className={styles.WalletFont}>
                     <p>{formatAddress(props.address)}</p>
                 </div>
