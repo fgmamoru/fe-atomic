@@ -156,7 +156,7 @@ input[type=number] {
     border-radius: var(--border-radius);
     max-height: 95vh;
     padding: 16px;
-    max-width: 350px;
+    /* max-width: 350px; */
     padding-top: 24px;
     padding-bottom: 24px;
 }
