@@ -4,6 +4,7 @@
     margin: auto;
     margin-top: 24px;
     border-radius: var(--border-radius);
+    max-width: calc(100vw - 32px);
     /* max-width: 1256px; */
     /* border-bottom: 1px solid #F7F7F81A; */
     display: flex;
@@ -16,6 +17,7 @@
     position: relative;
     top: -9px;
     margin-left: 16px;
+    /* margin-right: 16px; */
 }
 
 .NavbarContainer {
