@@ -2,6 +2,7 @@ import clsx from 'clsx';
 import styles from './index.module.css';
 import { Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/react';
 import { Currency } from '@/types';
+import { useModel } from '@/components/Services/Model';
 
 type SwapInputProps = {
     value: string | number;
@@ -9,8 +10,6 @@ type SwapInputProps = {
     onKeyPress?: (e: React.KeyboardEvent<HTMLInputElement>) => void;
     label: string;
     endLabel?: React.ReactNode;
-    cryptoIcon: string;
-    cryptoName: string;
     disabled?: boolean;
     placeholder?: string;
     error?: string;
@@ -24,6 +23,8 @@ type SwapInputProps = {
     currencies: Set<Currency>;
     onCurrencyClick?: () => void;
     selectorDisabled?: boolean;
+    selectedCurrency: Currency;
+
 };
 
 const SwapInputSelector = (props: SwapInputProps) => {
@@ -31,13 +32,14 @@ const SwapInputSelector = (props: SwapInputProps) => {
         disabled={props.selectorDisabled}
         onClick={() => props.onCurrencyClick?.()}
     >
-        <img className={styles.SwapInputCryptoLabelImg} src={props.cryptoIcon} alt={`${props.cryptoName} logo`} />
-        <span>{props.cryptoName}</span>
+        <img className={styles.SwapInputCryptoLabelImg} src={props?.selectedCurrency?.icon} alt={`${props?.selectedCurrency.symbol} logo`} />
+        <span>{props?.selectedCurrency.symbol}</span>
         <img className={styles.InputSelectorArrow} src="/icons/arrow_down.svg" aria-hidden />
     </button>
 }
 
 export const SwapInput = (props: SwapInputProps) => {
+    const model = useModel();
     const rootClass = clsx(
         styles.SwapInput,
         props.variant === "top" && styles.SwapInputInputWrapperTop,
@@ -66,19 +68,26 @@ export const SwapInput = (props: SwapInputProps) => {
 
         </div>
         <div className={inputClass}>
-            <input
-                min={props.min}
-                id={props.id}
-                name={props.id}
-                autoComplete='off'
-                placeholder={props.placeholder}
-                inputMode={props.inputMode}
-                type={props.type || "number"}
-                onChange={(e) => props.onChange?.(e.target.value)}
-                pattern={props.pattern}
-                disabled={props.disabled}
-                value={props.value}
-                className={styles.SwapInputInput} />
+            <div style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", height: "inherit" }}>
+
+                <input
+                    min={props.min}
+                    id={props.id}
+                    name={props.id}
+                    autoComplete='off'
+                    placeholder={props.placeholder}
+                    inputMode={props.inputMode}
+                    type={props.type || "number"}
+                    onChange={(e) => props.onChange?.(e.target.value)}
+                    pattern={props.pattern}
+                    disabled={props.disabled}
+                    value={props.value}
+                    className={styles.SwapInputInput} />
+                <span className={styles.SwapInputUsdt}>{
+                    model.getInUsd(props.value.toString(), props.selectedCurrency)
+                }</span>
+            </div>
+
             <SwapInputSelector {...props} />
         </div>
     </div>

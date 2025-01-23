@@ -43,8 +43,7 @@ export function DexDepositTab(props: DexDepositTabProps) {
                     inputMode="decimal"
                     placeholder={"0.0"}
                     label="Deposit"
-                    cryptoName={model.selectedDepositCurrency?.symbol}
-                    cryptoIcon={model.selectedDepositCurrency?.icon}
+                    selectedCurrency={model.selectedDepositCurrency}
                     invalid={!!model.depositErrorMessage}
                     selectorDisabled={selectorDisabled}
                     onCurrencyClick={() => setIsTokenSelectorModalOpen(true)}

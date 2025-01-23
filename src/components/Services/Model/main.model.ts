@@ -3,7 +3,7 @@ import { Address, fromNano, OpenedContract, toNano, TonClient4 } from '@ton/ton'
 import { ConnectedWallet, TonConnectUI } from '@tonconnect/ui'
 import { create } from 'zustand';
 import { Currency, RouteSpeed, RequestStatus, RequestType } from '@/types'
-import { formatCryptoAmount, formatCryptoAmountAbbr } from '@/utils'
+import { formatCryptoAmount, formatCryptoAmountAbbr, removeThousandsSeparator } from '@/utils'
 import { ATOMIC_DEX_CONTRACT_ADDRESS, NETWORK } from '@/services/config.service'
 import { AtomicDex } from '@/services/AtomicDex/AtomicDex.service'
 import { getSwapCurrencies, SwapService } from '@/services/swap/swap.service'
@@ -977,11 +977,17 @@ export const useModel = create<ModelType>(((set, get) => ({
     },
 
     getInUsd(amount: string, from: Currency): string {
+        if (!amount) return '0.00';
         if (from.symbol === 'USDT') return amount;
         if (from.symbol === 'CATS') return 0.00.toFixed(2);
 
         const rate = get()._exchangeRates[`${from.symbol}USDT`];
-        return formatCryptoAmountAbbr(parseFloat(amount) * parseFloat(rate))
+
+        const converted = parseFloat(removeThousandsSeparator(amount)) * parseFloat(rate);
+
+        const r = formatCryptoAmountAbbr(converted)
+        console.log(`getInUsd, amount: ${amount}, rate: ${rate}, from: ${from.symbol}, converted: ${converted}, r: ${r}`)
+        return r;
     },
 
     _maxAmountOfTonBalanceInNano() {

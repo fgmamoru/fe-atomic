@@ -7,6 +7,7 @@ import styles from "./Swap.module.css";
 // @ts-ignore
 import AnimatedNumber from "animated-number-react";
 import { create } from 'zustand';
+import { DEFAULT_CURRENCIES_MAP } from "@/services/Defaults";
 
 const useSwapModel = create(() => ({
     amount: "0.0",
@@ -30,10 +31,9 @@ export function DexWithdrawTab() {
                 inputMode="decimal"
                 placeholder={formatCryptoAmount(0.0)}
                 label="Withdraw"
-                cryptoName="Ton"
-                cryptoIcon="/icons/ton.svg"
                 invalid={!!model.errorMessage}
                 error={model.errorMessage}
+                selectedCurrency={DEFAULT_CURRENCIES_MAP.TON}
                 endLabel={<div style={{
                     display: "flex",
                     alignItems: "center",

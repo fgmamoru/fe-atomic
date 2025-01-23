@@ -7,6 +7,15 @@ const debugLog = debug('app:utils');
 
 const AMPLIFICATION_FACTOR: bigint = 100n;
 
+function getThousandsSeparator(): string {
+    const miles = 1000000;
+    const formattedMiles = new Intl.NumberFormat(navigator.language).format(miles);
+
+    return formattedMiles[1];
+}
+const thousandSeparator = getThousandsSeparator();
+
+console.log(`thousandSeparator ${thousandSeparator}`);
 
 const formatter = new Intl.NumberFormat(undefined, {
     // style: 'currency',
@@ -32,7 +41,7 @@ export const formatUSD = (amount: number) => {
 
 export const formatCryptoAmountAbbr = (amount: number | string) => {
     if (typeof amount === 'string') {
-        amount = parseFloat(amount);
+        amount = parseFloat(removeThousandsSeparator(amount));
     }
     if (amount < 1000) {
         return amount.toFixed(2);
@@ -176,6 +185,8 @@ export function formatAddress(address: string): string {
     return `${address.slice(0, 6)}...${address.slice(-4)}`
 }
 
+
+
 export function removeThousandsSeparator(value: string): string {
-    return value.replace(/,/g, '');
+    return value.replaceAll(thousandSeparator, '');
 }
