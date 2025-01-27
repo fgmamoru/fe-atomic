@@ -1,5 +1,5 @@
 import { MainButton } from "@/components/Button/MainButton";
-import { RegularModal } from "../MainModal";
+import { ModalHeaderWithCloseButton, RegularModal } from "../MainModal";
 import { memo, useState } from "react";
 import { IconButton } from "@/components/Button/IconButton";
 import styles from './SwapSpeedModal.module.css';
@@ -49,16 +49,7 @@ const SwapSpeedModalComponent = (props: SwapSpeedModal) => {
                 onClose={() => setIsSubModalOpen(false)}
                 className={styles.SubModal}
             >
-                <div className={styles.TokenSelectorModalHeader}>
-                    <div className={styles.TokenSelectorModalHeaderText}>Search a Token</div>
-                    <IconButton
-                        onClick={
-                            () => setIsSubModalOpen(false)
-                        }
-                        icon="/icons/close.svg"
-                        alt="close"
-                    />
-                </div>
+                <ModalHeaderWithCloseButton onClose={() => setIsSubModalOpen(false)}>Search a Token</ModalHeaderWithCloseButton>
                 <Grid2>
                     {
                         DEFAULT_CURRENCIES.map((currency) => {

@@ -1,36 +1,38 @@
 .NavbarBadgeCard {
- display: flex;
- flex-direction: row;
- align-items: center;
- margin-left: auto;
- gap: 12px;
- background-color: #F7F7F81A;
- border-radius: 16px;
- padding: 0px 16px;
- height: 42px;
- border-radius: 8px 0px 0px 8px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  margin-left: auto;
+  gap: 12px;
+  background-color: #F7F7F81A;
+  border-radius: 16px;
+  padding: 0px 16px;
+  height: 42px;
+  border-radius: 8px 0px 0px 8px;
 
- background-color: #181818;
- /* background-color: red; */
+  background-color: var(--color-bg-graph);
+  /* background-color: red; */
 }
 
 .NavbarBadgeCardLabel {
- font-size: 14px;
- font-weight: 400;
- color: var(--color-text-primary);
- font-family: monospace;
+  font-size: 14px;
+  font-weight: 400;
+  color: var(--color-text-primary);
+  font-family: monospace;
 }
-.NavbarBadgeCardValue{
- font-size: 10px;
- font-weight: 600;
- color: var(--color-text-secondary);
- font-family: monospace;
+
+.NavbarBadgeCardValue {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  font-family: monospace;
 }
 
 @media screen and (max-width: 425px) {
   .NavbarBadgeCardLabel {
     font-size: 0.8em;
   }
+
   .NavbarBadgeCardValue {
     font-size: 0.8em;
   }

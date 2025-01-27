@@ -13,7 +13,7 @@
 }
 
 .SwapButton {
-    background-color: #181818;
+    background-color: var(--color-bg-graph);
     /* animate transform */
 }
 
@@ -29,4 +29,8 @@
 /* rotate the button  img 180 degrees on hover */
 .SwapButton:hover img {
     transform: rotate(180deg);
+}
+
+.SwapMiddleLine {
+    border-top: 1px solid #2A2A2A !important;
 }

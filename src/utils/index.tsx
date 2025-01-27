@@ -83,12 +83,13 @@ export const isMobileDevice = () => {
     return (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent));
 }
 
-export function calculateExpectedOut(
+
+export function calculateExpectedOutWithFee(
     expectedIn: bigint,
     pool: PoolModel,
     fromCurrency: Currency,
     // toWallet: bigint,
-): bigint {
+): [bigint, bigint, bigint] {
     const log = debugLog.extend(`calculateExpectedOut:${pool.toString()}:${fromCurrency}:${expectedIn}`);
 
     log(`calculateExpectedOut ${expectedIn}, ${pool}, ${fromCurrency}`);
@@ -150,12 +151,22 @@ export function calculateExpectedOut(
             }
         }
         log(`outputAmount ${outputAmount}`);
-        return outputAmount - (outputAmount / 100n); // 1 slippage
+        const outputAmountWithSlippage = outputAmount - (outputAmount / 100n); // 1% slippage
+        return [outputAmountWithSlippage, fees0, fees1];
     } catch (error) {
         console.error(error);
-        return 0n
+        return [0n, 0n, 0n]
     }
 
+}
+
+export function calculateExpectedOut(
+    expectedIn: bigint,
+    pool: PoolModel,
+    fromCurrency: Currency,
+    // toWallet: bigint,
+): bigint {
+    return calculateExpectedOutWithFee(expectedIn, pool, fromCurrency)[0];
 }
 
 export function calculateInvariantD(x: bigint, y: bigint): bigint {

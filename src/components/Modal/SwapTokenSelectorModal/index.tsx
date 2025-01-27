@@ -1,5 +1,5 @@
 import { SearchInput } from "@/components/Forms/SearchInput";
-import { RegularModal } from "../MainModal"
+import { ModalHeaderWithCloseButton, RegularModal } from "../MainModal"
 import styles from './SwapTokenSelectorModal.module.css'
 import { Currency } from "@/types";
 import { useEffect, useState } from "react";
@@ -46,14 +46,7 @@ export const SwapTokenSelectorModal = (props: TokenSelectorModalProps) => {
             isOpen={props.isOpen}
             onClose={props.onClose}
         >
-            <div className={styles.TokenSelectorModalHeader}>
-                <div className={styles.TokenSelectorModalHeaderText}>Search a Token</div>
-                <IconButton
-                    onClick={props.onClose}
-                    icon="/icons/close.svg"
-                    alt="close"
-                />
-            </div>
+            <ModalHeaderWithCloseButton onClose={props.onClose}>Search a Token</ModalHeaderWithCloseButton>
             <SearchInput placeholder="Search for a token" value={search} onChange={(ev) => {
                 setSearch(ev.target.value);
             }} />

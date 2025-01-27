@@ -142,3 +142,23 @@
     max-width: 400px;
     max-height: 700px;
 }
+
+.ModalHeaderWithButton {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--color-background-border);
+    width: 100%;
+}
+
+.ModalHeaderWithButtonText {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--color-background-border);
+    border-radius: var(--border-radius-half);
+    padding-left: 8px;
+    padding-right: 8px;
+    box-sizing: border-box;
+}

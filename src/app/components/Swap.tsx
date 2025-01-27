@@ -15,16 +15,17 @@ import { WaitingTransactionModal } from "@/components/Modal/WaitingTransactionMo
 import { TxSpeed, TxSpeedBadge } from "@/components/Misc/TxSpeedBadge";
 import { SwapSpeedModal } from "@/components/Modal/SwapSpeedModal";
 import { toast } from "react-toastify";
+import { PreviewModal } from "@/components/Modal/PreviewModal";
 
 export function DexSwapTab() {
     const model = useModel();
     const [tonConnectUi] = useTonConnectUI();
     const wallet = useTonWallet();
-    wallet?.account.publicKey;
     const buttonTitle = wallet ? 'Swap' : 'Connect Wallet';
     const [fromModalOpen, setFromModalOpen] = useState(false);
     const [toModalOpen, setToModalOpen] = useState(false);
     const [swapSpeedModalOpen, setSwapSpeedModalOpen] = useState(false);
+    const [previewModalOpen, setPreviewModalOpen] = useState(false);
     const { open } = useTonConnectModal();
     const isConnected = useIsConnected();
 
@@ -83,7 +84,7 @@ export function DexSwapTab() {
                         </MainButton>
                     </div>
                 </div>
-
+                <div className={styles.SwapMiddleLine}></div>
                 <SwapInput
                     min={0}
                     id="stake-you-receive"
@@ -113,8 +114,6 @@ export function DexSwapTab() {
                 fullWidth
                 suppressHydrationWarning
             >{buttonTitle}</MainButton>
-
-
 
             <SwapTokenSelectorModal
                 currencies={model.currencies}
@@ -150,8 +149,12 @@ export function DexSwapTab() {
                 }}
                 onSwapClick={() => {
                     toast.error("Slow Swap is not available yet")
-                    // model.executeSwapOrder()
-                    // setSwapSpeedModalOpen(false)
+                }}
+            />
+            <PreviewModal
+                isOpen={previewModalOpen}
+                onClose={() => {
+                    setPreviewModalOpen(false)
                 }}
             />
         </>

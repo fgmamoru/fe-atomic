@@ -1,0 +1,33 @@
+.PreviewModal {
+  display: flex;
+  flex-direction: column;
+  gap: 16px !important;
+}
+
+.PreviewModalStats {
+  padding: 12px;
+  gap: 4px;
+  border-radius: 0px 0px 8px 8px;
+  opacity: 0px;
+  color: var(--color-text-secondary);
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 10px;
+  letter-spacing: 0.15000000596046448px;
+  text-align: left;
+  background-color: #222222;
+}
+
+.PreviewModalStatsRow {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+
+.PreviewModalStatsRow:last-child {
+  margin-bottom: 0px;
+}
+
+.PreviewModalStatsRowValue {
+  color: var(--color-text-secondary-bold);
+}

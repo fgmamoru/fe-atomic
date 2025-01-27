@@ -1,6 +1,7 @@
 import { Dialog } from "@headlessui/react";
 import style from "./index.module.css";
 import clsx from "clsx";
+import { IconButton } from "@/components/Button/IconButton";
 
 export function ModalHeader(props: { children: React.ReactNode }) {
     return <Dialog.Title className={style.header}>{props.children}</Dialog.Title>;
@@ -16,6 +17,20 @@ export function ModalText(props: { children: React.ReactNode }) {
 
 export function ModalBody(props: { children: React.ReactNode }) {
     return <div className={style.panelBody}>{props.children}</div>;
+}
+
+export function ModalHeaderWithCloseButton(props: {
+    onClose?: () => void;
+    children: React.ReactNode;
+}) {
+    return <div className={style.ModalHeaderWithButton}>
+        <div className={style.ModalHeaderWithButtonText}>{props.children}</div>
+        <IconButton
+            onClick={props?.onClose}
+            icon="/icons/close.svg"
+            alt="close"
+        />
+    </div>
 }
 
 export function ModalFooter(props: {

@@ -8,7 +8,7 @@ type SwapInputProps = {
     value: string | number;
     onChange?: (value: string) => void;
     onKeyPress?: (e: React.KeyboardEvent<HTMLInputElement>) => void;
-    label: string;
+    label?: string;
     endLabel?: React.ReactNode;
     disabled?: boolean;
     placeholder?: string;
@@ -85,7 +85,7 @@ export const SwapInput = (props: SwapInputProps) => {
                     className={styles.SwapInputInput} />
                 <span className={styles.SwapInputUsdt}>{
                     model.getInUsd(props.value.toString(), props.selectedCurrency)
-                }</span>
+                } USD</span>
             </div>
 
             <SwapInputSelector {...props} />

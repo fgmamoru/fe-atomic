@@ -37,7 +37,7 @@
 }
 
 #ton-connect-button button {
-    background-color: #181818;
+    background-color: var(--color-bg-graph);
     height: 42px;
     border-radius: 8px;
     padding-left: 12px;
