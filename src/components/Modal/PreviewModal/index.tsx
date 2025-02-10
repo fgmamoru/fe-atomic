@@ -63,7 +63,7 @@ export const PreviewModal = (props: PreviewModalProps) => {
         <div className={style.PreviewModalStats}>
           <div className={style.PreviewModalStatsRow}>
             <span>Fee</span>
-            <span className={style.PreviewModalStatsRowValue}>${fromNano(model.resultSwapFee)}</span>
+            <span className={style.PreviewModalStatsRowValue}>${fromNano(model.resultSwapFee)} USD</span>
           </div>
           <div className={style.PreviewModalStatsRow}>
             <span>Network Cost</span>
