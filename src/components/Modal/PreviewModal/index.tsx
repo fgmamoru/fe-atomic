@@ -4,10 +4,12 @@ import { SwapInput } from "@/components/Forms/SwapInput";
 import { MainButton } from "@/components/Button/MainButton";
 import style from './PreviewModal.module.css';
 import { AVERAGE_NETWORK_FEE } from "@/services/Constants";
+import { fromNano } from "@ton/core";
 
 type PreviewModalProps = {
   isOpen?: boolean;
   onClose?: () => void;
+  onSwap?: () => void;
 }
 
 
@@ -61,18 +63,16 @@ export const PreviewModal = (props: PreviewModalProps) => {
         <div className={style.PreviewModalStats}>
           <div className={style.PreviewModalStatsRow}>
             <span>Fee</span>
-            <span className={style.PreviewModalStatsRowValue}>${ }</span>
+            <span className={style.PreviewModalStatsRowValue}>${fromNano(model.resultSwapFee)}</span>
           </div>
           <div className={style.PreviewModalStatsRow}>
             <span>Network Cost</span>
-            <span className={style.PreviewModalStatsRowValue}>~ {AVERAGE_NETWORK_FEE} TON</span>
+            <span className={style.PreviewModalStatsRowValue}>~ {fromNano(model.estimatedGas)} TON</span>
           </div>
         </div>
       </div>
       <MainButton
-        onClick={() => {
-
-        }}
+        onClick={props.onSwap}
         fullWidth
         suppressHydrationWarning
       >Swap</MainButton>

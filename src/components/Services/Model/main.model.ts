@@ -42,6 +42,7 @@ type ModelType = {
     tonBalanceInNano: bigint
     swapAmount: string
     swapErrorMessage: string
+    estimatedGas: bigint,
 
     depositAmount: string
     depositAmountInNano: () => bigint | undefined
@@ -84,9 +85,11 @@ type ModelType = {
 
     getExchange(amount: string, from: Currency, to: Currency): string
     getInUsd(amount: string, from: Currency): string
+    getEstimatedGas: () => void
 
 
     resultSwapAmount: string;
+    resultSwapFee: bigint;
     selectedFromCurrency: Currency;
     selectedToCurrency: Currency;
     currentExchangeRate: number;
@@ -156,9 +159,9 @@ export const useModel = create<ModelType>(((set, get) => ({
     treasuryState: undefined,
     times: undefined,
     walletAddress: undefined,
-    walletFees: undefined,
     wallet: undefined,
     walletState: undefined,
+    estimatedGas: 0n,
     swapAmount: '',
     depositAmount: '',
     swapErrorMessage: '',
@@ -345,12 +348,25 @@ export const useModel = create<ModelType>(((set, get) => ({
 
     resultSwapAmount: "",
     _resultSwapAmountInNano: undefined,
+    resultSwapFee: 0n,
     pools: {},
 
     selectedFromCurrency: DEFAULT_CURRENCIES[0],
     selectedToCurrency: DEFAULT_CURRENCIES[1],
     currentExchangeRate: 1,
     currencies: new Set<Currency>(),
+    getEstimatedGas: () => {
+        get()._swapService?.estimateSwapFee({
+            amountIn: get().swapAmountInNano()!,
+            route: get()._selectedRoute!,
+            publicKey: get().tonConnectUI?.account?.publicKey!,
+            tonConnectUi: get().tonConnectUI!,
+            poolId: 0,
+            authToken: get()._authToken!,
+        }).then((fee) => {
+            set({ estimatedGas: fee })
+        })
+    },
 
     _maxAmountInNano(): bigint {
         const member = get()._memberRecord;
@@ -492,11 +508,20 @@ export const useModel = create<ModelType>(((set, get) => ({
             get()._setResultAmount(0n);
             return;
         }
+        try {
+            const result = selectedRoute!.getPriceAndFeeInUSDT(get().swapAmountInNano()!,
+                get()._exchangeRates
+            );
 
-        const resultAmount = selectedRoute!.getPrice(get().swapAmountInNano()!);
+            debugLog(`setAmount, amount: ${amount}, formatted: ${formatted}, amountInNano: ${amountInNano}, resultFee: ${result.feeInUSDT}`)
+            get()._setResultAmount(result.price)
+            set({
+                resultSwapFee: result.feeInUSDT,
+            })
+        } catch (error) {
+            console.error(error)
+        }
 
-        debug(`setAmount, amount: ${amount}, formatted: ${formatted}, amountInNano: ${amountInNano}, resultAmount: ${resultAmount}`)
-        get()._setResultAmount(resultAmount)
     },
 
     setFromCurrency: (currency: Currency) => {

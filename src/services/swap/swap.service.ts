@@ -1,8 +1,8 @@
 import { sha256, signVerify } from '@ton/crypto';
 
-import { Address, Builder, Dictionary, OpenedContract, Sender, TonClient, TonClient4 } from "@ton/ton";
+import { Address, beginCell, Builder, Dictionary, OpenedContract, Sender, TonClient, TonClient4 } from "@ton/ton";
 import { ATOMIC_DEX_CONTRACT_ADDRESS, NETWORK } from "../config.service";
-import { AtomicDex, AtomicPool, MultiSwapBackend, SwapOrder } from "../AtomicDex/AtomicDex.service";
+import { AtomicDex, AtomicPool, MultiSwapBackend, storeMultiSwapBackend, SwapOrder } from "../AtomicDex/AtomicDex.service";
 import { Currency, CurveTypes } from "@/types";
 import { SandboxContract } from '@ton/sandbox';
 import debug from 'debug';
@@ -19,6 +19,7 @@ export class SwapService {
     private readonly contract: OpenedContract<AtomicDex>;
     private readonly contractAddress: string;
     private orbsClientContract: OpenedContract<AtomicDex>;
+    tonClient: TonClient;
 
     constructor(private readonly orbsClient: TonClient4, private readonly tonConnectUI: TonConnectUI) {
         this.contractAddress = ATOMIC_DEX_CONTRACT_ADDRESS;
@@ -27,6 +28,7 @@ export class SwapService {
         const client = new TonClient({
             endpoint: "https://testnet.toncenter.com/api/v2/jsonRPC",
         });
+        this.tonClient = client;
         this.contract = client.open(this.atomicDex);
         this.orbsClientContract = orbsClient.open(this.atomicDex);
         this.tonConnectUI = tonConnectUI;
@@ -153,6 +155,82 @@ export class SwapService {
         debugLog("Operation", op);
 
         await this.contract.sendExternal(op);
+    }
+
+    public async estimateSwapFee(params: {
+        route: Route,
+        amountIn: bigint,
+        poolId: number,
+        publicKey: string,
+        tonConnectUi: TonConnectUI,
+        authToken: string,
+    }) {
+        try {
+            debugLog(`#Executing swap, from ${params.route.toString()}`);
+            const orders = params.route.getSwapOrders(params.amountIn);
+
+            // get member
+
+            const member = await this.getMember(params.publicKey);
+            const queryId = this.getQueryId();
+            debugLog("Member", member);
+            // if member is not found, create it in the swap operation, otherwise use the seq.
+            const seq = member ? member.seq : 0n;
+
+            // generate random queryId
+            const po = this.getQueryId();
+            const validUntil = this.getValidUntil();
+
+            debugLog("Orders", orders);
+
+            // get hash to sign
+            const hashToSign = await this.getHashToSign(seq, {
+                orders,
+                validUntil,
+            })
+            debugLog(seq, {
+
+            })
+            debugLog("Hash to sign", hashToSign);
+            debugLog("Hash to sign length", hashToSign.length);
+
+            // sign hash
+            const signature = await this.signHash(hashToSign, params.authToken);
+            debugLog("Signature", signature);
+            debugLog("Signature length", signature.length);
+            const isValid = this.verifySignature(signature, hashToSign);
+            debugLog("Is valid", isValid);
+
+            // send swap operation
+            debugLog("Sending swap operation");
+            debugLog(`PUBLIC KEY ${params.publicKey}, ${BigInt(`0x${params.publicKey}`)}`);
+
+            const op: MultiSwapBackend = {
+                $$type: 'MultiSwapBackend' as const,
+                queryId: queryId,
+                // publicKey: BigInt(`${params.publicKey}`),
+                publicKey: BigInt(`0x${params.publicKey}`),
+                signature: new Builder()
+                    .storeBuffer(signature, 64).endCell().asSlice(),
+                orders: this.getMultiSwapOrdersSlice(orders),
+                validUntil: validUntil,
+            }
+
+            debugLog("Operation", op);
+
+            const r = await this.tonClient.estimateExternalMessageFee(Address.parse(this.contractAddress), {
+                body: beginCell().store(storeMultiSwapBackend(op)).endCell(),
+                initCode: null,
+                initData: null,
+                ignoreSignature: false
+            });
+
+            return BigInt(r?.source_fees?.gas_fee || 0 + r?.source_fees?.fwd_fee || 0 + r?.source_fees?.storage_fee || 0);
+        } catch (error) {
+            // from testing...
+            return 739200n + 2495029n + 12704400n;
+        }
+
     }
 
     public async getHashToSign(

@@ -1,8 +1,9 @@
 import { Currency, CurveTypes, ExpandedAtomicPool, RouteSpeed } from "@/types";
-import { calculateExpectedOut } from "@/utils";
+import { calculateExpectedOut, calculateExpectedOutWithFee } from "@/utils";
 import debug from 'debug';
 import { DEFAULT_CURRENCIES_MAP_BY_ID } from "../Defaults";
 import { SwapOrder } from "../AtomicDex/AtomicDex.service";
+import { fromNano } from "@ton/core";
 
 
 
@@ -113,17 +114,57 @@ export class Route {
     public getPrice(
         inputAmount: bigint,
     ): bigint {
+        return this.getPriceWithFees(inputAmount)[0];
+    }
+
+    public getPriceAndFeeInUSDT(
+        inputAmount: bigint,
+        exchangeRates: Record<string, string>
+    ) {
+        const [price, fees] = this.getPriceWithFees(inputAmount);
+        const feeInUSDT = this.getFeeInUSDT(fees, exchangeRates);
+        console.log(fees, feeInUSDT)
+        return {
+            price,
+            feeInUSDT
+        }
+    }
+
+    private getPriceWithFees(
+        inputAmount: bigint,
+    ): [bigint, [Currency, bigint][]] {
         let currentAmount: bigint = inputAmount;
         let currentCurrency: Currency = this.input;
+        let fees: [Currency, bigint][] = [];
         for (const pool of this.pools) {
-            const intermediateResult = calculateExpectedOut(currentAmount, pool, currentCurrency)
-            console.log('intermediateResult', intermediateResult)
+            const [intermediateResult, currentFee0, currentFee1] = calculateExpectedOutWithFee(currentAmount, pool, currentCurrency)
+            fees.push([pool.token0, currentFee0]);
+            fees.push([pool.token1, currentFee1]);
             currentCurrency = pool.getInverseCurrency(currentCurrency);
             currentAmount = intermediateResult;
             currentAmount = intermediateResult;
         }
 
-        return currentAmount
+        return [currentAmount, fees]
+    }
+
+
+    private getFeeInUSDT(
+        fees: [Currency, bigint][],
+        exchangeRates: Record<string, string>
+    ): bigint {
+        let feeInUSDT = 0n;
+        for (const [currency, fee] of fees) {
+
+            let rate = exchangeRates[`${currency.symbol}USDT`]
+            if (currency.symbol === 'USDT') {
+                rate = (1).toString();
+            }
+
+            if (!rate) continue;
+            feeInUSDT += fee * BigInt(parseFloat(rate) * 1_000_000_000) / 1_000_000_000n;
+        }
+        return feeInUSDT;
     }
 
     /**

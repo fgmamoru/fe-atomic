@@ -107,9 +107,12 @@ export function DexSwapTab() {
                 disabled={!model.readyToSwap() && isConnected}
                 onClick={() => {
                     if (!isConnected) return open();
+                    model.getEstimatedGas();
+                    if (model.readyToSwap()) return setPreviewModalOpen(true);
+
                     // if (model.isSwapFromTonWallet()) return setSwapSpeedModalOpen(true);
-                    if (!model._memberRecord?.havePositiveBalances()) return setSwapSpeedModalOpen(true);
-                    model.executeSwapOrder();
+                    // if (!model._memberRecord?.havePositiveBalances()) return setSwapSpeedModalOpen(true);
+                    // model.executeSwapOrder();
                 }}
                 fullWidth
                 suppressHydrationWarning
@@ -155,6 +158,10 @@ export function DexSwapTab() {
                 isOpen={previewModalOpen}
                 onClose={() => {
                     setPreviewModalOpen(false)
+                }}
+                onSwap={() => {
+                    setPreviewModalOpen(false)
+                    model.executeSwapOrder();
                 }}
             />
         </>
