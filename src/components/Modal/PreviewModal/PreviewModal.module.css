@@ -6,7 +6,7 @@
 
 .PreviewModalStats {
   padding: 12px;
-  gap: 4px;
+  gap: 16px;
   border-radius: 0px 0px 8px 8px;
   opacity: 0px;
   color: var(--color-text-secondary);
@@ -16,12 +16,13 @@
   letter-spacing: 0.15000000596046448px;
   text-align: left;
   background-color: #222222;
+
 }
 
 .PreviewModalStatsRow {
   display: flex;
   justify-content: space-between;
-  margin-bottom: 4px;
+  margin-bottom: 16px;
 }
 
 .PreviewModalStatsRow:last-child {
