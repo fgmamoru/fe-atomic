@@ -24,5 +24,11 @@
         width: calc(100vw - 64px - 16px);
         height: calc(100vh - 102px - 16px - 48px);
     }
+}
+
+@media screen and (max-width: 425px) {
+    .SidebarPanel {
+        width: calc(100vw - 32px - 48px);
+    }
 
 }

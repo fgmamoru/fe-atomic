@@ -170,14 +170,14 @@
 }
 
 
+
 @media screen and (max-width: 425px) {
     .Navbar {
         padding: 0 12px;
+        max-width: calc(100vw - 16px);
+        width: calc(100vw - 16px);
     }
-}
 
-
-@media screen and (max-width: 425px) {
     .NavbarWalletIcon {
         display: none;
     }
