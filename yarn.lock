@@ -170,6 +170,11 @@
     "@coreui/chartjs" "^4.0.0"
     chart.js "^4.4.2"
 
+"@custom-react-hooks/use-storage@^1.5.1":
+  version "1.5.1"
+  resolved "https://registry.yarnpkg.com/@custom-react-hooks/use-storage/-/use-storage-1.5.1.tgz#f65e317d1cedeab929ec39319c83fbdd2565b3a7"
+  integrity sha512-d6Rh03fTVx8FQTotZOapkkZf+czd3OtTJdeM3FO32TH3cnOujLrJTI/pefg1YwRbAQKwzaglwen9GJw/I52fyA==
+
 "@emotion/is-prop-valid@1.2.2":
   version "1.2.2"
   resolved "https://registry.yarnpkg.com/@emotion/is-prop-valid/-/is-prop-valid-1.2.2.tgz#d4175076679c6a26faa92b03bb786f9e52612337"

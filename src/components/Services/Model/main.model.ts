@@ -594,7 +594,7 @@ export const useModel = create<ModelType>(((set, get) => ({
             const tonClient = new TonClient4({ endpoint: url });
             const atomicDexContract = tonClient.open(atomicDex);
             // wait 3 seconds for the contract to be opened
-            await new Promise((resolve) => setTimeout(resolve, 1000));
+            // await new Promise((resolve) => setTimeout(resolve, 500));
             const swapService = new SwapService(tonClient, tonConnectUI);
 
             if (tonConnectUI.wallet) {
@@ -1019,6 +1019,8 @@ export const useModel = create<ModelType>(((set, get) => ({
         if (from.symbol === 'CATS') return 0.00.toFixed(2);
 
         const rate = get()._exchangeRates[`${from.symbol}USDT`];
+
+        if (!rate) return 0.00.toFixed(2);
 
         const converted = parseFloat(removeThousandsSeparator(amount)) * parseFloat(rate);
 
