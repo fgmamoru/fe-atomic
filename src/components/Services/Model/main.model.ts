@@ -18,7 +18,7 @@ import { bigIntClamp } from '@/utils/math'
 import { NativeJettonModel } from '@/models/NativeJetton.model';
 import { getListOfJettonWallets } from '../atomic-api';
 import { formatInputAmount, getJwtExpiration, isJwtExpired } from './utils';
-import { LOADING_ROUTES, PLEASE_CONNECT_WALLET } from '@/services/Constants';
+import { AMOUNT_MUST_BE_GREATER_THAN_ZERO, LOADING_ROUTES, PLEASE_CONNECT_WALLET } from '@/services/Constants';
 import { useTonAddress } from '@tonconnect/ui-react';
 import { TimeoutError } from '@/types/errors';
 
@@ -236,7 +236,7 @@ export const useModel = create<ModelType>(((set, get) => ({
 
             if (!isConnected()) return toast.error('Please connect your wallet');
             if (!amount) return toast.error('Please enter an amount to deposit');
-            if (parseFloat(amount) === 0) return toast.error('Amount must be greater than 0');
+            if (parseFloat(amount) === 0) return toast.error(AMOUNT_MUST_BE_GREATER_THAN_ZERO);
 
             set({ requestStatus: RequestStatus.Requested, requestType: RequestType.Deposit })
 
@@ -855,8 +855,8 @@ export const useModel = create<ModelType>(((set, get) => ({
 
     getSwapInputError: () => {
         if (get().swapAmount === '') return '';
-        if (!get().isConnected()) return 'Please connect your wallet';
-        if (parseFloat(get().swapAmount) === 0) return 'Amount must be greater than 0';
+        if (!get().isConnected()) return PLEASE_CONNECT_WALLET;
+        if (parseFloat(get().swapAmount) === 0) return AMOUNT_MUST_BE_GREATER_THAN_ZERO;
         if (Number.isNaN(parseFloat(get().swapAmount))) return 'Amount must be a valid number';
 
         return '';
