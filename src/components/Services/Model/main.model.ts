@@ -43,6 +43,7 @@ type ModelType = {
     swapAmount: string
     swapErrorMessage: string
     estimatedGas: bigint,
+    loading: boolean,
 
     depositAmount: string
     depositAmountInNano: () => bigint | undefined
@@ -66,7 +67,6 @@ type ModelType = {
     _potentialRoutes: Route[],
     _selectedRoute: Route | null,
 
-    _networkUrl?: string
     _getRoutes: () => void
 
     // unobserved state
@@ -152,6 +152,7 @@ export const useModel = create<ModelType>(((set, get) => ({
     requestType: RequestType.None,
     TONToUSD: 0,
     inited: false,
+    loading: true,
     network: NETWORK,
     tonClient: undefined,
     address: undefined,
@@ -172,7 +173,6 @@ export const useModel = create<ModelType>(((set, get) => ({
     _swapService: undefined,
     _potentialRoutes: [],
     _atomicWallets: {},
-    _networkUrl: undefined,
     isSidebarOpen: false,
     setSidebarOpen: (isOpen: boolean) => {
         set({ isSidebarOpen: isOpen })
@@ -462,7 +462,7 @@ export const useModel = create<ModelType>(((set, get) => ({
 
     reloadSwapAmount() {
         const amount = get().swapAmount
-        set({ swapAmount: '' })
+        // set({ swapAmount: '' })
         // wait 0.2 seconds for the input to update
         setTimeout(() => get().setSwapAmount(amount), 100);
 
@@ -494,6 +494,8 @@ export const useModel = create<ModelType>(((set, get) => ({
             })
         }
         set({ swapAmount: formatted })
+
+        if (!router.pools.length) return;
 
         const selectedRoute = router.getBestRouteFromRoutes(get()._potentialRoutes, get().swapAmountInNano()!);
         debugLog(`setAmount, potentialRoutes: ${get()._potentialRoutes}, selectedRoute: ${selectedRoute}`)
@@ -582,19 +584,19 @@ export const useModel = create<ModelType>(((set, get) => ({
 
         try {
             if (get().inited) return;
-            get()._initExchangeRates()
-
             debugLog('init')
-
             set({ inited: true });
+
+
             const url = await getHttpV4Endpoint({
                 network: get().network,
             });
-
-            set({ _networkUrl: url })
-
             const tonClient = new TonClient4({ endpoint: url });
             const atomicDexContract = tonClient.open(atomicDex);
+            // wait 3 seconds for the contract to be opened
+            await new Promise((resolve) => setTimeout(resolve, 1000));
+            const swapService = new SwapService(tonClient, tonConnectUI);
+
             if (tonConnectUI.wallet) {
                 get().setSidebarOpen(true)
             }
@@ -604,23 +606,26 @@ export const useModel = create<ModelType>(((set, get) => ({
                 tonClient,
                 inited: true,
                 _atomicDexContract: atomicDexContract,
+                _swapService: swapService,
             });
 
-            // wait 3 seconds for the contract to be opened
-            await new Promise((resolve) => setTimeout(resolve, 3000));
 
-            const swapService = new SwapService(tonClient, tonConnectUI);
-            set({ _swapService: swapService });
+            const [exchangeRates, pools, wallets] = await Promise.all([
+                get()._initExchangeRates(),
+                get()._initRefreshPools(),
+                get()._initAtomicWallets(),
+            ])
+            console.log("TO STORE", { pools })
 
-
-            get()._initRefreshPools();
-            get()._initWallet();
+            // @ts-ignore
+            set({ ...exchangeRates, ...pools, ...wallets })
+            get()._initRouting();
             get()._initTonProofPayloadFromBackend();
-            // reload proof every 20 minutes
-            setInterval(() => get()._initTonProofPayloadFromBackend(), 60 * 1000);
+            get()._initWallet();
+            set({ loading: false });
 
-            get()._initAtomicWallets();
-            get()._initListeners();
+            // // reload proof every 20 minutes
+            setInterval(() => get()._initTonProofPayloadFromBackend(), 60 * 1000);
         } catch (error) {
             console.error(error)
         }
@@ -904,7 +909,7 @@ export const useModel = create<ModelType>(((set, get) => ({
 
             const atomicWallets = await _swapService!.getAtomicWallets();
 
-            set({
+            return ({
                 _atomicWallets: atomicWallets,
             });
         } catch (error) {
@@ -943,7 +948,7 @@ export const useModel = create<ModelType>(((set, get) => ({
                 map[item.symbol] = item.price
             });
 
-            set({
+            return ({
                 _exchangeRates: map,
                 TONToUSD: parseFloat(map['TONUSDT'])
             })
@@ -1067,13 +1072,12 @@ export const useModel = create<ModelType>(((set, get) => ({
         checkerFn();
     },
 
-    _initRefreshPools: () => {
+    _initRefreshPools: async () => {
         const getPools = () => {
             get()._swapService?.getPoolList()
                 .then((pools) => {
-                    set({ pools })
                     const currencies = getSwapCurrencies(pools);
-                    set({ currencies: currencies });
+                    set({ currencies, pools });
                     get()._initRouting();
                 })
                 .catch((error) => {
@@ -1081,7 +1085,13 @@ export const useModel = create<ModelType>(((set, get) => ({
                 })
         }
         setInterval(getPools, 1000 * 60)
-        getPools();
+        // getPools();
+        const pools = await get()._swapService?.getPoolList();
+        const currencies = getSwapCurrencies(pools!);
+        return {
+            pools,
+            currencies,
+        }
     },
 })))
 export const minimumTonBalanceReserve = 200000000n
@@ -1108,4 +1118,8 @@ function saveAuthToken(token: string | null) {
         return;
     }
     localStorage.setItem('authToken', token!);
+}
+
+function _initRouting() {
+    throw new Error('Function not implemented.');
 }

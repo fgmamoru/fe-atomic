@@ -226,7 +226,7 @@ export class Route {
  * Uniswap inspired router for routing transactions
  */
 class Router {
-    private pools: PoolModel[];
+    public pools: PoolModel[];
     defaultMaximumHops: number;
     debugLog: debug.Debugger;
 

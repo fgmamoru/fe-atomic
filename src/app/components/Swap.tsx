@@ -35,7 +35,7 @@ export function DexSwapTab() {
     }, [tonConnectUi]);
     return (
         <>
-            <h2>Swap</h2>
+            <h2>{model.loading ? "Swap" : "Swap"}</h2>
             <div>
                 <SwapInput
                     min={0}

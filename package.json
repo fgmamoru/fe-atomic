@@ -37,17 +37,17 @@
     "lodash": "^4.17.21",
     "mobx": "^6.13.1",
     "next": "14.2.24",
-    "react": "^18.0.0",
+    "react": "^19.0.0",
     "react-chartjs-2": "^5.2.0",
     "react-data-table-component": "^7.6.2",
-    "react-dom": "^18",
+    "react-dom": "^19",
     "react-toastify": "^10.0.5",
     "styled-components": "^6.1.13",
     "ton": "^13.9.0",
     "ton-crypto": "^3.2.0",
     "tonweb": "^0.0.66",
     "use-local-storage-state": "^19.3.1",
-    "zustand": "^4.5.5"
+    "zustand": "^5.0.3"
   },
   "devDependencies": {
     "@playwright/test": "^1.46.0",
