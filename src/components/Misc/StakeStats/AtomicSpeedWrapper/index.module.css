@@ -12,6 +12,8 @@
     background: #EAB70000;
     box-shadow: 0px 0px 300px 0px #eab70000;
     transition: all 0.3s;
+    width: 416px;
+    box-sizing: border-box;
 }
 
 .AtomicSpeedCardWrapperActive {

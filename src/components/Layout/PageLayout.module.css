@@ -22,8 +22,8 @@
 }
 
 .PageLayoutNarrow {
-    max-width: 400px;
-    width: 400px;
+    max-width: 416px;
+    width: 416px;
     z-index: 1;
 }
 
@@ -34,4 +34,14 @@
     max-width: 95%;
     margin: auto;
     margin-top: 64px;
+}
+
+@media screen and (min-width: 1080px) {
+    .PageWrapper {
+        position: fixed;
+        left: 0;
+        right: 0;
+        z-index: 10;
+    }
+
 }
