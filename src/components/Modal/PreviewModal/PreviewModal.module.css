@@ -4,7 +4,8 @@
   gap: 16px !important;
 }
 
-.PreviewModalStats {
+.PreviewModalStats,
+.PreviewModalProgress {
   padding: 12px;
   gap: 16px;
   border-radius: 0px 0px 8px 8px;
@@ -16,6 +17,25 @@
   text-align: left;
   background-color: #222222;
 
+}
+
+.PreviewModalProgress {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  border-radius: 8px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.PreviewModalProgressItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.PreviewModalProgressItem span {
+  margin-left: 8px;
 }
 
 .PreviewModalStatsRow {

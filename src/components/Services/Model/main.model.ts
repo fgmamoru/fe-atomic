@@ -21,12 +21,13 @@ import { formatInputAmount, getJwtExpiration, isJwtExpired } from './utils';
 import { AMOUNT_MUST_BE_GREATER_THAN_ZERO, LOADING_ROUTES, PLEASE_CONNECT_WALLET } from '@/services/Constants';
 import { useTonAddress } from '@tonconnect/ui-react';
 import { TimeoutError } from '@/types/errors';
+import { hasTxByMsgBodyHash } from '@/services/ton.service';
 
 const atomicDex = AtomicDex.fromAddress(Address.parse(ATOMIC_DEX_CONTRACT_ADDRESS))
 const debugLog = debug('app:model')
 const DEPOSIT_TIMEOUT = 40 * 1000;
 
-type ModelType = {
+export type ModelType = {
     requestType: RequestType,
     requestStatus: RequestStatus,
     loadTonBalance(): unknown
@@ -131,6 +132,7 @@ type ModelType = {
 
     isSidebarOpen: boolean,
     setSidebarOpen: (isOpen: boolean) => void,
+    resetRequestStatus: () => void,
 };
 
 function NanoToTon(amount: bigint | number): number {
@@ -735,6 +737,8 @@ export const useModel = create<ModelType>(((set, get) => ({
 
     executeSwapOrder: async () => {
         debugLog('executeSwapOrder')
+        set({ requestStatus: RequestStatus.Requested, requestType: RequestType.Swap })
+
         const getPools = () => {
             return get()._swapService?.getPoolList()
                 .then((pools) => {
@@ -751,12 +755,11 @@ export const useModel = create<ModelType>(((set, get) => ({
         try {
             await getPools();
             if (!get().readyToSwap()) return;
-            set({ requestStatus: RequestStatus.Requested, requestType: RequestType.Swap })
             // get().setWaitForTransaction('wait')
             // get().beginRequest()
             debugLog(`amount: ${get().swapAmount}, ${get().resultSwapAmount}`);
             // process
-            await get()._swapService!.executeSwap(
+            const hash = await get()._swapService!.executeSwap(
                 {
                     amountIn: get().swapAmountInNano()!,
                     route: get()._selectedRoute!,
@@ -765,10 +768,15 @@ export const useModel = create<ModelType>(((set, get) => ({
                     poolId: 0,
                     authToken: get()._authToken!,
                 }
-            );
-
+            )
             set({
                 requestStatus: RequestStatus.WaitingForConfirmation,
+            })
+
+            const found = await hasTxByMsgBodyHash(hash);
+
+            set({
+                requestStatus: found ? RequestStatus.Confirmed : RequestStatus.Failed,
             })
 
             const member = await get()._memberRecord!;
@@ -782,13 +790,12 @@ export const useModel = create<ModelType>(((set, get) => ({
             set({
                 _memberRecord: cloned,
             })
-            get().setSwapAmount("");
 
 
             const newMember = await get()._memberRecord?.poolForUpdates();
 
             set({
-                requestStatus: RequestStatus.Confirmed,
+                requestStatus: RequestStatus.DataUpdated,
                 _memberRecord: newMember,
             })
 
@@ -827,9 +834,9 @@ export const useModel = create<ModelType>(((set, get) => ({
                 autoClose: 15000
             })
         }
-        finally {
-            set({ requestStatus: RequestStatus.None, requestType: RequestType.None })
-        }
+        // finally {
+        //     set({ requestStatus: RequestStatus.None, requestType: RequestType.None })
+        // }
 
 
         // final state
@@ -1092,6 +1099,10 @@ export const useModel = create<ModelType>(((set, get) => ({
             currencies,
         }
     },
+
+    resetRequestStatus: () => {
+        set({ requestStatus: RequestStatus.None, requestType: RequestType.None })
+    }
 })))
 export const minimumTonBalanceReserve = 200000000n
 

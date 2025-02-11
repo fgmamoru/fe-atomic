@@ -20,6 +20,7 @@
 .IconButton:disabled {
     color: var(--color-text-secondary);
     cursor: default;
+    opacity: 0.5;
 }
 
 .IconButton:hover {

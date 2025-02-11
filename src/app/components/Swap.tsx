@@ -16,6 +16,7 @@ import { TxSpeed, TxSpeedBadge } from "@/components/Misc/TxSpeedBadge";
 import { SwapSpeedModal } from "@/components/Modal/SwapSpeedModal";
 import { toast } from "react-toastify";
 import { PreviewModal } from "@/components/Modal/PreviewModal";
+import { RequestStatus } from "@/types";
 
 export function DexSwapTab() {
     const model = useModel();
@@ -109,10 +110,6 @@ export function DexSwapTab() {
                     if (!isConnected) return open();
                     model.getEstimatedGas();
                     if (model.readyToSwap()) return setPreviewModalOpen(true);
-
-                    // if (model.isSwapFromTonWallet()) return setSwapSpeedModalOpen(true);
-                    // if (!model._memberRecord?.havePositiveBalances()) return setSwapSpeedModalOpen(true);
-                    // model.executeSwapOrder();
                 }}
                 fullWidth
                 suppressHydrationWarning
@@ -157,10 +154,13 @@ export function DexSwapTab() {
             <PreviewModal
                 isOpen={previewModalOpen}
                 onClose={() => {
-                    setPreviewModalOpen(false)
+                    setPreviewModalOpen(false);
+                    if (model.requestStatus !== RequestStatus.None) {
+                        model.resetRequestStatus();
+                        model.setSwapAmount("");
+                    }
                 }}
                 onSwap={() => {
-                    setPreviewModalOpen(false)
                     model.executeSwapOrder();
                 }}
             />

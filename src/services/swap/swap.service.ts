@@ -1,7 +1,7 @@
 import { sha256, signVerify } from '@ton/crypto';
 
 import { Address, beginCell, Builder, Dictionary, OpenedContract, Sender, TonClient, TonClient4 } from "@ton/ton";
-import { ATOMIC_DEX_CONTRACT_ADDRESS, NETWORK } from "../config.service";
+import { ATOMIC_DEX_CONTRACT_ADDRESS, NETWORK, TON_CENTER_API_URL } from "../config.service";
 import { AtomicDex, AtomicPool, MultiSwapBackend, storeMultiSwapBackend, SwapOrder } from "../AtomicDex/AtomicDex.service";
 import { Currency, CurveTypes } from "@/types";
 import { SandboxContract } from '@ton/sandbox';
@@ -26,7 +26,7 @@ export class SwapService {
         debugLog("Contract address", this.contractAddress);
         this.atomicDex = AtomicDex.fromAddress(Address.parse(this.contractAddress));
         const client = new TonClient({
-            endpoint: "https://testnet.toncenter.com/api/v2/jsonRPC",
+            endpoint: `${TON_CENTER_API_URL}/api/v2/jsonRPC`,
         });
         this.tonClient = client;
         this.contract = client.open(this.atomicDex);
@@ -100,7 +100,7 @@ export class SwapService {
         publicKey: string,
         tonConnectUi: TonConnectUI,
         authToken: string,
-    }): Promise<any> {
+    }): Promise<string> {
         debugLog(`#Executing swap, from ${params.route.toString()}`);
         const orders = params.route.getSwapOrders(params.amountIn);
 
@@ -154,7 +154,7 @@ export class SwapService {
 
         debugLog("Operation", op);
 
-        await this.contract.sendExternal(op);
+        return this.contract.sendExternal(op);
     }
 
     public async estimateSwapFee(params: {
@@ -422,6 +422,7 @@ export class SwapService {
                     from: this.tonConnectUI.account?.address || "",
                     network: NETWORK === "testnet" ? CHAIN.TESTNET : CHAIN.MAINNET,
                 })
+
             }
         }
     }

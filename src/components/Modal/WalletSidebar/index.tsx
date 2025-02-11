@@ -90,8 +90,6 @@ const DepositedTokensSection = () => {
                     }}
                     onSwapClick={() => {
                         toast.error("Slow Swap is not available yet")
-                        // model.executeSwapOrder()
-                        // setSwapSpeedModalOpen(false)
                     }}
                 />
             </section>

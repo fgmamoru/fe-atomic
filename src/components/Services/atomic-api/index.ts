@@ -1,7 +1,8 @@
 import { NativeJettonModel } from '@/models/NativeJetton.model';
-import { DEFAULT_CURRENCIES, DEFAULT_CURRENCIES_MAP } from '@/services/Defaults';
+import { TON_CENTER_API_URL } from '@/services/config.service';
+import { DEFAULT_CURRENCIES } from '@/services/Defaults';
 import { TonCenterJettonPairs } from '@/types/toncenter';
-import { QueryClient, useQuery } from '@tanstack/react-query'
+import { QueryClient } from '@tanstack/react-query'
 
 
 export const queryClient = new QueryClient({
@@ -18,7 +19,7 @@ export const getListOfJettonWallets = async (address: string) => {
     if (!address) {
         return [];
     }
-    const response = await fetch(`https://testnet.toncenter.com/api/v3/jetton/wallets?owner_address=${address}&limit=10&offset=0`);
+    const response = await fetch(`${TON_CENTER_API_URL}/api/v3/jetton/wallets?owner_address=${address}&limit=10&offset=0`);
     const res: TonCenterJettonPairs = await response.json();
 
     return res.jetton_wallets.map((wallet) => {

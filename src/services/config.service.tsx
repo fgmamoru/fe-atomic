@@ -10,8 +10,8 @@ if (!TON_NETWORK_URL) {
     console.warn("TON_NETWORK_URL is not set");
 }
 
-export const TON_API_URL = process.env.NEXT_PUBLIC_TON_API_URL!;
-if (!TON_API_URL) {
+export const TON_CENTER_API_URL = process.env.NEXT_PUBLIC_TON_CENTER_API_URL!;
+if (!TON_CENTER_API_URL) {
     console.warn("TON_API_URL is not set?");
 }
 

@@ -2035,7 +2035,7 @@ export class AtomicDex implements Contract {
         if (body === null) { throw new Error('Invalid message type'); }
 
         await provider.external(body);
-
+        return body.hash().toString('hex');
     }
 
     async getMultiSwapHash(provider: ContractProvider, msg: GenerateMultiSwapHash) {

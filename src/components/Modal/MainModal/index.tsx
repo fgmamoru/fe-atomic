@@ -22,10 +22,12 @@ export function ModalBody(props: { children: React.ReactNode }) {
 export function ModalHeaderWithCloseButton(props: {
     onClose?: () => void;
     children: React.ReactNode;
+    disableClose?: boolean;
 }) {
     return <div className={style.ModalHeaderWithButton}>
         <div className={style.ModalHeaderWithButtonText}>{props.children}</div>
         <IconButton
+            disabled={props.disableClose}
             onClick={props?.onClose}
             icon="/icons/close.svg"
             alt="close"

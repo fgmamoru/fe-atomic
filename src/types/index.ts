@@ -173,6 +173,7 @@ export enum RequestStatus {
     Requested,
     WaitingForConfirmation,
     Confirmed,
+    DataUpdated,
     Failed,
     SignFailed
 }
