@@ -34,7 +34,7 @@ export const PreviewModal = (props: PreviewModalProps) => {
           placeholder={"0.00"}
           selectorDisabled
           // label="Sell"
-          selectedCurrency={model.selectedFromCurrency}
+          selectedCurrency={model.fromCurrency}
           invalid={!!model.swapErrorMessage}
           currencies={model.currencies}
         />
@@ -42,7 +42,6 @@ export const PreviewModal = (props: PreviewModalProps) => {
           display: "flex",
           padding: "0 10px",
           backgroundColor: "var(--color-bg-graph)"
-
         }}>
           <img src="/icons/preview-arrow.svg" aria-hidden />
         </div>
@@ -56,18 +55,29 @@ export const PreviewModal = (props: PreviewModalProps) => {
           placeholder={"0.00"}
           selectorDisabled
           // label="Sell"
-          selectedCurrency={model.selectedToCurrency}
+          selectedCurrency={model.toCurrency}
           invalid={!!model.swapErrorMessage}
           currencies={model.currencies}
         />
         <div className={style.PreviewModalStats}>
           <div className={style.PreviewModalStatsRow}>
+            <span>Rate</span>
+            <span className={style.PreviewModalStatsRowValue}>1{model.fromCurrency.symbol} = {model.getResultExchangeRateFormatted()}{model.toCurrency.symbol}</span>
+          </div>
+
+          <div className={style.PreviewModalStatsRow}>
             <span>Fee</span>
             <span className={style.PreviewModalStatsRowValue}>${fromNano(model.resultSwapFee)} USD</span>
           </div>
+
           <div className={style.PreviewModalStatsRow}>
             <span>Network Cost</span>
             <span className={style.PreviewModalStatsRowValue}>~ {fromNano(model.estimatedGas)} TON</span>
+          </div>
+
+          <div className={style.PreviewModalStatsRow}>
+            <span>Max. Slippage</span>
+            <span className={style.PreviewModalStatsRowValue}>0.8%</span>
           </div>
         </div>
       </div>

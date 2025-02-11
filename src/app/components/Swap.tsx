@@ -47,7 +47,7 @@ export function DexSwapTab() {
                     inputMode="decimal"
                     placeholder={"0.00"}
                     label="Sell"
-                    selectedCurrency={model.selectedFromCurrency}
+                    selectedCurrency={model.fromCurrency}
                     invalid={!!model.swapErrorMessage}
                     currencies={model.currencies}
                     onCurrencyClick={() => {
@@ -90,7 +90,7 @@ export function DexSwapTab() {
                     id="stake-you-receive"
                     value={model.resultSwapAmount}
                     label="Buy"
-                    selectedCurrency={model.selectedToCurrency}
+                    selectedCurrency={model.toCurrency}
                     disabled
                     type="text"
                     currencies={model.currencies}

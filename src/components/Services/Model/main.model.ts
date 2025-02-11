@@ -3,7 +3,7 @@ import { Address, fromNano, OpenedContract, toNano, TonClient4 } from '@ton/ton'
 import { ConnectedWallet, TonConnectUI } from '@tonconnect/ui'
 import { create } from 'zustand';
 import { Currency, RouteSpeed, RequestStatus, RequestType } from '@/types'
-import { formatCryptoAmount, formatCryptoAmountAbbr, removeThousandsSeparator } from '@/utils'
+import { formatCryptoAmount, formatCryptoAmountAbbr, formatExchangeRate, removeThousandsSeparator } from '@/utils'
 import { ATOMIC_DEX_CONTRACT_ADDRESS, NETWORK } from '@/services/config.service'
 import { AtomicDex } from '@/services/AtomicDex/AtomicDex.service'
 import { getSwapCurrencies, SwapService } from '@/services/swap/swap.service'
@@ -86,12 +86,13 @@ type ModelType = {
     getExchange(amount: string, from: Currency, to: Currency): string
     getInUsd(amount: string, from: Currency): string
     getEstimatedGas: () => void
+    getResultExchangeRateFormatted: () => string
 
 
     resultSwapAmount: string;
     resultSwapFee: bigint;
-    selectedFromCurrency: Currency;
-    selectedToCurrency: Currency;
+    fromCurrency: Currency;
+    toCurrency: Currency;
     currentExchangeRate: number;
 
     currencies: Set<Currency>;
@@ -351,8 +352,8 @@ export const useModel = create<ModelType>(((set, get) => ({
     resultSwapFee: 0n,
     pools: {},
 
-    selectedFromCurrency: DEFAULT_CURRENCIES[0],
-    selectedToCurrency: DEFAULT_CURRENCIES[1],
+    fromCurrency: DEFAULT_CURRENCIES[0],
+    toCurrency: DEFAULT_CURRENCIES[1],
     currentExchangeRate: 1,
     currencies: new Set<Currency>(),
     getEstimatedGas: () => {
@@ -367,6 +368,11 @@ export const useModel = create<ModelType>(((set, get) => ({
             set({ estimatedGas: fee })
         })
     },
+    getResultExchangeRateFormatted: () => {
+        const r = Number(get()._resultSwapAmountInNano) / Number(get().swapAmountInNano());
+
+        return formatExchangeRate(r)
+    },
 
     _maxAmountInNano(): bigint {
         const member = get()._memberRecord;
@@ -375,7 +381,7 @@ export const useModel = create<ModelType>(((set, get) => ({
             return 0n
         }
 
-        const currency = get().selectedFromCurrency;
+        const currency = get().fromCurrency;
 
         if (currency == null) {
             return 0n
@@ -400,7 +406,7 @@ export const useModel = create<ModelType>(((set, get) => ({
                 return 0
             }
 
-            const currency = get().selectedFromCurrency;
+            const currency = get().fromCurrency;
 
             if (currency == null) {
                 return 0
@@ -526,10 +532,10 @@ export const useModel = create<ModelType>(((set, get) => ({
 
     setFromCurrency: (currency: Currency) => {
         try {
-            if (currency === get().selectedToCurrency) {
-                set({ selectedToCurrency: get().selectedFromCurrency })
+            if (currency === get().toCurrency) {
+                set({ toCurrency: get().fromCurrency })
             }
-            set({ selectedFromCurrency: currency })
+            set({ fromCurrency: currency })
 
             get().setSwapAmount(get().swapAmount)
             get()._getRoutes()
@@ -543,10 +549,10 @@ export const useModel = create<ModelType>(((set, get) => ({
 
     setToCurrency: (currency: Currency) => {
         try {
-            if (currency === get().selectedFromCurrency) {
-                set({ selectedFromCurrency: get().selectedToCurrency })
+            if (currency === get().fromCurrency) {
+                set({ fromCurrency: get().toCurrency })
             }
-            set({ selectedToCurrency: currency })
+            set({ toCurrency: currency })
             get().setSwapAmount(get().swapAmount)
             get()._getRoutes()
             get().reloadSwapAmount()
@@ -556,7 +562,7 @@ export const useModel = create<ModelType>(((set, get) => ({
     },
 
     _getRoutes: () => {
-        const { selectedFromCurrency, selectedToCurrency, swapAmount: amount } = get()
+        const { fromCurrency: selectedFromCurrency, toCurrency: selectedToCurrency, swapAmount: amount } = get()
         debugLog('_getRoutes from ', selectedFromCurrency?.symbol, ' to ', selectedToCurrency?.symbol, ' amount ', amount)
 
         const routes = router.getAllRoutes(selectedFromCurrency, selectedToCurrency);
@@ -569,7 +575,7 @@ export const useModel = create<ModelType>(((set, get) => ({
     },
 
     switchCurrencies: () => {
-        get().setFromCurrency(get().selectedToCurrency)
+        get().setFromCurrency(get().toCurrency)
     },
 
     init: async (tonConnectUI: TonConnectUI) => {
@@ -764,8 +770,8 @@ export const useModel = create<ModelType>(((set, get) => ({
 
             const member = await get()._memberRecord!;
             const cloned = member.applySwap(
-                get().selectedFromCurrency,
-                get().selectedToCurrency,
+                get().fromCurrency,
+                get().toCurrency,
                 get().swapAmountInNano()!,
                 get()._resultSwapAmountInNano!,
             )

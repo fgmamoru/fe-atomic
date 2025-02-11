@@ -73,6 +73,17 @@ export const formatCryptoAmount = (amount: number) => {
     return formatter.format(amount);
 }
 
+export const formatExchangeRate = (amount: number) => {
+    if (amount < 0) {
+        return formatter.format(amount);
+    }
+    if (amount < 0.0001) {
+        return amount.toFixed(8);
+    }
+
+    return amount.toFixed(4);
+}
+
 export const formatPercent = (amount: number) => {
     return percentFormatter.format(amount);
 }
@@ -151,7 +162,7 @@ export function calculateExpectedOutWithFee(
             }
         }
         log(`outputAmount ${outputAmount}`);
-        const outputAmountWithSlippage = outputAmount - (outputAmount / 100n); // 1% slippage
+        const outputAmountWithSlippage = outputAmount - (outputAmount / 80n); // 1% slippage
         return [outputAmountWithSlippage, fees0, fees1];
     } catch (error) {
         console.error(error);
