@@ -579,10 +579,11 @@ export const useModel = create<ModelType>(((set, get) => ({
     },
 
     init: async (tonConnectUI: TonConnectUI) => {
-        get()._initExchangeRates()
 
         try {
             if (get().inited) return;
+            get()._initExchangeRates()
+
             debugLog('init')
 
             set({ inited: true });
