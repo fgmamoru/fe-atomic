@@ -462,10 +462,7 @@ export const useModel = create<ModelType>(((set, get) => ({
 
     reloadSwapAmount() {
         const amount = get().swapAmount
-        // set({ swapAmount: '' })
-        // wait 0.2 seconds for the input to update
-        setTimeout(() => get().setSwapAmount(amount), 100);
-
+        get().setSwapAmount(amount)
     },
 
     setSwapAmount: (amount: string) => {
