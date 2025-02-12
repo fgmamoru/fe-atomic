@@ -10,22 +10,32 @@ if (!TON_NETWORK_URL) {
     console.warn("TON_NETWORK_URL is not set");
 }
 
-export const TON_CENTER_API_URL = process.env.NEXT_PUBLIC_TON_CENTER_API_URL!;
+export let NETWORK = process.env.NEXT_PUBLIC_NETWORK! as "mainnet" | "testnet";
+if (!NETWORK) {
+    console.warn("NETWORK is not set, setting to testnet");
+    NETWORK = "testnet";
+}
+
+if (NETWORK !== "mainnet" && NETWORK !== "testnet") {
+    console.warn("NETWORK is not set to mainnet or testnet");
+}
+
+export let TON_CENTER_API_URL = process.env.NEXT_PUBLIC_TON_CENTER_API_URL!;
 if (!TON_CENTER_API_URL) {
-    console.warn("TON_API_URL is not set?");
+    console.warn("TON_API_URL is not set, setting based on NETWORK");
+
+    if (NETWORK == "testnet") {
+        TON_CENTER_API_URL = "https://testnet.toncenter.com";
+    } else {
+        TON_CENTER_API_URL = "https://toncenter.com";
+    }
 }
 
 export const ENV = process.env.NEXT_PUBLIC_ENV as "local" | "development" | "production";
 if (!ENV) {
     console.warn("ENV is not set");
 }
-export const NETWORK = (process.env.NEXT_PUBLIC_NETWORK || "testnet") as "mainnet" | "testnet";
-if (!NETWORK) {
-    console.warn("NETWORK is not set");
-}
-if (NETWORK === "mainnet" || NETWORK === "testnet") {
-    console.warn("NETWORK is not set to mainnet or testnet");
-}
+
 if (ENV === "production" && NETWORK === "testnet") {
     console.warn("ENV is production and NETWORK is testnet");
 }
