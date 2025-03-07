@@ -773,11 +773,11 @@ export const useModel = create<ModelType>(((set, get) => ({
                 requestStatus: RequestStatus.WaitingForConfirmation,
             })
 
-            const found = await hasTxByMsgBodyHash(hash);
+            // const found = await hasTxByMsgBodyHash(hash);
 
-            set({
-                requestStatus: found ? RequestStatus.Confirmed : RequestStatus.Failed,
-            })
+            // set({
+            //     requestStatus: found ? RequestStatus.Confirmed : RequestStatus.Failed,
+            // })
 
             const member = await get()._memberRecord!;
             const cloned = member.applySwap(
