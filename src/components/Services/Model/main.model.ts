@@ -262,9 +262,15 @@ export const useModel = create<ModelType>(((set, get) => ({
 
             // wait until the deposit is signed
 
-            while (get().requestStatus === RequestStatus.Requested) {
-                await new Promise((resolve) => setTimeout(resolve, 500));
-            }
+            // const startTime = Date.now();
+            // while (get().requestStatus === RequestStatus.Requested) {
+            //     if (Date.now() - startTime > 30000) {
+            //         set({ requestStatus: RequestStatus.Failed });
+            //         toast.error('Deposit cannot be confirmed, please try again');
+            //         return;
+            //     }
+            //     await new Promise((resolve) => setTimeout(resolve, 500));
+            // }
 
 
 
