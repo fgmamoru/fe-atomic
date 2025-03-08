@@ -1,6 +1,6 @@
 import { getHttpV4Endpoint, Network } from '@orbs-network/ton-access'
-import { Address, fromNano, OpenedContract, toNano, TonClient4 } from '@ton/ton'
-import { ConnectedWallet, TonConnectUI } from '@tonconnect/ui'
+import { Address, beginCell, Builder, fromNano, OpenedContract, toNano, TonClient4, WalletContractV4 } from '@ton/ton'
+import { ConnectedWallet, TonConnectUI, Wallet } from '@tonconnect/ui'
 import { create } from 'zustand';
 import { Currency, RouteSpeed, RequestStatus, RequestType } from '@/types'
 import { formatCryptoAmount, formatCryptoAmountAbbr, formatExchangeRate, removeThousandsSeparator } from '@/utils'
@@ -10,7 +10,7 @@ import { getSwapCurrencies, SwapService } from '@/services/swap/swap.service'
 import debug from 'debug'
 import { DEFAULT_CURRENCIES, DEFAULT_CURRENCIES_MAP } from '@/services/Defaults'
 import { PoolModel, Route, router } from '@/services/Router'
-import { AtomicWalletModel } from '@/models/Wallet/AtomicWallet.model'
+import { AtomicVaultModel } from '@/models/Wallet/AtomicVault.model'
 import { toast } from "react-toastify";
 import * as axios from 'axios';
 import { AtomicMemberRecordModel } from '@/models/AtomicMember.model'
@@ -39,6 +39,7 @@ export type ModelType = {
     network: Network,
     tonClient?: TonClient4,
     jettons: NativeJettonModel[]
+    wallet?: OpenedContract<Wallet>
     address?: Address
     tonBalanceInNano: bigint
     swapAmount: string
@@ -116,8 +117,8 @@ export type ModelType = {
     _initTonProofPayloadFromBackend: () => Promise<void>
     _initWallet: () => void
     _initRouting: () => void
-    _atomicWallets: Record<string, AtomicWalletModel>,
-    _initAtomicWallets: () => void,
+    _atomicVaults: Record<string, AtomicVaultModel>,
+    _initAtomicVaults: () => void,
     _memberRecord: AtomicMemberRecordModel | null,
     _initMemberRecord: () => void,
     _initExchangeRates: () => void,
@@ -159,8 +160,6 @@ export const useModel = create<ModelType>(((set, get) => ({
     tonClient: undefined,
     address: undefined,
     tonBalanceInNano: 0n,
-    treasury: undefined,
-    treasuryState: undefined,
     times: undefined,
     walletAddress: undefined,
     wallet: undefined,
@@ -174,7 +173,7 @@ export const useModel = create<ModelType>(((set, get) => ({
     _selectedRoute: null,
     _swapService: undefined,
     _potentialRoutes: [],
-    _atomicWallets: {},
+    _atomicVaults: {},
     isSidebarOpen: false,
     setSidebarOpen: (isOpen: boolean) => {
         set({ isSidebarOpen: isOpen })
@@ -231,10 +230,13 @@ export const useModel = create<ModelType>(((set, get) => ({
                 _memberRecord,
                 isConnected,
                 setDepositAmount: setAmount,
-                depositAmountInNano: amountInNano,
+                depositAmountInNano,
                 depositAmount: amount,
                 selectedDepositCurrency,
-                _swapService } = get();
+                _atomicVaults,
+                address,
+                tonConnectUI,
+                jettons } = get();
 
             if (!isConnected()) return toast.error('Please connect your wallet');
             if (!amount) return toast.error('Please enter an amount to deposit');
@@ -242,24 +244,38 @@ export const useModel = create<ModelType>(((set, get) => ({
 
             set({ requestStatus: RequestStatus.Requested, requestType: RequestType.Deposit })
 
+            console.log(`Deposit amount: ${amount}, selectedDepositCurrency: `, selectedDepositCurrency)
+
+            const atomicVault = _atomicVaults[selectedDepositCurrency.id.toString()];
+            console.log('Deposit atomicVault', atomicVault, _atomicVaults)
+
+            const jetton = jettons.find((jetton) => jetton.currency.id === selectedDepositCurrency.id)
             const member = _memberRecord;
-            if (member == null) {
-                toast.info('Member record not found, Joining to the network and adding your deposit!');
-                await _swapService!.sendJoinOperation(
-                    get().tonConnectUI?.account?.publicKey!,
-                    amountInNano()!,
-                    selectedDepositCurrency.id,
-                );
 
-            } else {
-                await _swapService!.sendDepositOperation(
-                    get().tonConnectUI?.account?.publicKey!,
-                    amountInNano()!,
-                    selectedDepositCurrency.id,
+            const body = getDepositPayload({
+                amountInNano: depositAmountInNano()!,
+                atomicVaultAddress: atomicVault.address!,
+                destinationAddress: address!,
+                publicKey: tonConnectUI?.account?.publicKey!,
+            })
 
-                );
-            }
+            console.log('GET DEPOSIT PAYLOAD', body)
 
+            tonConnectUI?.sendTransaction({
+                validUntil: Math.floor(Date.now() / 1000) + 360,
+                messages: [{
+                    address: jetton?.address!,
+                    amount: toNano('0.05').toString(),
+                    payload: body.toBoc().toString('base64'),
+                }]
+            })
+
+
+            // await _swapService!.sendDepositOperation(
+            //     get().tonConnectUI?.account?.publicKey!,
+            //     amountInNano()!,
+            //     selectedDepositCurrency.id,
+            // );
             // wait until the deposit is signed
 
             // const startTime = Date.now();
@@ -618,7 +634,7 @@ export const useModel = create<ModelType>(((set, get) => ({
             const [exchangeRates, pools, wallets] = await Promise.all([
                 get()._initExchangeRates(),
                 get()._initRefreshPools(),
-                get()._initAtomicWallets(),
+                get()._initAtomicVaults(),
             ])
             console.log("TO STORE", { pools })
 
@@ -765,7 +781,7 @@ export const useModel = create<ModelType>(((set, get) => ({
             // get().beginRequest()
             debugLog(`amount: ${get().swapAmount}, ${get().resultSwapAmount}`);
             // process
-            const hash = await get()._swapService!.executeSwap(
+            await get()._swapService!.executeSwap(
                 {
                     amountIn: get().swapAmountInNano()!,
                     route: get()._selectedRoute!,
@@ -778,12 +794,6 @@ export const useModel = create<ModelType>(((set, get) => ({
             set({
                 requestStatus: RequestStatus.WaitingForConfirmation,
             })
-
-            // const found = await hasTxByMsgBodyHash(hash);
-
-            // set({
-            //     requestStatus: found ? RequestStatus.Confirmed : RequestStatus.Failed,
-            // })
 
             const member = await get()._memberRecord!;
             const cloned = member.applySwap(
@@ -913,17 +923,19 @@ export const useModel = create<ModelType>(((set, get) => ({
         get()._getRoutes()
     },
 
-    _initAtomicWallets: async () => {
+    _initAtomicVaults: async (): Promise<Partial<ModelType>> => {
         try {
             const { _swapService } = get();
 
-            const atomicWallets = await _swapService!.getAtomicWallets();
+            const atomicWallets = await _swapService!.getAtomicVaults();
+
 
             return ({
-                _atomicWallets: atomicWallets,
+                _atomicVaults: atomicWallets,
             });
         } catch (error) {
-
+            console.error(error);
+            return {}
         }
     },
 
@@ -1138,4 +1150,34 @@ function saveAuthToken(token: string | null) {
 
 function _initRouting() {
     throw new Error('Function not implemented.');
+}
+
+function getPublicKeyAsSlice(pubKey: string) {
+    return new Builder()
+        .storeBuffer(Buffer.from(pubKey, 'hex'))
+        .endCell()
+        .asSlice()
+}
+
+function getDepositPayload(props: {
+    amountInNano: bigint,
+    atomicVaultAddress: Address,
+    destinationAddress: Address,
+    publicKey: string,
+}) {
+    const publicKey = getPublicKeyAsSlice(props.publicKey).asBuilder()
+    console.log('getDepositPayload', props, publicKey)
+    return beginCell()
+        .storeUint(0xf8a7ea5, 32)                 // jetton transfer op code
+        .storeUint(0, 64)                         // query_id:uint64
+        .storeCoins(props.amountInNano)              // amount:(VarUInteger 16) -  Jetton amount for transfer (decimals = 6 - USDT, 9 - default). Function toNano use decimals = 9 (remember it)
+        .storeAddress(props.atomicVaultAddress)  // destination:MsgAddress
+        .storeAddress(props.destinationAddress)  // response_destination:MsgAddress
+        .storeUint(1, 1)                          // custom_payload:(Maybe ^Cell)
+        .storeCoins(toNano("0.05"))
+        // forward_ton_amount:(VarUInteger 16) - if >0, will send notification message
+        .storeBit(true)
+        .storeUint(0x0, 32)
+        .storeRef(publicKey)                           // forward_payload:(Either Cell ^Cell)
+        .endCell();
 }

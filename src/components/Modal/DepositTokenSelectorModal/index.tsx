@@ -29,10 +29,10 @@ export const DepositTokenSelectorModal = (props: TokenSelectorModalProps) => {
             onClose={props.onClose}
         >
             <ModalHeaderWithCloseButton onClose={props.onClose}>Search a Token</ModalHeaderWithCloseButton>
-            {/* <SearchInput placeholder="Search for a token" value={search} onChange={(ev) => {
+            <SearchInput placeholder="Search for a token" value={search} onChange={(ev) => {
                 setSearch(ev.target.value);
-            }} /> */}
-            {/* <br /> */}
+            }} />
+            <br />
             <div style={{ width: "100%" }}>
                 <TokenButton
                     key={'ton'}
@@ -42,12 +42,6 @@ export const DepositTokenSelectorModal = (props: TokenSelectorModalProps) => {
                 />
                 {
                     Array.from(filteredJettons)
-                        .filter((jetton) => {
-                            const balance: bigint = jetton.balance;
-
-                            return balance && balance > 0n;
-                        })
-
                         .map((jetton) =>
                             <TokenButton
                                 key={jetton.symbol}

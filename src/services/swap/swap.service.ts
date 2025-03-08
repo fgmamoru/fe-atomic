@@ -8,7 +8,7 @@ import { SandboxContract } from '@ton/sandbox';
 import debug from 'debug';
 import { CHAIN, TonConnectUI } from '@tonconnect/ui-react';
 import { DEFAULT_CURRENCIES_MAP, TON_TX_VALID_UNTIL } from '../Defaults';
-import { AtomicWalletModel } from '@/models/Wallet/AtomicWallet.model';
+import { AtomicVaultModel } from '@/models/Wallet/AtomicVault.model';
 import { AtomicMemberRecordModel } from '@/models/AtomicMember.model';
 import { PoolModel, Route } from '../Router';
 
@@ -76,16 +76,16 @@ export class SwapService {
         return map;
     }
 
-    public async getAtomicWallets(): Promise<Record<string, AtomicWalletModel>> {
+    public async getAtomicVaults(): Promise<Record<string, AtomicVaultModel>> {
         const log = debugLog.extend('#getAtomicWallets')
-        const wallets = await this.contract.getAtomicWallets();
+        const wallets = await this.contract.getAtomicVaults();
         const walletKeys = wallets.keys();
 
-        const mappedWallets: Record<string, AtomicWalletModel> = {};
+        const mappedWallets: Record<string, AtomicVaultModel> = {};
 
-        walletKeys.forEach((key) => {
+        walletKeys.forEach((key, index) => {
             const wallet = wallets.get(key);
-            mappedWallets[key.toString()] = new AtomicWalletModel(wallet!);
+            mappedWallets[key.toString()] = new AtomicVaultModel(BigInt(index), wallet!);
         });
 
         debugLog("Atomic wallets", mappedWallets,);
@@ -100,7 +100,7 @@ export class SwapService {
         publicKey: string,
         tonConnectUi: TonConnectUI,
         authToken: string,
-    }): Promise<string> {
+    }): Promise<void> {
         debugLog(`#Executing swap, from ${params.route.toString()}`);
         const orders = params.route.getSwapOrders(params.amountIn);
 
@@ -154,7 +154,7 @@ export class SwapService {
 
         debugLog("Operation", op);
 
-        return this.contract.sendExternal(op);
+        await this.contract.sendExternal(op);
     }
 
     public async estimateSwapFee(params: {
@@ -275,7 +275,7 @@ export class SwapService {
 
     }
 
-    async sendDepositOperation(publicKey: string, tonAmount: bigint, walletId: bigint,) {
+    async sendDepositOperation(publicKey: string, tonAmount: bigint, vaultId: bigint,) {
         const publicKeyBigInt = BigInt(`0x${publicKey}`);
 
         await this.contract.send(
@@ -287,28 +287,8 @@ export class SwapService {
             {
                 $$type: 'DepositNotification' as const,
                 amount: tonAmount,
-                atomicWalletId: walletId,
                 publicKey: publicKeyBigInt,
-            }
-        )
-    }
-
-    async sendJoinOperation(publicKey: string, tonAmount: bigint, walletId: bigint,) {
-        const publicKeyBigInt = BigInt(`0x${publicKey}`);
-
-        await this.contract.send(
-            this.getSender(),
-            {
-                value: tonAmount,
-            },
-            {
-                $$type: 'JoinMember' as const,
-                amount: tonAmount,
-                atomicWalletId: walletId,
-                publicKey: publicKeyBigInt,
-                eviction: Dictionary.empty<number, bigint>(),
-                queryId: this.getQueryId(),
-                seq: 0n,
+                atomicVaultId: vaultId,
             }
         )
     }
@@ -357,8 +337,8 @@ export class SwapService {
 
         for (const order of orders) {
             builder
-                .storeUint(order.atomicWallet0, 4)
-                .storeUint(order.atomicWallet1, 4)
+                .storeUint(order.atomicVault0, 4)
+                .storeUint(order.atomicVault1, 4)
                 .storeUint(order.expectedIn, 64)
                 .storeUint(order.expectedOut, 64)
         }

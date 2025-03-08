@@ -142,6 +142,7 @@ export type Currency = {
     id: bigint,
     balanceKey: CurrencyBalanceKeyName,
     jettonMasterAddress: string,
+    display: boolean,
 }
 
 export type AtomicPoolCurrencyMapItem = {

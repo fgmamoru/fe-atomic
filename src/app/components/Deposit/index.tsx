@@ -28,7 +28,6 @@ export function DexDepositTab(props: DexDepositTabProps) {
     const [isTokenSelectorModalOpen, setIsTokenSelectorModalOpen] = useState(false);
 
     const depositEnabled = isDepositAmountButtonEnabled(model.depositAmount, wallet, model.depositErrorMessage);
-    const selectorDisabled = model.isOnlyNativeTonJettonAvailable();
 
     return (
         <>
@@ -45,7 +44,6 @@ export function DexDepositTab(props: DexDepositTabProps) {
                     label="Deposit"
                     selectedCurrency={model.selectedDepositCurrency}
                     invalid={!!model.depositErrorMessage}
-                    selectorDisabled={selectorDisabled}
                     onCurrencyClick={() => setIsTokenSelectorModalOpen(true)}
                     endLabel={<div style={{
                         display: "flex",

@@ -208,8 +208,8 @@ export class Route {
 
             const swapOrder: SwapOrder = {
                 $$type: "SwapOrder" as const,
-                atomicWallet0: currentCurrency.id,
-                atomicWallet1: pool.getInverseCurrency(currentCurrency).id,
+                atomicVault0: currentCurrency.id,
+                atomicVault1: pool.getInverseCurrency(currentCurrency).id,
                 expectedIn: currentAmount,
                 expectedOut: intermediateResult,
             };
@@ -355,6 +355,9 @@ class Router {
         routes: Route[],
         amountIn: bigint,
     ): Route | null {
+        if (!routes.length) {
+            return null;
+        }
         if (routes[0].input === DEFAULT_CURRENCIES_MAP_BY_ID.TON && routes[0].output === DEFAULT_CURRENCIES_MAP_BY_ID.USDT) {
             return routes[0];
         }

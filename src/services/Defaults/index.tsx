@@ -6,35 +6,56 @@ export const DEFAULT_CURRENCIES: Currency[] = [{
     icon: '/icons/ton.svg',
     id: 0n,
     balanceKey: 'balance0',
-    jettonMasterAddress: "0:226E80C4BFFA91ADC11DAD87706D52CD397047C128456ED2866D0549D8E2B162"
+    jettonMasterAddress: "0:226E80C4BFFA91ADC11DAD87706D52CD397047C128456ED2866D0549D8E2B162",
+    display: false,
 }, {
+    display: true,
     name: 'USD Tether',
     symbol: 'USDT',
     icon: '/icons/tether.svg',
     id: 1n,
     balanceKey: 'balance1',
-    jettonMasterAddress: "0:5086F95408651E5658E82C77B157A4BD00D24B97565CDB50E88E497DE04F27C6"
+    jettonMasterAddress: "0:d278951b820f3da13ce797ceb41f366fce3e37286efee163225d308b44148c94"
 }, {
+    display: false,
+    name: 'Bitcoin',
+    symbol: 'BTC',
+    icon: '/icons/bitcoin.svg',
+    id: 2n,
+    balanceKey: 'balance2',
+    jettonMasterAddress: "0:d2d2129fa5d60d1f2f0cf9e73a1c09c5302ae1a1e90a3cca4f9ddd67786e124e"
+}, {
+    display: false,
+    name: 'Ethereum',
+    symbol: 'ETH',
+    icon: '/icons/ethereum.svg',
+    id: 3n,
+    balanceKey: 'balance3',
+    jettonMasterAddress: "0:6b0097f6c44564fb200a2e91301a791cbe8d871eb7fa55a4bdac239c009c5b0a"
+}, {
+    display: true,
     name: 'DOGS',
     symbol: 'DOGS',
     icon: '/coins/dogs.png',
-    id: 2n,
+    id: 4n,
     balanceKey: 'balance2',
-    jettonMasterAddress: "0:79D7D0B72171600ABE2A2A3E90AED681F4F9B749AC2BF86A27968DCED1C28BFC"
+    jettonMasterAddress: "0:cb87f772e016542add4ccfe1ef84839c98b1099595e0d7687a472c256cb4bc42"
 }, {
+    display: true,
     name: 'NOT',
     symbol: 'NOT',
     icon: '/coins/not.png',
-    id: 3n,
+    id: 5n,
     balanceKey: 'balance3',
-    jettonMasterAddress: "0:CBBEC6689778EE672380546F2D5AC267B4EC5E11958469609B6D28D86A4429B9"
+    jettonMasterAddress: "0:c3e72971d27be44ba80bcc44ca088ac11d80f9d720f6bb878b5ef5bd475f6c20"
 }, {
+    display: true,
     name: 'Ton Cats',
     symbol: 'CATS',
     icon: '/coins/cats.png',
-    id: 4n,
+    id: 6n,
     balanceKey: 'balance4',
-    jettonMasterAddress: "0:E677DAF3555647A2F7CD9502A4192C0D5B1A496CE1382B5275EEDFD964C6E72C"
+    jettonMasterAddress: "0:884ebc287f7bec3d86673a495d38bc43678a5d396b0a1721589b87a6282ef451"
 },
 ]
 

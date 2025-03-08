@@ -15,26 +15,24 @@ export const queryClient = new QueryClient({
     },
 });
 
-export const getListOfJettonWallets = async (address: string) => {
+export const getListOfJettonWallets = async (address: string): Promise<NativeJettonModel[]> => {
     if (!address) {
         return [];
     }
-    const response = await fetch(`${TON_CENTER_API_URL}/api/v3/jetton/wallets?owner_address=${address}&limit=10&offset=0`);
+    const response = await fetch(`${TON_CENTER_API_URL}/api/v3/jetton/wallets?owner_address=${address}&limit=100&offset=0`);
     const res: TonCenterJettonPairs = await response.json();
 
-    return res.jetton_wallets.map((wallet) => {
-        const metadata = res.metadata[wallet.jetton];
-        const currency = DEFAULT_CURRENCIES.find((currency) => currency.jettonMasterAddress === wallet.jetton);
-        if (!currency) {
+    return DEFAULT_CURRENCIES.map((currency) => {
+        if (!currency.display) {
             return undefined;
         }
-        return new NativeJettonModel(wallet, metadata, currency);
-    }).filter((wallet) => wallet !== undefined) as NativeJettonModel[];
-}
+        console.log("JETTTON MASTER", currency.jettonMasterAddress, currency.name)
+        const jetton = res.jetton_wallets.find((wallet) => wallet.jetton.toLocaleLowerCase() === currency.jettonMasterAddress.toLocaleLowerCase());
 
-// export const useGetListOfJettonWallets = (address: string) => {
-//     return useQuery<NativeJettonModel[]>({
-//         queryKey: ['getListOfJettons', address],
-//         queryFn: ,
-//     });
-// }
+        if (!jetton) {
+            return NativeJettonModel.fromEmpty(currency.jettonMasterAddress, currency);
+        }
+
+        return new NativeJettonModel(jetton, res.metadata[jetton.jetton], currency)
+    }).filter((jetton) => jetton !== undefined) as NativeJettonModel[];
+}

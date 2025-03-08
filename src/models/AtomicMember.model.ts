@@ -2,7 +2,7 @@ import { AtomicDex, AtomicMemberRecord } from "@/services/AtomicDex/AtomicDex.se
 import { DEFAULT_CURRENCIES, DEFAULT_CURRENCIES_MAP } from "@/services/Defaults";
 import { Currency, CurrencyBalanceKeyName } from "@/types";
 import { TimeoutError } from "@/types/errors";
-import { OpenedContract } from "@ton/core";
+import { Address, OpenedContract } from "@ton/core";
 import debug from "debug";
 
 type BalanceMap = Record<CurrencyBalanceKeyName, bigint> & { balance0: bigint; balance1: bigint; balance2: bigint; balance3: bigint; balance4: bigint; balance5: bigint; balance6: bigint; balance7: bigint; balance8: bigint; balance9: bigint; balance10: bigint; balance11: bigint; balance12: bigint; balance13: bigint; balance14: bigint; };
@@ -76,6 +76,8 @@ export class AtomicMemberRecordModel {
             id: 0n,
             seq: 0n,
             unused: 0n,
+            //@ts-ignore
+            address: null,
         },
             contract,
             publicKey);
@@ -229,6 +231,7 @@ export class AtomicMemberRecordModel {
             id: member.id,
             seq: member.seq,
             unused: member.unused,
+            address: member.contract.address,
         }
 
         return new AtomicMemberRecordModel(
