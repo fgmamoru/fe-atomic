@@ -1,8 +1,8 @@
 import { sha256, signVerify } from '@ton/crypto';
 
-import { Address, beginCell, Builder, Dictionary, OpenedContract, Sender, TonClient, TonClient4 } from "@ton/ton";
+import { Address, beginCell, Builder, Dictionary, OpenedContract, Sender, toNano, TonClient, TonClient4 } from "@ton/ton";
 import { ATOMIC_DEX_CONTRACT_ADDRESS, NETWORK, TON_CENTER_API_URL } from "../config.service";
-import { AtomicDex, AtomicPool, MultiSwapBackend, storeMultiSwapBackend, SwapOrder } from "../AtomicDex/AtomicDex.service";
+import { AtomicDex, AtomicPool, MultiSwapBackend, storeMultiSwapBackend, SwapOrder } from "../Wrappers/AtomicDex.wrapper";
 import { Currency, CurveTypes } from "@/types";
 import { SandboxContract } from '@ton/sandbox';
 import debug from 'debug';
@@ -11,14 +11,17 @@ import { DEFAULT_CURRENCIES_MAP, TON_TX_VALID_UNTIL } from '../Defaults';
 import { AtomicVaultModel } from '@/models/Wallet/AtomicVault.model';
 import { AtomicMemberRecordModel } from '@/models/AtomicMember.model';
 import { PoolModel, Route } from '../Router';
+import { JettonDefaultWalletContract } from '../Wrappers';
+import { JettonTransfer } from '../Wrappers/tact_JettonDefaultWallet';
+import { SampleJettonWallet } from '../Wrappers/tact_SampleJettonWallet';
 
 const debugLog = debug('app:swap');
 
 export class SwapService {
     private readonly atomicDex: AtomicDex;
-    private readonly contract: OpenedContract<AtomicDex>;
+    private readonly dexContract: OpenedContract<AtomicDex>;
     private readonly contractAddress: string;
-    private orbsClientContract: OpenedContract<AtomicDex>;
+    private orbsDexClientContract: OpenedContract<AtomicDex>;
     tonClient: TonClient;
 
     constructor(private readonly orbsClient: TonClient4, private readonly tonConnectUI: TonConnectUI) {
@@ -29,8 +32,8 @@ export class SwapService {
             endpoint: `${TON_CENTER_API_URL}/api/v2/jsonRPC`,
         });
         this.tonClient = client;
-        this.contract = client.open(this.atomicDex);
-        this.orbsClientContract = orbsClient.open(this.atomicDex);
+        this.dexContract = client.open(this.atomicDex);
+        this.orbsDexClientContract = orbsClient.open(this.atomicDex);
         this.tonConnectUI = tonConnectUI;
     }
 
@@ -39,7 +42,7 @@ export class SwapService {
         debugLog("Getting pool list");
 
         // @ts-ignore
-        const pools: Dictionary<bigint, AtomicPool> = await this.orbsClientContract.getAtomicPools()
+        const pools: Dictionary<bigint, AtomicPool> = await this.orbsDexClientContract.getAtomicPools()
 
 
         const poolKeys = pools.keys();
@@ -78,7 +81,7 @@ export class SwapService {
 
     public async getAtomicVaults(): Promise<Record<string, AtomicVaultModel>> {
         const log = debugLog.extend('#getAtomicWallets')
-        const wallets = await this.contract.getAtomicVaults();
+        const wallets = await this.dexContract.getAtomicVaults();
         const walletKeys = wallets.keys();
 
         const mappedWallets: Record<string, AtomicVaultModel> = {};
@@ -154,7 +157,7 @@ export class SwapService {
 
         debugLog("Operation", op);
 
-        await this.contract.sendExternal(op);
+        await this.dexContract.sendExternal(op);
     }
 
     public async estimateSwapFee(params: {
@@ -275,22 +278,33 @@ export class SwapService {
 
     }
 
-    async sendDepositOperation(publicKey: string, tonAmount: bigint, vaultId: bigint,) {
-        const publicKeyBigInt = BigInt(`0x${publicKey}`);
+    async sendDepositOperation(args: {
+        publicKey: string,
+        jettonAmount: bigint,
+        jettonMasterAddress: Address,
+        jettonVaultAddress: Address,
+        userJettonWalletAddress: Address,
+        userAddress: Address,
+    }) {
+        const { jettonAmount, publicKey, jettonMasterAddress, jettonVaultAddress, userAddress, userJettonWalletAddress } = args
+        const contract = this.tonClient.open(await SampleJettonWallet.fromInit(jettonMasterAddress, userAddress));
+        const tx: JettonTransfer = {
+            $$type: 'JettonTransfer',
+            queryId: 0n,
+            amount: jettonAmount,
+            destination: jettonVaultAddress,
+            responseDestination: userJettonWalletAddress,
+            customPayload: null,
+            forwardTonAmount: toNano("0.1"),
+            forwardPayload: getPublicKeyAsSlice(publicKey),
+        }
 
-        await this.contract.send(
+        await contract.send(
             this.getSender(),
             {
-                value: tonAmount,
-                // value: toNano(0.05),
-            },
-            {
-                $$type: 'DepositNotification' as const,
-                amount: tonAmount,
-                publicKey: publicKeyBigInt,
-                atomicVaultId: vaultId,
-            }
-        )
+                value: toNano("0.5"),
+                bounce: true,
+            }, tx)
     }
 
     public async getMember(publicKey: string): Promise<AtomicMemberRecordModel | null> {
@@ -299,13 +313,13 @@ export class SwapService {
             const publicKeyBigInt = BigInt(`0x${publicKey}`);
             debugLog("Public key", publicKeyBigInt);
             // when using toncenter client it doesnt work...
-            const member = await this.orbsClientContract.getAtomicMemberRecord(
+            const member = await this.orbsDexClientContract.getAtomicMemberRecord(
                 publicKeyBigInt
             );
 
             if (!member) return null;
 
-            return new AtomicMemberRecordModel(member, this.orbsClientContract, publicKeyBigInt);
+            return new AtomicMemberRecordModel(member, this.orbsDexClientContract, publicKeyBigInt);
         } catch (error) {
             console.error(error);
             return null;
@@ -416,4 +430,13 @@ export const getSwapCurrencies = (map: Record<string, PoolModel>): Set<Currency>
     });
 
     return currencies;
+}
+
+
+
+function getPublicKeyAsSlice(pubKey: string) {
+    return new Builder()
+        .storeBuffer(Buffer.from(pubKey, 'hex'))
+        .endCell()
+        .asSlice()
 }

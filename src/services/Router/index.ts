@@ -2,7 +2,7 @@ import { Currency, CurveTypes, ExpandedAtomicPool, RouteSpeed } from "@/types";
 import { calculateExpectedOut, calculateExpectedOutWithFee } from "@/utils";
 import debug from 'debug';
 import { DEFAULT_CURRENCIES_MAP_BY_ID } from "../Defaults";
-import { SwapOrder } from "../AtomicDex/AtomicDex.service";
+import { SwapOrder } from "../Wrappers/AtomicDex.wrapper";
 import { fromNano } from "@ton/core";
 
 

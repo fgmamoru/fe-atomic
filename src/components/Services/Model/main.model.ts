@@ -5,7 +5,7 @@ import { create } from 'zustand';
 import { Currency, RouteSpeed, RequestStatus, RequestType } from '@/types'
 import { formatCryptoAmount, formatCryptoAmountAbbr, formatExchangeRate, removeThousandsSeparator } from '@/utils'
 import { ATOMIC_DEX_CONTRACT_ADDRESS, NETWORK } from '@/services/config.service'
-import { AtomicDex } from '@/services/AtomicDex/AtomicDex.service'
+import { AtomicDex } from '@/services/Wrappers/AtomicDex.wrapper'
 import { getSwapCurrencies, SwapService } from '@/services/swap/swap.service'
 import debug from 'debug'
 import { DEFAULT_CURRENCIES, DEFAULT_CURRENCIES_MAP } from '@/services/Defaults'
@@ -195,7 +195,6 @@ export const useModel = create<ModelType>(((set, get) => ({
         })
     },
 
-
     setDepositAmount: (amount: string) => {
         const { _maxAmountOfTonBalanceInNano } = get()
         // remove non-numeric characters and replace comma with dot
@@ -236,6 +235,7 @@ export const useModel = create<ModelType>(((set, get) => ({
                 _atomicVaults,
                 address,
                 tonConnectUI,
+                _swapService,
                 jettons } = get();
 
             if (!isConnected()) return toast.error('Please connect your wallet');
@@ -252,23 +252,30 @@ export const useModel = create<ModelType>(((set, get) => ({
             const jetton = jettons.find((jetton) => jetton.currency.id === selectedDepositCurrency.id)
             const member = _memberRecord;
 
-            const body = getDepositPayload({
-                amountInNano: depositAmountInNano()!,
-                atomicVaultAddress: atomicVault.address!,
-                destinationAddress: address!,
-                publicKey: tonConnectUI?.account?.publicKey!,
-            })
 
-            console.log('GET DEPOSIT PAYLOAD', body)
+            await _swapService?.sendDepositOperation(
+                {
+                    publicKey: tonConnectUI?.account?.publicKey!,
+                    jettonAmount: depositAmountInNano()!,
+                    jettonMasterAddress: jetton?.masterAddress!,
+                    jettonVaultAddress: atomicVault?.address!,
+                    userJettonWalletAddress: address!,
+                    userAddress: address!,
+                }
+                // depositAmountInNano()!,
+                // jetton?.address!,
+                // address!,
+            )
+            // console.log('GET DEPOSIT PAYLOAD', body)
 
-            tonConnectUI?.sendTransaction({
-                validUntil: Math.floor(Date.now() / 1000) + 360,
-                messages: [{
-                    address: jetton?.address!,
-                    amount: toNano('0.05').toString(),
-                    payload: body.toBoc().toString('base64'),
-                }]
-            })
+            // tonConnectUI?.sendTransaction({
+            //     validUntil: Math.floor(Date.now() / 1000) + 360,
+            //     messages: [{
+            //         address: jetton?.address!,
+            //         amount: toNano('0.05').toString(),
+            //         payload: body.toBoc().toString('base64'),
+            //     }]
+            // })
 
 
             // await _swapService!.sendDepositOperation(
@@ -602,7 +609,6 @@ export const useModel = create<ModelType>(((set, get) => ({
     },
 
     init: async (tonConnectUI: TonConnectUI) => {
-
         try {
             if (get().inited) return;
             debugLog('init')
@@ -650,7 +656,6 @@ export const useModel = create<ModelType>(((set, get) => ({
         } catch (error) {
             console.error(error)
         }
-
     },
 
     readLastBlock: async () => {
@@ -1150,34 +1155,4 @@ function saveAuthToken(token: string | null) {
 
 function _initRouting() {
     throw new Error('Function not implemented.');
-}
-
-function getPublicKeyAsSlice(pubKey: string) {
-    return new Builder()
-        .storeBuffer(Buffer.from(pubKey, 'hex'))
-        .endCell()
-        .asSlice()
-}
-
-function getDepositPayload(props: {
-    amountInNano: bigint,
-    atomicVaultAddress: Address,
-    destinationAddress: Address,
-    publicKey: string,
-}) {
-    const publicKey = getPublicKeyAsSlice(props.publicKey).asBuilder()
-    console.log('getDepositPayload', props, publicKey)
-    return beginCell()
-        .storeUint(0xf8a7ea5, 32)                 // jetton transfer op code
-        .storeUint(0, 64)                         // query_id:uint64
-        .storeCoins(props.amountInNano)              // amount:(VarUInteger 16) -  Jetton amount for transfer (decimals = 6 - USDT, 9 - default). Function toNano use decimals = 9 (remember it)
-        .storeAddress(props.atomicVaultAddress)  // destination:MsgAddress
-        .storeAddress(props.destinationAddress)  // response_destination:MsgAddress
-        .storeUint(1, 1)                          // custom_payload:(Maybe ^Cell)
-        .storeCoins(toNano("0.05"))
-        // forward_ton_amount:(VarUInteger 16) - if >0, will send notification message
-        .storeBit(true)
-        .storeUint(0x0, 32)
-        .storeRef(publicKey)                           // forward_payload:(Either Cell ^Cell)
-        .endCell();
 }

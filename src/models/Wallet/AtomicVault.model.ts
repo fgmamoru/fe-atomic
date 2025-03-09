@@ -1,4 +1,4 @@
-import { AtomicVault } from "@/services/AtomicDex/AtomicDex.service";
+import { AtomicVault } from "@/services/Wrappers/AtomicDex.wrapper";
 import { DEFAULT_CURRENCIES_MAP_BY_ID } from "@/services/Defaults";
 import { Currency } from "@/types";
 import { Address } from "@ton/core";

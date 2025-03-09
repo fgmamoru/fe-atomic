@@ -50,9 +50,24 @@ if (ENV !== "local" && HOST === "localhost") {
     console.warn("ENV is production and HOST is localhost");
 }
 
+export const CONFIG = {
+    TON_MASTER_CONTRACT_ADDRESS: validateDefaultJettonMasterAddress("TON", process.env.NEXT_PUBLIC_TON_MASTER_CONTRACT_ADDRESS),
+    USDT_MASTER_CONTRACT_ADDRESS: validateDefaultJettonMasterAddress("USDT", process.env.NEXT_PUBLIC_USDT_MASTER_CONTRACT_ADDRESS),
+    BTC_MASTER_CONTRACT_ADDRESS: validateDefaultJettonMasterAddress("BTC", process.env.NEXT_PUBLIC_BTC_MASTER_CONTRACT_ADDRESS),
+    ETH_MASTER_CONTRACT_ADDRESS: validateDefaultJettonMasterAddress("ETH", process.env.NEXT_PUBLIC_ETH_MASTER_CONTRACT_ADDRESS),
+    DOGS_MASTER_CONTRACT_ADDRESS: validateDefaultJettonMasterAddress("DOGS", process.env.NEXT_PUBLIC_DOGS_MASTER_CONTRACT_ADDRESS),
+    NOT_MASTER_CONTRACT_ADDRESS: validateDefaultJettonMasterAddress("NOT", process.env.NEXT_PUBLIC_NOT_MASTER_CONTRACT_ADDRESS),
+    CATS_MASTER_CONTRACT_ADDRESS: validateDefaultJettonMasterAddress("CATS", process.env.NEXT_PUBLIC_CATS_MASTER_CONTRACT_ADDRESS),
+}
 
+function validateDefaultJettonMasterAddress(name: string, value?: string): string {
 
+    if (!value) {
+        console.warn(`${name} master contract address is not set NEXT_PUBLIC_${name}_MASTER_CONTRACT_ADDRESS`);
+    }
 
+    return value || "";
+}
 
 
 

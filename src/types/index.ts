@@ -1,4 +1,4 @@
-import { AtomicPool } from "@/services/AtomicDex/AtomicDex.service";
+import { AtomicPool } from "@/services/Wrappers/AtomicDex.wrapper";
 
 /**
  * Represents a ticket with various properties.

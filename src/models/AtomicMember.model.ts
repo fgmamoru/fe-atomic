@@ -1,4 +1,4 @@
-import { AtomicDex, AtomicMemberRecord } from "@/services/AtomicDex/AtomicDex.service";
+import { AtomicDex, AtomicMemberRecord } from "@/services/Wrappers/AtomicDex.wrapper";
 import { DEFAULT_CURRENCIES, DEFAULT_CURRENCIES_MAP } from "@/services/Defaults";
 import { Currency, CurrencyBalanceKeyName } from "@/types";
 import { TimeoutError } from "@/types/errors";
