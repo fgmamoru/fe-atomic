@@ -1,18 +1,18 @@
-import { 
+import {
     Cell,
-    Slice, 
-    Address, 
-    Builder, 
-    beginCell, 
-    ComputeError, 
-    TupleItem, 
-    TupleReader, 
-    Dictionary, 
-    contractAddress, 
-    ContractProvider, 
-    Sender, 
-    Contract, 
-    ContractABI, 
+    Slice,
+    Address,
+    Builder,
+    beginCell,
+    ComputeError,
+    TupleItem,
+    TupleReader,
+    Dictionary,
+    contractAddress,
+    ContractProvider,
+    Sender,
+    Contract,
+    ContractABI,
     ABIType,
     ABIGetter,
     ABIReceiver,
@@ -1646,41 +1646,47 @@ export type AddAtomicVault = {
     $$type: 'AddAtomicVault';
     queryId: bigint;
     address: Address;
+    key: bigint;
 }
 
 export function storeAddAtomicVault(src: AddAtomicVault) {
     return (builder: Builder) => {
         let b_0 = builder;
-        b_0.storeUint(2574308405, 32);
+        b_0.storeUint(719206648, 32);
         b_0.storeUint(src.queryId, 64);
         b_0.storeAddress(src.address);
+        b_0.storeUint(src.key, 4);
     };
 }
 
 export function loadAddAtomicVault(slice: Slice) {
     let sc_0 = slice;
-    if (sc_0.loadUint(32) !== 2574308405) { throw Error('Invalid prefix'); }
+    if (sc_0.loadUint(32) !== 719206648) { throw Error('Invalid prefix'); }
     let _queryId = sc_0.loadUintBig(64);
     let _address = sc_0.loadAddress();
-    return { $$type: 'AddAtomicVault' as const, queryId: _queryId, address: _address };
+    let _key = sc_0.loadUintBig(4);
+    return { $$type: 'AddAtomicVault' as const, queryId: _queryId, address: _address, key: _key };
 }
 
 function loadTupleAddAtomicVault(source: TupleReader) {
     let _queryId = source.readBigNumber();
     let _address = source.readAddress();
-    return { $$type: 'AddAtomicVault' as const, queryId: _queryId, address: _address };
+    let _key = source.readBigNumber();
+    return { $$type: 'AddAtomicVault' as const, queryId: _queryId, address: _address, key: _key };
 }
 
 function loadGetterTupleAddAtomicVault(source: TupleReader) {
     let _queryId = source.readBigNumber();
     let _address = source.readAddress();
-    return { $$type: 'AddAtomicVault' as const, queryId: _queryId, address: _address };
+    let _key = source.readBigNumber();
+    return { $$type: 'AddAtomicVault' as const, queryId: _queryId, address: _address, key: _key };
 }
 
 function storeTupleAddAtomicVault(source: AddAtomicVault) {
     let builder = new TupleBuilder();
     builder.writeNumber(source.queryId);
     builder.writeAddress(source.address);
+    builder.writeNumber(source.key);
     return builder.build();
 }
 
@@ -2653,7 +2659,7 @@ function dictValueParserAtomicVault$Data(): DictionaryValue<AtomicVault$Data> {
     }
 }
 
- type SampleJettonWallet_init_args = {
+type SampleJettonWallet_init_args = {
     $$type: 'SampleJettonWallet_init_args';
     master: Address;
     owner: Address;
@@ -2727,55 +2733,55 @@ const SampleJettonWallet_errors: { [key: number]: { message: string } } = {
 }
 
 const SampleJettonWallet_types: ABIType[] = [
-    {"name":"StateInit","header":null,"fields":[{"name":"code","type":{"kind":"simple","type":"cell","optional":false}},{"name":"data","type":{"kind":"simple","type":"cell","optional":false}}]},
-    {"name":"StdAddress","header":null,"fields":[{"name":"workchain","type":{"kind":"simple","type":"int","optional":false,"format":8}},{"name":"address","type":{"kind":"simple","type":"uint","optional":false,"format":256}}]},
-    {"name":"VarAddress","header":null,"fields":[{"name":"workchain","type":{"kind":"simple","type":"int","optional":false,"format":32}},{"name":"address","type":{"kind":"simple","type":"slice","optional":false}}]},
-    {"name":"Context","header":null,"fields":[{"name":"bounced","type":{"kind":"simple","type":"bool","optional":false}},{"name":"sender","type":{"kind":"simple","type":"address","optional":false}},{"name":"value","type":{"kind":"simple","type":"int","optional":false,"format":257}},{"name":"raw","type":{"kind":"simple","type":"slice","optional":false}}]},
-    {"name":"SendParameters","header":null,"fields":[{"name":"bounce","type":{"kind":"simple","type":"bool","optional":false}},{"name":"to","type":{"kind":"simple","type":"address","optional":false}},{"name":"value","type":{"kind":"simple","type":"int","optional":false,"format":257}},{"name":"mode","type":{"kind":"simple","type":"int","optional":false,"format":257}},{"name":"body","type":{"kind":"simple","type":"cell","optional":true}},{"name":"code","type":{"kind":"simple","type":"cell","optional":true}},{"name":"data","type":{"kind":"simple","type":"cell","optional":true}}]},
-    {"name":"Deploy","header":2490013878,"fields":[{"name":"queryId","type":{"kind":"simple","type":"uint","optional":false,"format":64}}]},
-    {"name":"DeployOk","header":2952335191,"fields":[{"name":"queryId","type":{"kind":"simple","type":"uint","optional":false,"format":64}}]},
-    {"name":"FactoryDeploy","header":1829761339,"fields":[{"name":"queryId","type":{"kind":"simple","type":"uint","optional":false,"format":64}},{"name":"cashback","type":{"kind":"simple","type":"address","optional":false}}]},
-    {"name":"ChangeOwner","header":2174598809,"fields":[{"name":"queryId","type":{"kind":"simple","type":"uint","optional":false,"format":64}},{"name":"newOwner","type":{"kind":"simple","type":"address","optional":false}}]},
-    {"name":"ChangeOwnerOk","header":846932810,"fields":[{"name":"queryId","type":{"kind":"simple","type":"uint","optional":false,"format":64}},{"name":"newOwner","type":{"kind":"simple","type":"address","optional":false}}]},
-    {"name":"TokenNotification","header":1935855772,"fields":[{"name":"queryId","type":{"kind":"simple","type":"uint","optional":false,"format":64}},{"name":"amount","type":{"kind":"simple","type":"uint","optional":false,"format":"coins"}},{"name":"from","type":{"kind":"simple","type":"address","optional":false}},{"name":"forward_payload","type":{"kind":"simple","type":"slice","optional":false,"format":"remainder"}}]},
-    {"name":"AtomicDexWithdrawNotification","header":2769864583,"fields":[{"name":"amount","type":{"kind":"simple","type":"uint","optional":false,"format":"coins"}},{"name":"to","type":{"kind":"simple","type":"address","optional":false}}]},
-    {"name":"UpdateAtomicDexAddress","header":2439694949,"fields":[{"name":"newAtomicDexAddr","type":{"kind":"simple","type":"address","optional":false}}]},
-    {"name":"UpdateCustodyWalletAddress","header":321056099,"fields":[{"name":"jettonWalletAddr","type":{"kind":"simple","type":"address","optional":false}}]},
-    {"name":"DepositNotificationInternal","header":853477092,"fields":[{"name":"sender","type":{"kind":"simple","type":"address","optional":false}},{"name":"amount","type":{"kind":"simple","type":"uint","optional":false,"format":256}},{"name":"forward_payload","type":{"kind":"simple","type":"slice","optional":false}}]},
-    {"name":"JettonTransfer","header":260734629,"fields":[{"name":"queryId","type":{"kind":"simple","type":"uint","optional":false,"format":64}},{"name":"amount","type":{"kind":"simple","type":"uint","optional":false,"format":"coins"}},{"name":"destination","type":{"kind":"simple","type":"address","optional":false}},{"name":"responseDestination","type":{"kind":"simple","type":"address","optional":true}},{"name":"customPayload","type":{"kind":"simple","type":"cell","optional":true}},{"name":"forwardTonAmount","type":{"kind":"simple","type":"uint","optional":false,"format":"coins"}},{"name":"forwardPayload","type":{"kind":"simple","type":"slice","optional":false,"format":"remainder"}}]},
-    {"name":"LiquidateMemberAtomicVaultNotification","header":1387626523,"fields":[{"name":"queryId","type":{"kind":"simple","type":"uint","optional":false,"format":64}},{"name":"publicKey","type":{"kind":"simple","type":"uint","optional":false,"format":256}},{"name":"balance","type":{"kind":"simple","type":"uint","optional":false,"format":"coins"}}]},
-    {"name":"Mint","header":4235234258,"fields":[{"name":"amount","type":{"kind":"simple","type":"int","optional":false,"format":257}},{"name":"receiver","type":{"kind":"simple","type":"address","optional":false}}]},
-    {"name":"SampleJetton$Data","header":null,"fields":[{"name":"totalSupply","type":{"kind":"simple","type":"uint","optional":false,"format":"coins"}},{"name":"owner","type":{"kind":"simple","type":"address","optional":false}},{"name":"content","type":{"kind":"simple","type":"cell","optional":false}},{"name":"mintable","type":{"kind":"simple","type":"bool","optional":false}},{"name":"max_supply","type":{"kind":"simple","type":"uint","optional":false,"format":"coins"}}]},
-    {"name":"JettonData","header":null,"fields":[{"name":"totalSupply","type":{"kind":"simple","type":"int","optional":false,"format":257}},{"name":"mintable","type":{"kind":"simple","type":"bool","optional":false}},{"name":"owner","type":{"kind":"simple","type":"address","optional":false}},{"name":"content","type":{"kind":"simple","type":"cell","optional":false}},{"name":"walletCode","type":{"kind":"simple","type":"cell","optional":false}}]},
-    {"name":"SampleJettonWallet$Data","header":null,"fields":[{"name":"balance","type":{"kind":"simple","type":"int","optional":false,"format":257}},{"name":"owner","type":{"kind":"simple","type":"address","optional":false}},{"name":"master","type":{"kind":"simple","type":"address","optional":false}}]},
-    {"name":"JettonWalletData","header":null,"fields":[{"name":"balance","type":{"kind":"simple","type":"int","optional":false,"format":257}},{"name":"owner","type":{"kind":"simple","type":"address","optional":false}},{"name":"master","type":{"kind":"simple","type":"address","optional":false}},{"name":"walletCode","type":{"kind":"simple","type":"cell","optional":false}}]},
-    {"name":"TokenTransferInternal","header":395134233,"fields":[{"name":"queryId","type":{"kind":"simple","type":"uint","optional":false,"format":64}},{"name":"amount","type":{"kind":"simple","type":"uint","optional":false,"format":"coins"}},{"name":"from","type":{"kind":"simple","type":"address","optional":false}},{"name":"response_destination","type":{"kind":"simple","type":"address","optional":true}},{"name":"forward_ton_amount","type":{"kind":"simple","type":"uint","optional":false,"format":"coins"}},{"name":"forward_payload","type":{"kind":"simple","type":"slice","optional":false,"format":"remainder"}}]},
-    {"name":"TokenBurn","header":1499400124,"fields":[{"name":"queryId","type":{"kind":"simple","type":"uint","optional":false,"format":64}},{"name":"amount","type":{"kind":"simple","type":"uint","optional":false,"format":"coins"}},{"name":"owner","type":{"kind":"simple","type":"address","optional":false}},{"name":"response_destination","type":{"kind":"simple","type":"address","optional":false}}]},
-    {"name":"TokenBurnNotification","header":2078119902,"fields":[{"name":"queryId","type":{"kind":"simple","type":"uint","optional":false,"format":64}},{"name":"amount","type":{"kind":"simple","type":"uint","optional":false,"format":"coins"}},{"name":"owner","type":{"kind":"simple","type":"address","optional":false}},{"name":"response_destination","type":{"kind":"simple","type":"address","optional":true}}]},
-    {"name":"TokenExcesses","header":3576854235,"fields":[{"name":"queryId","type":{"kind":"simple","type":"uint","optional":false,"format":64}}]},
-    {"name":"TokenUpdateContent","header":2937889386,"fields":[{"name":"content","type":{"kind":"simple","type":"cell","optional":false}}]},
-    {"name":"UpdatePublicKey","header":3474072042,"fields":[{"name":"publicKey","type":{"kind":"simple","type":"uint","optional":false,"format":256}}]},
-    {"name":"AddAtomicVault","header":2574308405,"fields":[{"name":"queryId","type":{"kind":"simple","type":"uint","optional":false,"format":64}},{"name":"address","type":{"kind":"simple","type":"address","optional":false}}]},
-    {"name":"AddPool","header":3926930871,"fields":[{"name":"queryId","type":{"kind":"simple","type":"uint","optional":false,"format":64}},{"name":"curveType","type":{"kind":"simple","type":"uint","optional":false,"format":8}},{"name":"atomicVault0","type":{"kind":"simple","type":"uint","optional":false,"format":4}},{"name":"atomicVault1","type":{"kind":"simple","type":"uint","optional":false,"format":4}},{"name":"feeNominator","type":{"kind":"simple","type":"uint","optional":false,"format":64}},{"name":"feeDenominator","type":{"kind":"simple","type":"uint","optional":false,"format":64}}]},
-    {"name":"AddPoolLiquidity","header":1360054237,"fields":[{"name":"queryId","type":{"kind":"simple","type":"uint","optional":false,"format":64}},{"name":"atomicVault0","type":{"kind":"simple","type":"uint","optional":false,"format":4}},{"name":"atomicVault1","type":{"kind":"simple","type":"uint","optional":false,"format":4}},{"name":"amount0","type":{"kind":"simple","type":"uint","optional":false,"format":64}},{"name":"amount1","type":{"kind":"simple","type":"uint","optional":false,"format":64}}]},
-    {"name":"RemovePoolLiquidity","header":2134549698,"fields":[{"name":"queryId","type":{"kind":"simple","type":"uint","optional":false,"format":64}}]},
-    {"name":"JoinMember","header":3609057061,"fields":[{"name":"queryId","type":{"kind":"simple","type":"uint","optional":false,"format":64}},{"name":"eviction","type":{"kind":"dict","key":"int","keyFormat":16,"value":"int"}},{"name":"atomicVaultId","type":{"kind":"simple","type":"uint","optional":false,"format":7}},{"name":"publicKey","type":{"kind":"simple","type":"uint","optional":false,"format":256}},{"name":"seq","type":{"kind":"simple","type":"uint","optional":false,"format":64}},{"name":"amount","type":{"kind":"simple","type":"uint","optional":false,"format":64}}]},
-    {"name":"DepositNotification","header":368270786,"fields":[{"name":"atomicVaultId","type":{"kind":"simple","type":"uint","optional":false,"format":7}},{"name":"publicKey","type":{"kind":"simple","type":"uint","optional":false,"format":256}},{"name":"amount","type":{"kind":"simple","type":"uint","optional":false,"format":64}}]},
-    {"name":"DepositToken","header":914629092,"fields":[{"name":"amount","type":{"kind":"simple","type":"uint","optional":false,"format":64}}]},
-    {"name":"TopUpGasMember","header":930215976,"fields":[{"name":"queryId","type":{"kind":"simple","type":"uint","optional":false,"format":64}},{"name":"publicKey","type":{"kind":"simple","type":"uint","optional":false,"format":256}}]},
-    {"name":"Withdraw","header":856879030,"fields":[{"name":"queryId","type":{"kind":"simple","type":"uint","optional":false,"format":64}},{"name":"publicKey","type":{"kind":"simple","type":"uint","optional":false,"format":256}},{"name":"amount","type":{"kind":"simple","type":"uint","optional":false,"format":64}},{"name":"signature","type":{"kind":"simple","type":"slice","optional":false}},{"name":"atomicVaultId","type":{"kind":"simple","type":"uint","optional":false,"format":8}}]},
-    {"name":"LiquidateMember","header":901583315,"fields":[{"name":"queryId","type":{"kind":"simple","type":"uint","optional":false,"format":64}},{"name":"publicKey","type":{"kind":"simple","type":"uint","optional":false,"format":256}},{"name":"atomicVaultId","type":{"kind":"simple","type":"uint","optional":false,"format":7}},{"name":"amount","type":{"kind":"simple","type":"uint","optional":false,"format":64}}]},
-    {"name":"SwapOrder","header":2078147303,"fields":[{"name":"atomicVault0","type":{"kind":"simple","type":"uint","optional":false,"format":7}},{"name":"atomicVault1","type":{"kind":"simple","type":"uint","optional":false,"format":7}},{"name":"expectedIn","type":{"kind":"simple","type":"uint","optional":false,"format":64}},{"name":"expectedOut","type":{"kind":"simple","type":"uint","optional":false,"format":64}}]},
-    {"name":"MultiSwapInternal","header":899562728,"fields":[{"name":"queryId","type":{"kind":"simple","type":"uint","optional":false,"format":64}},{"name":"publicKey","type":{"kind":"simple","type":"uint","optional":false,"format":256}},{"name":"signature","type":{"kind":"simple","type":"slice","optional":false}},{"name":"orders","type":{"kind":"simple","type":"slice","optional":false}},{"name":"validUntil","type":{"kind":"simple","type":"uint","optional":false,"format":64}}]},
-    {"name":"MultiSwapBackend","header":1787647764,"fields":[{"name":"queryId","type":{"kind":"simple","type":"uint","optional":false,"format":64}},{"name":"publicKey","type":{"kind":"simple","type":"uint","optional":false,"format":256}},{"name":"signature","type":{"kind":"simple","type":"slice","optional":false}},{"name":"orders","type":{"kind":"simple","type":"slice","optional":false}},{"name":"validUntil","type":{"kind":"simple","type":"uint","optional":false,"format":64}}]},
-    {"name":"GenerateSwapHash","header":2777786029,"fields":[{"name":"seq","type":{"kind":"simple","type":"uint","optional":false,"format":32}},{"name":"order","type":{"kind":"simple","type":"SwapOrder","optional":false}},{"name":"validUntil","type":{"kind":"simple","type":"uint","optional":false,"format":64}}]},
-    {"name":"GenerateMultiSwapHash","header":2518665663,"fields":[{"name":"seq","type":{"kind":"simple","type":"uint","optional":false,"format":32}},{"name":"orders","type":{"kind":"simple","type":"slice","optional":false}},{"name":"validUntil","type":{"kind":"simple","type":"uint","optional":false,"format":64}}]},
-    {"name":"AtomicVault$Data","header":null,"fields":[{"name":"jettonWalletAddr","type":{"kind":"simple","type":"address","optional":false}},{"name":"atomicDexAddr","type":{"kind":"simple","type":"address","optional":false}},{"name":"owner","type":{"kind":"simple","type":"address","optional":false}},{"name":"nonce","type":{"kind":"simple","type":"int","optional":false,"format":257}}]},
+    { "name": "StateInit", "header": null, "fields": [{ "name": "code", "type": { "kind": "simple", "type": "cell", "optional": false } }, { "name": "data", "type": { "kind": "simple", "type": "cell", "optional": false } }] },
+    { "name": "StdAddress", "header": null, "fields": [{ "name": "workchain", "type": { "kind": "simple", "type": "int", "optional": false, "format": 8 } }, { "name": "address", "type": { "kind": "simple", "type": "uint", "optional": false, "format": 256 } }] },
+    { "name": "VarAddress", "header": null, "fields": [{ "name": "workchain", "type": { "kind": "simple", "type": "int", "optional": false, "format": 32 } }, { "name": "address", "type": { "kind": "simple", "type": "slice", "optional": false } }] },
+    { "name": "Context", "header": null, "fields": [{ "name": "bounced", "type": { "kind": "simple", "type": "bool", "optional": false } }, { "name": "sender", "type": { "kind": "simple", "type": "address", "optional": false } }, { "name": "value", "type": { "kind": "simple", "type": "int", "optional": false, "format": 257 } }, { "name": "raw", "type": { "kind": "simple", "type": "slice", "optional": false } }] },
+    { "name": "SendParameters", "header": null, "fields": [{ "name": "bounce", "type": { "kind": "simple", "type": "bool", "optional": false } }, { "name": "to", "type": { "kind": "simple", "type": "address", "optional": false } }, { "name": "value", "type": { "kind": "simple", "type": "int", "optional": false, "format": 257 } }, { "name": "mode", "type": { "kind": "simple", "type": "int", "optional": false, "format": 257 } }, { "name": "body", "type": { "kind": "simple", "type": "cell", "optional": true } }, { "name": "code", "type": { "kind": "simple", "type": "cell", "optional": true } }, { "name": "data", "type": { "kind": "simple", "type": "cell", "optional": true } }] },
+    { "name": "Deploy", "header": 2490013878, "fields": [{ "name": "queryId", "type": { "kind": "simple", "type": "uint", "optional": false, "format": 64 } }] },
+    { "name": "DeployOk", "header": 2952335191, "fields": [{ "name": "queryId", "type": { "kind": "simple", "type": "uint", "optional": false, "format": 64 } }] },
+    { "name": "FactoryDeploy", "header": 1829761339, "fields": [{ "name": "queryId", "type": { "kind": "simple", "type": "uint", "optional": false, "format": 64 } }, { "name": "cashback", "type": { "kind": "simple", "type": "address", "optional": false } }] },
+    { "name": "ChangeOwner", "header": 2174598809, "fields": [{ "name": "queryId", "type": { "kind": "simple", "type": "uint", "optional": false, "format": 64 } }, { "name": "newOwner", "type": { "kind": "simple", "type": "address", "optional": false } }] },
+    { "name": "ChangeOwnerOk", "header": 846932810, "fields": [{ "name": "queryId", "type": { "kind": "simple", "type": "uint", "optional": false, "format": 64 } }, { "name": "newOwner", "type": { "kind": "simple", "type": "address", "optional": false } }] },
+    { "name": "TokenNotification", "header": 1935855772, "fields": [{ "name": "queryId", "type": { "kind": "simple", "type": "uint", "optional": false, "format": 64 } }, { "name": "amount", "type": { "kind": "simple", "type": "uint", "optional": false, "format": "coins" } }, { "name": "from", "type": { "kind": "simple", "type": "address", "optional": false } }, { "name": "forward_payload", "type": { "kind": "simple", "type": "slice", "optional": false, "format": "remainder" } }] },
+    { "name": "AtomicDexWithdrawNotification", "header": 2769864583, "fields": [{ "name": "amount", "type": { "kind": "simple", "type": "uint", "optional": false, "format": "coins" } }, { "name": "to", "type": { "kind": "simple", "type": "address", "optional": false } }] },
+    { "name": "UpdateAtomicDexAddress", "header": 2439694949, "fields": [{ "name": "newAtomicDexAddr", "type": { "kind": "simple", "type": "address", "optional": false } }] },
+    { "name": "UpdateCustodyWalletAddress", "header": 321056099, "fields": [{ "name": "jettonWalletAddr", "type": { "kind": "simple", "type": "address", "optional": false } }] },
+    { "name": "DepositNotificationInternal", "header": 853477092, "fields": [{ "name": "sender", "type": { "kind": "simple", "type": "address", "optional": false } }, { "name": "amount", "type": { "kind": "simple", "type": "uint", "optional": false, "format": 256 } }, { "name": "forward_payload", "type": { "kind": "simple", "type": "slice", "optional": false } }] },
+    { "name": "JettonTransfer", "header": 260734629, "fields": [{ "name": "queryId", "type": { "kind": "simple", "type": "uint", "optional": false, "format": 64 } }, { "name": "amount", "type": { "kind": "simple", "type": "uint", "optional": false, "format": "coins" } }, { "name": "destination", "type": { "kind": "simple", "type": "address", "optional": false } }, { "name": "responseDestination", "type": { "kind": "simple", "type": "address", "optional": true } }, { "name": "customPayload", "type": { "kind": "simple", "type": "cell", "optional": true } }, { "name": "forwardTonAmount", "type": { "kind": "simple", "type": "uint", "optional": false, "format": "coins" } }, { "name": "forwardPayload", "type": { "kind": "simple", "type": "slice", "optional": false, "format": "remainder" } }] },
+    { "name": "LiquidateMemberAtomicVaultNotification", "header": 1387626523, "fields": [{ "name": "queryId", "type": { "kind": "simple", "type": "uint", "optional": false, "format": 64 } }, { "name": "publicKey", "type": { "kind": "simple", "type": "uint", "optional": false, "format": 256 } }, { "name": "balance", "type": { "kind": "simple", "type": "uint", "optional": false, "format": "coins" } }] },
+    { "name": "Mint", "header": 4235234258, "fields": [{ "name": "amount", "type": { "kind": "simple", "type": "int", "optional": false, "format": 257 } }, { "name": "receiver", "type": { "kind": "simple", "type": "address", "optional": false } }] },
+    { "name": "SampleJetton$Data", "header": null, "fields": [{ "name": "totalSupply", "type": { "kind": "simple", "type": "uint", "optional": false, "format": "coins" } }, { "name": "owner", "type": { "kind": "simple", "type": "address", "optional": false } }, { "name": "content", "type": { "kind": "simple", "type": "cell", "optional": false } }, { "name": "mintable", "type": { "kind": "simple", "type": "bool", "optional": false } }, { "name": "max_supply", "type": { "kind": "simple", "type": "uint", "optional": false, "format": "coins" } }] },
+    { "name": "JettonData", "header": null, "fields": [{ "name": "totalSupply", "type": { "kind": "simple", "type": "int", "optional": false, "format": 257 } }, { "name": "mintable", "type": { "kind": "simple", "type": "bool", "optional": false } }, { "name": "owner", "type": { "kind": "simple", "type": "address", "optional": false } }, { "name": "content", "type": { "kind": "simple", "type": "cell", "optional": false } }, { "name": "walletCode", "type": { "kind": "simple", "type": "cell", "optional": false } }] },
+    { "name": "SampleJettonWallet$Data", "header": null, "fields": [{ "name": "balance", "type": { "kind": "simple", "type": "int", "optional": false, "format": 257 } }, { "name": "owner", "type": { "kind": "simple", "type": "address", "optional": false } }, { "name": "master", "type": { "kind": "simple", "type": "address", "optional": false } }] },
+    { "name": "JettonWalletData", "header": null, "fields": [{ "name": "balance", "type": { "kind": "simple", "type": "int", "optional": false, "format": 257 } }, { "name": "owner", "type": { "kind": "simple", "type": "address", "optional": false } }, { "name": "master", "type": { "kind": "simple", "type": "address", "optional": false } }, { "name": "walletCode", "type": { "kind": "simple", "type": "cell", "optional": false } }] },
+    { "name": "TokenTransferInternal", "header": 395134233, "fields": [{ "name": "queryId", "type": { "kind": "simple", "type": "uint", "optional": false, "format": 64 } }, { "name": "amount", "type": { "kind": "simple", "type": "uint", "optional": false, "format": "coins" } }, { "name": "from", "type": { "kind": "simple", "type": "address", "optional": false } }, { "name": "response_destination", "type": { "kind": "simple", "type": "address", "optional": true } }, { "name": "forward_ton_amount", "type": { "kind": "simple", "type": "uint", "optional": false, "format": "coins" } }, { "name": "forward_payload", "type": { "kind": "simple", "type": "slice", "optional": false, "format": "remainder" } }] },
+    { "name": "TokenBurn", "header": 1499400124, "fields": [{ "name": "queryId", "type": { "kind": "simple", "type": "uint", "optional": false, "format": 64 } }, { "name": "amount", "type": { "kind": "simple", "type": "uint", "optional": false, "format": "coins" } }, { "name": "owner", "type": { "kind": "simple", "type": "address", "optional": false } }, { "name": "response_destination", "type": { "kind": "simple", "type": "address", "optional": false } }] },
+    { "name": "TokenBurnNotification", "header": 2078119902, "fields": [{ "name": "queryId", "type": { "kind": "simple", "type": "uint", "optional": false, "format": 64 } }, { "name": "amount", "type": { "kind": "simple", "type": "uint", "optional": false, "format": "coins" } }, { "name": "owner", "type": { "kind": "simple", "type": "address", "optional": false } }, { "name": "response_destination", "type": { "kind": "simple", "type": "address", "optional": true } }] },
+    { "name": "TokenExcesses", "header": 3576854235, "fields": [{ "name": "queryId", "type": { "kind": "simple", "type": "uint", "optional": false, "format": 64 } }] },
+    { "name": "TokenUpdateContent", "header": 2937889386, "fields": [{ "name": "content", "type": { "kind": "simple", "type": "cell", "optional": false } }] },
+    { "name": "UpdatePublicKey", "header": 3474072042, "fields": [{ "name": "publicKey", "type": { "kind": "simple", "type": "uint", "optional": false, "format": 256 } }] },
+    { "name": "AddAtomicVault", "header": 719206648, "fields": [{ "name": "queryId", "type": { "kind": "simple", "type": "uint", "optional": false, "format": 64 } }, { "name": "address", "type": { "kind": "simple", "type": "address", "optional": false } }, { "name": "key", "type": { "kind": "simple", "type": "uint", "optional": false, "format": 4 } }] },
+    { "name": "AddPool", "header": 3926930871, "fields": [{ "name": "queryId", "type": { "kind": "simple", "type": "uint", "optional": false, "format": 64 } }, { "name": "curveType", "type": { "kind": "simple", "type": "uint", "optional": false, "format": 8 } }, { "name": "atomicVault0", "type": { "kind": "simple", "type": "uint", "optional": false, "format": 4 } }, { "name": "atomicVault1", "type": { "kind": "simple", "type": "uint", "optional": false, "format": 4 } }, { "name": "feeNominator", "type": { "kind": "simple", "type": "uint", "optional": false, "format": 64 } }, { "name": "feeDenominator", "type": { "kind": "simple", "type": "uint", "optional": false, "format": 64 } }] },
+    { "name": "AddPoolLiquidity", "header": 1360054237, "fields": [{ "name": "queryId", "type": { "kind": "simple", "type": "uint", "optional": false, "format": 64 } }, { "name": "atomicVault0", "type": { "kind": "simple", "type": "uint", "optional": false, "format": 4 } }, { "name": "atomicVault1", "type": { "kind": "simple", "type": "uint", "optional": false, "format": 4 } }, { "name": "amount0", "type": { "kind": "simple", "type": "uint", "optional": false, "format": 64 } }, { "name": "amount1", "type": { "kind": "simple", "type": "uint", "optional": false, "format": 64 } }] },
+    { "name": "RemovePoolLiquidity", "header": 2134549698, "fields": [{ "name": "queryId", "type": { "kind": "simple", "type": "uint", "optional": false, "format": 64 } }] },
+    { "name": "JoinMember", "header": 3609057061, "fields": [{ "name": "queryId", "type": { "kind": "simple", "type": "uint", "optional": false, "format": 64 } }, { "name": "eviction", "type": { "kind": "dict", "key": "int", "keyFormat": 16, "value": "int" } }, { "name": "atomicVaultId", "type": { "kind": "simple", "type": "uint", "optional": false, "format": 7 } }, { "name": "publicKey", "type": { "kind": "simple", "type": "uint", "optional": false, "format": 256 } }, { "name": "seq", "type": { "kind": "simple", "type": "uint", "optional": false, "format": 64 } }, { "name": "amount", "type": { "kind": "simple", "type": "uint", "optional": false, "format": 64 } }] },
+    { "name": "DepositNotification", "header": 368270786, "fields": [{ "name": "atomicVaultId", "type": { "kind": "simple", "type": "uint", "optional": false, "format": 7 } }, { "name": "publicKey", "type": { "kind": "simple", "type": "uint", "optional": false, "format": 256 } }, { "name": "amount", "type": { "kind": "simple", "type": "uint", "optional": false, "format": 64 } }] },
+    { "name": "DepositToken", "header": 914629092, "fields": [{ "name": "amount", "type": { "kind": "simple", "type": "uint", "optional": false, "format": 64 } }] },
+    { "name": "TopUpGasMember", "header": 930215976, "fields": [{ "name": "queryId", "type": { "kind": "simple", "type": "uint", "optional": false, "format": 64 } }, { "name": "publicKey", "type": { "kind": "simple", "type": "uint", "optional": false, "format": 256 } }] },
+    { "name": "Withdraw", "header": 856879030, "fields": [{ "name": "queryId", "type": { "kind": "simple", "type": "uint", "optional": false, "format": 64 } }, { "name": "publicKey", "type": { "kind": "simple", "type": "uint", "optional": false, "format": 256 } }, { "name": "amount", "type": { "kind": "simple", "type": "uint", "optional": false, "format": 64 } }, { "name": "signature", "type": { "kind": "simple", "type": "slice", "optional": false } }, { "name": "atomicVaultId", "type": { "kind": "simple", "type": "uint", "optional": false, "format": 8 } }] },
+    { "name": "LiquidateMember", "header": 901583315, "fields": [{ "name": "queryId", "type": { "kind": "simple", "type": "uint", "optional": false, "format": 64 } }, { "name": "publicKey", "type": { "kind": "simple", "type": "uint", "optional": false, "format": 256 } }, { "name": "atomicVaultId", "type": { "kind": "simple", "type": "uint", "optional": false, "format": 7 } }, { "name": "amount", "type": { "kind": "simple", "type": "uint", "optional": false, "format": 64 } }] },
+    { "name": "SwapOrder", "header": 2078147303, "fields": [{ "name": "atomicVault0", "type": { "kind": "simple", "type": "uint", "optional": false, "format": 7 } }, { "name": "atomicVault1", "type": { "kind": "simple", "type": "uint", "optional": false, "format": 7 } }, { "name": "expectedIn", "type": { "kind": "simple", "type": "uint", "optional": false, "format": 64 } }, { "name": "expectedOut", "type": { "kind": "simple", "type": "uint", "optional": false, "format": 64 } }] },
+    { "name": "MultiSwapInternal", "header": 899562728, "fields": [{ "name": "queryId", "type": { "kind": "simple", "type": "uint", "optional": false, "format": 64 } }, { "name": "publicKey", "type": { "kind": "simple", "type": "uint", "optional": false, "format": 256 } }, { "name": "signature", "type": { "kind": "simple", "type": "slice", "optional": false } }, { "name": "orders", "type": { "kind": "simple", "type": "slice", "optional": false } }, { "name": "validUntil", "type": { "kind": "simple", "type": "uint", "optional": false, "format": 64 } }] },
+    { "name": "MultiSwapBackend", "header": 1787647764, "fields": [{ "name": "queryId", "type": { "kind": "simple", "type": "uint", "optional": false, "format": 64 } }, { "name": "publicKey", "type": { "kind": "simple", "type": "uint", "optional": false, "format": 256 } }, { "name": "signature", "type": { "kind": "simple", "type": "slice", "optional": false } }, { "name": "orders", "type": { "kind": "simple", "type": "slice", "optional": false } }, { "name": "validUntil", "type": { "kind": "simple", "type": "uint", "optional": false, "format": 64 } }] },
+    { "name": "GenerateSwapHash", "header": 2777786029, "fields": [{ "name": "seq", "type": { "kind": "simple", "type": "uint", "optional": false, "format": 32 } }, { "name": "order", "type": { "kind": "simple", "type": "SwapOrder", "optional": false } }, { "name": "validUntil", "type": { "kind": "simple", "type": "uint", "optional": false, "format": 64 } }] },
+    { "name": "GenerateMultiSwapHash", "header": 2518665663, "fields": [{ "name": "seq", "type": { "kind": "simple", "type": "uint", "optional": false, "format": 32 } }, { "name": "orders", "type": { "kind": "simple", "type": "slice", "optional": false } }, { "name": "validUntil", "type": { "kind": "simple", "type": "uint", "optional": false, "format": 64 } }] },
+    { "name": "AtomicVault$Data", "header": null, "fields": [{ "name": "jettonWalletAddr", "type": { "kind": "simple", "type": "address", "optional": false } }, { "name": "atomicDexAddr", "type": { "kind": "simple", "type": "address", "optional": false } }, { "name": "owner", "type": { "kind": "simple", "type": "address", "optional": false } }, { "name": "nonce", "type": { "kind": "simple", "type": "int", "optional": false, "format": 257 } }] },
 ]
 
 const SampleJettonWallet_getters: ABIGetter[] = [
-    {"name":"msgValue","arguments":[{"name":"value","type":{"kind":"simple","type":"int","optional":false,"format":257}}],"returnType":{"kind":"simple","type":"int","optional":false,"format":257}},
-    {"name":"get_wallet_data","arguments":[],"returnType":{"kind":"simple","type":"JettonWalletData","optional":false}},
+    { "name": "msgValue", "arguments": [{ "name": "value", "type": { "kind": "simple", "type": "int", "optional": false, "format": 257 } }], "returnType": { "kind": "simple", "type": "int", "optional": false, "format": 257 } },
+    { "name": "get_wallet_data", "arguments": [], "returnType": { "kind": "simple", "type": "JettonWalletData", "optional": false } },
 ]
 
 export const SampleJettonWallet_getterMapping: { [key: string]: string } = {
@@ -2784,44 +2790,44 @@ export const SampleJettonWallet_getterMapping: { [key: string]: string } = {
 }
 
 const SampleJettonWallet_receivers: ABIReceiver[] = [
-    {"receiver":"internal","message":{"kind":"typed","type":"JettonTransfer"}},
-    {"receiver":"internal","message":{"kind":"typed","type":"TokenTransferInternal"}},
-    {"receiver":"internal","message":{"kind":"typed","type":"TokenBurn"}},
-    {"receiver":"internal","message":{"kind":"typed","type":"Deploy"}},
+    { "receiver": "internal", "message": { "kind": "typed", "type": "JettonTransfer" } },
+    { "receiver": "internal", "message": { "kind": "typed", "type": "TokenTransferInternal" } },
+    { "receiver": "internal", "message": { "kind": "typed", "type": "TokenBurn" } },
+    { "receiver": "internal", "message": { "kind": "typed", "type": "Deploy" } },
 ]
 
 export class SampleJettonWallet implements Contract {
-    
+
     static async init(master: Address, owner: Address) {
         return await SampleJettonWallet_init(master, owner);
     }
-    
+
     static async fromInit(master: Address, owner: Address) {
         const init = await SampleJettonWallet_init(master, owner);
         const address = contractAddress(0, init);
         return new SampleJettonWallet(address, init);
     }
-    
+
     static fromAddress(address: Address) {
         return new SampleJettonWallet(address);
     }
-    
-    readonly address: Address; 
+
+    readonly address: Address;
     readonly init?: { code: Cell, data: Cell };
     readonly abi: ContractABI = {
-        types:  SampleJettonWallet_types,
+        types: SampleJettonWallet_types,
         getters: SampleJettonWallet_getters,
         receivers: SampleJettonWallet_receivers,
         errors: SampleJettonWallet_errors,
     };
-    
+
     private constructor(address: Address, init?: { code: Cell, data: Cell }) {
         this.address = address;
         this.init = init;
     }
-    
-    async send(provider: ContractProvider, via: Sender, args: { value: bigint, bounce?: boolean| null | undefined }, message: JettonTransfer | TokenTransferInternal | TokenBurn | Deploy) {
-        
+
+    async send(provider: ContractProvider, via: Sender, args: { value: bigint, bounce?: boolean | null | undefined }, message: JettonTransfer | TokenTransferInternal | TokenBurn | Deploy) {
+
         let body: Cell | null = null;
         if (message && typeof message === 'object' && !(message instanceof Slice) && message.$$type === 'JettonTransfer') {
             body = beginCell().store(storeJettonTransfer(message)).endCell();
@@ -2836,11 +2842,11 @@ export class SampleJettonWallet implements Contract {
             body = beginCell().store(storeDeploy(message)).endCell();
         }
         if (body === null) { throw new Error('Invalid message type'); }
-        
+
         await provider.internal(via, { ...args, body: body });
-        
+
     }
-    
+
     async getMsgValue(provider: ContractProvider, value: bigint) {
         let builder = new TupleBuilder();
         builder.writeNumber(value);
@@ -2848,12 +2854,12 @@ export class SampleJettonWallet implements Contract {
         let result = source.readBigNumber();
         return result;
     }
-    
+
     async getGetWalletData(provider: ContractProvider) {
         let builder = new TupleBuilder();
         let source = (await provider.get('get_wallet_data', builder.build())).stack;
         const result = loadGetterTupleJettonWalletData(source);
         return result;
     }
-    
+
 }

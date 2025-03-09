@@ -7,11 +7,10 @@ import { Currency, CurveTypes } from "@/types";
 import { SandboxContract } from '@ton/sandbox';
 import debug from 'debug';
 import { CHAIN, TonConnectUI } from '@tonconnect/ui-react';
-import { DEFAULT_CURRENCIES_MAP, TON_TX_VALID_UNTIL } from '../Defaults';
+import { TON_TX_VALID_UNTIL } from '../Defaults';
 import { AtomicVaultModel } from '@/models/Wallet/AtomicVault.model';
 import { AtomicMemberRecordModel } from '@/models/AtomicMember.model';
 import { PoolModel, Route } from '../Router';
-import { JettonDefaultWalletContract } from '../Wrappers';
 import { JettonTransfer } from '../Wrappers/tact_JettonDefaultWallet';
 import { SampleJettonWallet } from '../Wrappers/tact_SampleJettonWallet';
 
@@ -287,7 +286,17 @@ export class SwapService {
         userAddress: Address,
     }) {
         const { jettonAmount, publicKey, jettonMasterAddress, jettonVaultAddress, userAddress, userJettonWalletAddress } = args
-        const contract = this.tonClient.open(await SampleJettonWallet.fromInit(jettonMasterAddress, userAddress));
+        const wallet = this.tonClient.open(await SampleJettonWallet.fromInit(jettonMasterAddress, userAddress));
+
+        console.log("Sending deposit operation", {
+            jettonAmount,
+            publicKey,
+            jettonMasterAddress: jettonMasterAddress.toString(),
+            jettonVaultAddress: jettonVaultAddress.toString(),
+            userAddress: userAddress.toString(),
+            userJettonWalletAddress: userJettonWalletAddress.toString(),
+            contractAddress: wallet.address.toString(),
+        });
         const tx: JettonTransfer = {
             $$type: 'JettonTransfer',
             queryId: 0n,
@@ -299,10 +308,10 @@ export class SwapService {
             forwardPayload: getPublicKeyAsSlice(publicKey),
         }
 
-        await contract.send(
+        await wallet.send(
             this.getSender(),
             {
-                value: toNano("0.5"),
+                value: toNano("0.4"),
                 bounce: true,
             }, tx)
     }
@@ -408,7 +417,7 @@ export class SwapService {
             send: async (message) => {
                 await this.tonConnectUI.sendTransaction({
                     messages: [{
-                        address: this.contractAddress,
+                        address: message.to.toString(),
                         amount: message.value.toString(),
                         payload: message.body?.toBoc().toString('base64'),
                     }],
