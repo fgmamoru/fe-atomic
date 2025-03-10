@@ -55,6 +55,7 @@ export type ModelType = {
     setDepositAmountToMax: () => void
     maxDepositAmount: () => string,
     setDepositCurrency: (currency: Currency) => void
+    setMemberRecord: (member?: AtomicMemberRecordModel | null) => void
     depositErrorMessage: string
     selectedDepositCurrency: Currency
 
@@ -134,6 +135,17 @@ export type ModelType = {
     isSidebarOpen: boolean,
     setSidebarOpen: (isOpen: boolean) => void,
     resetRequestStatus: () => void,
+
+    isWithdrawModalOpen: boolean,
+    setWithdrawModalOpen: (isOpen: boolean) => void,
+    withdrawAmount: string,
+    setWithdrawAmount: (amount: string) => void,
+    selectedWithdrawCurrency: Currency,
+    setWithdrawCurrency: (currency: Currency) => void,
+    withdrawErrorMessage: string,
+    setWithdrawAmountToMax: () => void,
+    maxWithdrawAmountInTon: () => string,
+    maxWithdrawAmountInNano: () => bigint,
 };
 
 function NanoToTon(amount: bigint | number): number {
@@ -310,7 +322,7 @@ export const useModel = create<ModelType>(((set, get) => ({
             set({ requestStatus: RequestStatus.WaitingForConfirmation })
             if (member) {
                 const updatedPool = await member.poolForUpdates(true, DEPOSIT_TIMEOUT);
-                set({ _memberRecord: updatedPool });
+                get().setMemberRecord(updatedPool);
 
             } else {
                 const placeholderMember = AtomicMemberRecordModel.createPlaceholder(
@@ -318,7 +330,7 @@ export const useModel = create<ModelType>(((set, get) => ({
                     BigInt(`0x${get().tonConnectUI?.account?.publicKey!}`)
                 );
                 const updatedPool = await placeholderMember.poolForUpdates(true, DEPOSIT_TIMEOUT);
-                set({ _memberRecord: updatedPool });
+                get().setMemberRecord(updatedPool);
             }
             set({ requestStatus: RequestStatus.Confirmed })
 
@@ -373,6 +385,23 @@ export const useModel = create<ModelType>(((set, get) => ({
         if (!jettons) return true;
         if (jettons.length === 0) return true;
         return jettons.length === 1 && jettons[0].symbol === 'TON'
+    },
+
+    setMemberRecord: (member?: AtomicMemberRecordModel | null) => {
+        console.log('setMemberRecord, member', member)
+
+        if (!member) {
+            set({ _memberRecord: null })
+            return;
+        }
+        set({ _memberRecord: member })
+        const balance = member.getFirstPositiveBalance();
+        console.log('setMemberRecord, balance', balance)
+        if (balance) {
+            set({
+                selectedWithdrawCurrency: balance[0],
+            })
+        }
     },
 
     // unobserved state
@@ -498,7 +527,7 @@ export const useModel = create<ModelType>(((set, get) => ({
 
     setSwapAmount: (amount: string) => {
         debugLog('setAmount')
-        const { _swapService, _maxAmountInNano, tonConnectUI, _memberRecord } = get()
+        const { _maxAmountInNano, tonConnectUI, _memberRecord } = get()
         // remove non-numeric characters and replace comma with dot
         const formatted = amount
             .replace(/[^0-9.,]/g, '')
@@ -807,18 +836,15 @@ export const useModel = create<ModelType>(((set, get) => ({
                 get().swapAmountInNano()!,
                 get()._resultSwapAmountInNano!,
             )
-
-            set({
-                _memberRecord: cloned,
-            })
+            get().setMemberRecord(cloned);
 
 
             const newMember = await get()._memberRecord?.poolForUpdates();
 
             set({
                 requestStatus: RequestStatus.DataUpdated,
-                _memberRecord: newMember,
             })
+            get().setMemberRecord(newMember!);
 
             toast.success('Swap executed successfully')
         }
@@ -952,9 +978,7 @@ export const useModel = create<ModelType>(((set, get) => ({
 
             debugLog('memberRecord', _memberRecord);
 
-            set({
-                _memberRecord,
-            });
+            get().setMemberRecord(_memberRecord);
             get().reloadSwapAmount();
         } catch (error) {
             console.error(error)
@@ -1125,7 +1149,50 @@ export const useModel = create<ModelType>(((set, get) => ({
 
     resetRequestStatus: () => {
         set({ requestStatus: RequestStatus.None, requestType: RequestType.None })
-    }
+    },
+
+    isWithdrawModalOpen: false,
+    setWithdrawModalOpen: (isOpen: boolean) => {
+        set({ isWithdrawModalOpen: isOpen })
+    },
+    withdrawAmount: '',
+    setWithdrawAmount: (amount: string) => {
+        const { maxWithdrawAmountInNano } = get()
+        // remove non-numeric characters and replace comma with dot
+        const formatted = formatInputAmount(amount);
+        const amountInNano = toNano(formatted);
+
+        if (amountInNano > maxWithdrawAmountInNano()) {
+            set({ withdrawErrorMessage: `Not enough balance.` })
+        } else {
+            set({ withdrawErrorMessage: '' })
+        }
+        set({ withdrawAmount: formatted })
+    },
+    selectedWithdrawCurrency: DEFAULT_CURRENCIES_MAP['TON'],
+    setWithdrawCurrency: (currency: Currency) => {
+        set({ selectedWithdrawCurrency: currency })
+    },
+    withdrawErrorMessage: '',
+    setWithdrawAmountToMax: () => {
+        const { maxAmountOfTonBalanceInTon, selectedWithdrawCurrency, maxWithdrawAmountInTon } = get()
+
+        if (selectedWithdrawCurrency === DEFAULT_CURRENCIES_MAP.TON) {
+            set({ withdrawAmount: maxAmountOfTonBalanceInTon().toString() })
+        } else {
+            set({ withdrawAmount: maxWithdrawAmountInTon() })
+        }
+    },
+    maxWithdrawAmountInTon: () => {
+        return formatCryptoAmount(NanoToTon(get().maxWithdrawAmountInNano()))
+    },
+    maxWithdrawAmountInNano: () => {
+        const { selectedWithdrawCurrency, _memberRecord } = get();
+
+        const balance = _memberRecord?.getCurrencyBalance(selectedWithdrawCurrency)
+
+        return balance || 0n
+    },
 })))
 export const minimumTonBalanceReserve = 200000000n
 

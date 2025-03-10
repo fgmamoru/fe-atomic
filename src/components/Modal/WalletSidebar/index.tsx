@@ -114,8 +114,7 @@ const DepositedTokensSection = () => {
 }
 
 const ActionButtonsSection = () => {
-    const { setDepositModalOpen, tonBalanceInNano } = useModel();
-
+    const { setDepositModalOpen, tonBalanceInNano, setWithdrawModalOpen } = useModel();
 
     return (
         <section>
@@ -128,7 +127,11 @@ const ActionButtonsSection = () => {
                     <img src="/icons/deposit.svg" aria-hidden />
                     Deposit
                 </button>
-                <button className={styles.ActionButton} disabled>
+                <button
+                    className={styles.ActionButton}
+                    onClick={() => setWithdrawModalOpen(true)}
+                    disabled={tonBalanceInNano === 0n || !tonBalanceInNano}
+                >
                     <img src="/icons/withdraw.svg" aria-hidden />
                     Withdraw
                 </button>
@@ -153,7 +156,7 @@ const TokensInYourWalletSection = () => {
             {
                 jettons.filter((jetton) => jetton.balance).map((jetton: NativeJettonModel) => {
                     return (<TokenButton
-                        key={jetton.address}
+                        key={jetton.address.toString()}
                         currency={jetton.currency}
                         balance={jetton.balance}
                         onClick={() => { }} />)

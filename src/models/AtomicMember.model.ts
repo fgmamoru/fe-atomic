@@ -91,6 +91,14 @@ export class AtomicMemberRecordModel {
         return this.balances[currency.balanceKey];
     }
 
+    public getFirstPositiveBalance(): [Currency, bigint] | null {
+        for (const [currency, balance] of this.positiveBalances) {
+            return [currency, balance];
+        }
+
+        return null;
+    }
+
     /**
      * Starts pooling for updates in balances until it founds a change
      */
