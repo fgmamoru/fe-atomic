@@ -8,17 +8,19 @@ import { useState } from "react";
 import { TxSpeed, TxSpeedBadge } from "@/components/Misc/TxSpeedBadge";
 import { useModel } from "@/components/Services/Model";
 import { WithdrawTokenSelectorModal } from "@/components/Modal/WithdrawTokenSelectorModal";
+import { useTonWallet } from "@tonconnect/ui-react";
 
 
 export function DexWithdrawTab() {
     const model = useModel();
     const [isTokenSelectorModalOpen, setIsTokenSelectorModalOpen] = useState(false);
+    const wallet = useTonWallet();
+
     const isWithdrawButtonEnabled = () => {
-        console.log()
-        return model.withdrawAmount && parseFloat(model.withdrawAmount) && !model.withdrawErrorMessage && model.wallet;
+        return model.withdrawAmount && parseFloat(model.withdrawAmount) && !model.withdrawErrorMessage && wallet;
     };
     const getWithdrawButtonLabel = () => {
-        if (!model.wallet) {
+        if (!wallet) {
             return "Connect Wallet";
         }
         return "Withdraw";
