@@ -66,9 +66,7 @@ export function DexWithdrawTab() {
             </div>
             <MainButton
                 disabled={!isWithdrawButtonEnabled()}
-                onClick={() => {
-                    alert('Withdraw button clicked');
-                }}
+                onClick={model.executeWithdraw}
                 fullWidth>{getWithdrawButtonLabel()}</MainButton>
             <WithdrawTokenSelectorModal isOpen={isTokenSelectorModalOpen} onClose={
                 () => {

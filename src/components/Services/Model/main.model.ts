@@ -26,6 +26,7 @@ import { hasTxByMsgBodyHash } from '@/services/ton.service';
 const atomicDex = AtomicDex.fromAddress(Address.parse(ATOMIC_DEX_CONTRACT_ADDRESS))
 const debugLog = debug('app:model')
 const DEPOSIT_TIMEOUT = 40 * 1000;
+const WITHDRAW_TIMEOUT = 40 * 1000;
 
 export type ModelType = {
     requestType: RequestType,
@@ -54,6 +55,7 @@ export type ModelType = {
     setDepositModalOpen: (isOpen: boolean) => void
     setDepositAmountToMax: () => void
     maxDepositAmount: () => string,
+    maxDepositAmountInNano: () => bigint,
     setDepositCurrency: (currency: Currency) => void
     setMemberRecord: (member?: AtomicMemberRecordModel | null) => void
     depositErrorMessage: string
@@ -128,7 +130,6 @@ export type ModelType = {
     _initAuthTokenChecker: () => void,
     _initRefreshPools: () => void,
     _maxAmountOfTonBalanceInNano: () => bigint,
-    maxAmountOfTonBalanceInTon: () => number,
     _setResultAmount: (bigint: bigint) => void,
     _authToken: string | null,
 
@@ -146,6 +147,7 @@ export type ModelType = {
     setWithdrawAmountToMax: () => void,
     maxWithdrawAmountInTon: () => string,
     maxWithdrawAmountInNano: () => bigint,
+    executeWithdraw: () => void,
 };
 
 function NanoToTon(amount: bigint | number): number {
@@ -208,12 +210,12 @@ export const useModel = create<ModelType>(((set, get) => ({
     },
 
     setDepositAmount: (amount: string) => {
-        const { _maxAmountOfTonBalanceInNano } = get()
+        const { maxDepositAmountInNano } = get()
         // remove non-numeric characters and replace comma with dot
         const formatted = formatInputAmount(amount);
         const amountInNano = toNano(formatted);
 
-        if (amountInNano > _maxAmountOfTonBalanceInNano()) {
+        if (amountInNano > maxDepositAmountInNano()) {
             set({ depositErrorMessage: `Not enough balance.` })
         } else {
             set({ depositErrorMessage: '' })
@@ -223,10 +225,10 @@ export const useModel = create<ModelType>(((set, get) => ({
 
     },
     setDepositAmountToMax: () => {
-        const { maxAmountOfTonBalanceInTon, selectedDepositCurrency, maxDepositAmount } = get()
+        const { _maxAmountOfTonBalanceInNano, selectedDepositCurrency, maxDepositAmount } = get()
 
         if (selectedDepositCurrency === DEFAULT_CURRENCIES_MAP.TON) {
-            set({ depositAmount: maxAmountOfTonBalanceInTon().toString() })
+            set({ depositAmount: _maxAmountOfTonBalanceInNano().toString() })
         } else {
             set({ depositAmount: maxDepositAmount() })
         }
@@ -274,39 +276,7 @@ export const useModel = create<ModelType>(((set, get) => ({
                     userJettonWalletAddress: address!,
                     userAddress: address!,
                 }
-                // depositAmountInNano()!,
-                // jetton?.address!,
-                // address!,
             )
-            // console.log('GET DEPOSIT PAYLOAD', body)
-
-            // tonConnectUI?.sendTransaction({
-            //     validUntil: Math.floor(Date.now() / 1000) + 360,
-            //     messages: [{
-            //         address: jetton?.address!,
-            //         amount: toNano('0.05').toString(),
-            //         payload: body.toBoc().toString('base64'),
-            //     }]
-            // })
-
-
-            // await _swapService!.sendDepositOperation(
-            //     get().tonConnectUI?.account?.publicKey!,
-            //     amountInNano()!,
-            //     selectedDepositCurrency.id,
-            // );
-            // wait until the deposit is signed
-
-            // const startTime = Date.now();
-            // while (get().requestStatus === RequestStatus.Requested) {
-            //     if (Date.now() - startTime > 30000) {
-            //         set({ requestStatus: RequestStatus.Failed });
-            //         toast.error('Deposit cannot be confirmed, please try again');
-            //         return;
-            //     }
-            //     await new Promise((resolve) => setTimeout(resolve, 500));
-            // }
-
 
 
             if (get().requestStatus === RequestStatus.Failed) {
@@ -365,19 +335,23 @@ export const useModel = create<ModelType>(((set, get) => ({
     },
 
     maxDepositAmount() {
+        return formatNano(get().maxDepositAmountInNano())
+    },
+
+    maxDepositAmountInNano(): bigint {
         const { selectedDepositCurrency, jettons } = get();
 
-        if (selectedDepositCurrency == null) return '0';
+        if (selectedDepositCurrency == null) return 0n;
 
         if (selectedDepositCurrency.symbol === DEFAULT_CURRENCIES_MAP.TON.symbol) {
-            return get().maxAmountOfTonBalanceInTon().toString()
+            return get()._maxAmountOfTonBalanceInNano()
         }
 
 
         const jetton = jettons.find((jetton) => jetton.currency.symbol === selectedDepositCurrency.symbol)
         debugLog('maxDepositAmount, jettons', jetton?.symbol, selectedDepositCurrency)
 
-        return formatNano(jetton?.balance ?? 0n)
+        return jetton?.balance ?? 0n
     },
 
     isOnlyNativeTonJettonAvailable: () => {
@@ -1171,14 +1145,15 @@ export const useModel = create<ModelType>(((set, get) => ({
     },
     selectedWithdrawCurrency: DEFAULT_CURRENCIES_MAP['TON'],
     setWithdrawCurrency: (currency: Currency) => {
-        set({ selectedWithdrawCurrency: currency })
+        set({ selectedWithdrawCurrency: currency });
+        get().setWithdrawAmount('');
     },
     withdrawErrorMessage: '',
     setWithdrawAmountToMax: () => {
-        const { maxAmountOfTonBalanceInTon, selectedWithdrawCurrency, maxWithdrawAmountInTon } = get()
+        const { _maxAmountOfTonBalanceInNano, selectedWithdrawCurrency, maxWithdrawAmountInTon } = get()
 
         if (selectedWithdrawCurrency === DEFAULT_CURRENCIES_MAP.TON) {
-            set({ withdrawAmount: maxAmountOfTonBalanceInTon().toString() })
+            set({ withdrawAmount: _maxAmountOfTonBalanceInNano().toString() })
         } else {
             set({ withdrawAmount: maxWithdrawAmountInTon() })
         }
@@ -1190,9 +1165,72 @@ export const useModel = create<ModelType>(((set, get) => ({
         const { selectedWithdrawCurrency, _memberRecord } = get();
 
         const balance = _memberRecord?.getCurrencyBalance(selectedWithdrawCurrency)
-
+        console.log('~, balance', balance)
         return balance || 0n
     },
+    executeWithdraw: async () => {
+        debugLog('executeWithdraw')
+        try {
+            const { _swapService, tonConnectUI, withdrawAmount, selectedWithdrawCurrency, isConnected, _memberRecord: member } = get();
+
+            if (!isConnected()) return toast.error('Please connect your wallet');
+            if (!withdrawAmount) return toast.error('Please enter an amount to Withdraw');
+            if (parseFloat(withdrawAmount) === 0) return toast.error(AMOUNT_MUST_BE_GREATER_THAN_ZERO);
+            set({ requestStatus: RequestStatus.Requested, requestType: RequestType.Withdraw })
+            const vaultId = selectedWithdrawCurrency.id
+
+            await _swapService?.sendWithdrawOperation({
+                publicKey: tonConnectUI?.account?.publicKey!,
+                jettonAmount: toNano(withdrawAmount),
+                atomicVaultId: vaultId,
+            })
+
+
+            if (get().requestStatus === RequestStatus.Failed) {
+                toast.error('Withdraw failed, please try again');
+                return;
+            }
+
+            if (get().requestStatus === RequestStatus.SignFailed) {
+                toast.error('Withdraw signing failed, please try again');
+                return;
+            }
+
+            set({ requestStatus: RequestStatus.WaitingForConfirmation })
+            if (member) {
+                const updatedPool = await member.poolForUpdates(true, WITHDRAW_TIMEOUT);
+                get().setMemberRecord(updatedPool);
+
+            } else {
+                const placeholderMember = AtomicMemberRecordModel.createPlaceholder(
+                    get()._atomicDexContract!,
+                    BigInt(`0x${get().tonConnectUI?.account?.publicKey!}`)
+                );
+                const updatedPool = await placeholderMember.poolForUpdates(true, WITHDRAW_TIMEOUT);
+                get().setMemberRecord(updatedPool);
+            }
+            set({ requestStatus: RequestStatus.Confirmed })
+            toast.success('Withdraw successful');
+
+        } catch (error) {
+            if (error instanceof TimeoutError) {
+                toast.error('Withdraw confirmation timed out, please reload and try again');
+                return;
+            }
+
+            // if type is UserRejectsError then the user rejected the transaction
+            debugLog(error, (error as Error)?.name)
+            if ((error as Error)?.message.includes('UserRejectsError')) {
+                toast.info('User rejected the transaction');
+                return;
+            }
+
+            console.error(error)
+            toast.error('Withdraw failed, please try again')
+        } finally {
+            set({ requestStatus: RequestStatus.None, requestType: RequestType.None })
+        }
+    }
 })))
 export const minimumTonBalanceReserve = 200000000n
 
@@ -1218,8 +1256,4 @@ function saveAuthToken(token: string | null) {
         return;
     }
     localStorage.setItem('authToken', token!);
-}
-
-function _initRouting() {
-    throw new Error('Function not implemented.');
 }

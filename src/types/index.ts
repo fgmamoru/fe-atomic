@@ -183,4 +183,5 @@ export enum RequestType {
     None,
     Deposit,
     Swap,
+    Withdraw,
 }

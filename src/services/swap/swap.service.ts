@@ -2,7 +2,7 @@ import { sha256, signVerify } from '@ton/crypto';
 
 import { Address, beginCell, Builder, Dictionary, OpenedContract, Sender, toNano, TonClient, TonClient4 } from "@ton/ton";
 import { ATOMIC_DEX_CONTRACT_ADDRESS, NETWORK, TON_CENTER_API_URL } from "../config.service";
-import { AtomicDex, AtomicPool, MultiSwapBackend, storeMultiSwapBackend, SwapOrder } from "../Wrappers/AtomicDex.wrapper";
+import { AtomicDex, AtomicPool, MultiSwapBackend, storeMultiSwapBackend, SwapOrder, Withdraw } from "../Wrappers/AtomicDex.wrapper";
 import { Currency, CurveTypes } from "@/types";
 import { SandboxContract } from '@ton/sandbox';
 import debug from 'debug';
@@ -287,16 +287,6 @@ export class SwapService {
     }) {
         const { jettonAmount, publicKey, jettonMasterAddress, jettonVaultAddress, userAddress, userJettonWalletAddress } = args
         const wallet = this.tonClient.open(await SampleJettonWallet.fromInit(jettonMasterAddress, userAddress));
-
-        console.log("Sending deposit operation", {
-            jettonAmount,
-            publicKey,
-            jettonMasterAddress: jettonMasterAddress.toString(),
-            jettonVaultAddress: jettonVaultAddress.toString(),
-            userAddress: userAddress.toString(),
-            userJettonWalletAddress: userJettonWalletAddress.toString(),
-            contractAddress: wallet.address.toString(),
-        });
         const tx: JettonTransfer = {
             $$type: 'JettonTransfer',
             queryId: 0n,
@@ -313,6 +303,29 @@ export class SwapService {
             {
                 value: toNano("0.4"),
                 bounce: true,
+            }, tx)
+    }
+
+    async sendWithdrawOperation(args: {
+        publicKey: string,
+        jettonAmount: bigint,
+        atomicVaultId: bigint,
+    }) {
+        const { jettonAmount, publicKey, atomicVaultId } = args
+        const tx: Withdraw = {
+            $$type: 'Withdraw',
+            queryId: 0n,
+            publicKey: BigInt(`0x${publicKey}`),
+            amount: jettonAmount,
+            atomicVaultId: atomicVaultId
+        }
+
+        console.log("Withdraw", tx);
+
+        await this.dexContract.send(
+            this.getSender(),
+            {
+                value: toNano("0.5"),
             }, tx)
     }
 
