@@ -1,3 +1,5 @@
+import { Address } from "@ton/core";
+
 export const ATOMIC_DEX_CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_ATOMIC_DEX_CONTRACT_ADDRESS!;
 
 if (!ATOMIC_DEX_CONTRACT_ADDRESS) {
@@ -58,6 +60,8 @@ export const CONFIG = {
     DOGS_MASTER_CONTRACT_ADDRESS: validateDefaultJettonMasterAddress("DOGS", process.env.NEXT_PUBLIC_DOGS_MASTER_CONTRACT_ADDRESS),
     NOT_MASTER_CONTRACT_ADDRESS: validateDefaultJettonMasterAddress("NOT", process.env.NEXT_PUBLIC_NOT_MASTER_CONTRACT_ADDRESS),
     CATS_MASTER_CONTRACT_ADDRESS: validateDefaultJettonMasterAddress("CATS", process.env.NEXT_PUBLIC_CATS_MASTER_CONTRACT_ADDRESS),
+
+    TON_VAULT_CONTRACT_ADDRESS: validateTonVaultContractAddress(),
 }
 
 function validateDefaultJettonMasterAddress(name: string, value?: string): string {
@@ -69,6 +73,22 @@ function validateDefaultJettonMasterAddress(name: string, value?: string): strin
     return value || "";
 }
 
+
+function validateTonVaultContractAddress(): string {
+    const addr = process.env.NEXT_PUBLIC_TON_VAULT_CONTRACT_ADDRESS;
+    const isAddress = Address.isAddress(addr);
+    console.log(Address)
+    if (!addr) {
+        console.warn(`TON vault contract address is not set NEXT_PUBLIC_TON_VAULT_CONTRACT_ADDRESS`);
+        return "";
+    }
+
+    if (!isAddress) {
+        console.warn(`TON vault contract address is not valid ${addr} in NEXT_PUBLIC_TON_VAULT_CONTRACT_ADDRESS`);
+    }
+
+    return addr;
+}
 
 
 

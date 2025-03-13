@@ -269,6 +269,7 @@ export const useModel = create<ModelType>(((set, get) => ({
 
             await _swapService?.sendDepositOperation(
                 {
+                    vaultId: atomicVault?.id!,
                     publicKey: tonConnectUI?.account?.publicKey!,
                     jettonAmount: depositAmountInNano()!,
                     jettonMasterAddress: jetton?.masterAddress!,
@@ -1171,7 +1172,15 @@ export const useModel = create<ModelType>(((set, get) => ({
     executeWithdraw: async () => {
         debugLog('executeWithdraw')
         try {
-            const { _swapService, tonConnectUI, withdrawAmount, selectedWithdrawCurrency, isConnected, _memberRecord: member } = get();
+            const {
+                _swapService,
+                tonConnectUI,
+                withdrawAmount,
+                selectedWithdrawCurrency,
+                isConnected,
+                _memberRecord: member,
+                setWithdrawModalOpen,
+                setWithdrawAmount } = get();
 
             if (!isConnected()) return toast.error('Please connect your wallet');
             if (!withdrawAmount) return toast.error('Please enter an amount to Withdraw');
@@ -1210,6 +1219,8 @@ export const useModel = create<ModelType>(((set, get) => ({
                 get().setMemberRecord(updatedPool);
             }
             set({ requestStatus: RequestStatus.Confirmed })
+            setWithdrawAmount('');
+            setWithdrawModalOpen(false);
             toast.success('Withdraw successful');
 
         } catch (error) {

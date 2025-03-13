@@ -1,7 +1,7 @@
 import { sha256, signVerify } from '@ton/crypto';
 
 import { Address, beginCell, Builder, Dictionary, OpenedContract, Sender, toNano, TonClient, TonClient4 } from "@ton/ton";
-import { ATOMIC_DEX_CONTRACT_ADDRESS, NETWORK, TON_CENTER_API_URL } from "../config.service";
+import { ATOMIC_DEX_CONTRACT_ADDRESS, CONFIG, NETWORK, TON_CENTER_API_URL } from "../config.service";
 import { AtomicDex, AtomicPool, MultiSwapBackend, storeMultiSwapBackend, SwapOrder, Withdraw } from "../Wrappers/AtomicDex.wrapper";
 import { Currency, CurveTypes } from "@/types";
 import { SandboxContract } from '@ton/sandbox';
@@ -11,8 +11,9 @@ import { TON_TX_VALID_UNTIL } from '../Defaults';
 import { AtomicVaultModel } from '@/models/Wallet/AtomicVault.model';
 import { AtomicMemberRecordModel } from '@/models/AtomicMember.model';
 import { PoolModel, Route } from '../Router';
-import { JettonTransfer } from '../Wrappers/tact_JettonDefaultWallet';
+import { JettonTransfer } from '../Wrappers/tact_SampleJettonWallet';
 import { SampleJettonWallet } from '../Wrappers/tact_SampleJettonWallet';
+import { AtomicTonVault, TonTokenTransfer } from '../Wrappers/tact_AtomicTonVault';
 
 const debugLog = debug('app:swap');
 
@@ -278,6 +279,48 @@ export class SwapService {
     }
 
     async sendDepositOperation(args: {
+        vaultId: bigint,
+        publicKey: string,
+        jettonAmount: bigint,
+        jettonMasterAddress: Address,
+        jettonVaultAddress: Address,
+        userJettonWalletAddress: Address,
+        userAddress: Address,
+    }) {
+        if (args.vaultId === 0n) {
+            return this.sendTonDepositOperation(args);
+        }
+        return this.sendJettonDepositOperation(args);
+    }
+
+    async sendTonDepositOperation(args: {
+        publicKey: string,
+        jettonAmount: bigint,
+        jettonMasterAddress: Address,
+        jettonVaultAddress: Address,
+        userJettonWalletAddress: Address,
+        userAddress: Address,
+    }) {
+        const tx: TonTokenTransfer = {
+            $$type: 'TonTokenTransfer',
+            queryId: 0n,
+            amount: args.jettonAmount,
+            publicKey: getPublicKeyAsSlice(args.publicKey),
+        };
+
+        console.log("DEPOSIT VAULT", CONFIG.TON_VAULT_CONTRACT_ADDRESS)
+        const contract = this.tonClient.open(AtomicTonVault.fromAddress(Address.parse(CONFIG.TON_VAULT_CONTRACT_ADDRESS)));
+
+
+        await contract.send(
+            this.getSender(),
+            {
+                value: toNano("0.1") + args.jettonAmount,
+            }, tx
+        )
+    }
+
+    private async sendJettonDepositOperation(args: {
         publicKey: string,
         jettonAmount: bigint,
         jettonMasterAddress: Address,
@@ -301,7 +344,7 @@ export class SwapService {
         await wallet.send(
             this.getSender(),
             {
-                value: toNano("0.4"),
+                value: toNano("0.5"),
                 bounce: true,
             }, tx)
     }
@@ -320,12 +363,11 @@ export class SwapService {
             atomicVaultId: atomicVaultId
         }
 
-        console.log("Withdraw", tx);
 
         await this.dexContract.send(
             this.getSender(),
             {
-                value: toNano("0.5"),
+                value: toNano("0.1"),
             }, tx)
     }
 
